@@ -1,0 +1,91 @@
+"Year","Gender","Age at diagnosis","Geography type","Geography code","Geography name ","NDRS main","Count","Type of rate","Rate","95% lower confidence interval","95% upper confidence interval","Flag"
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000200","Babergh","Prostate","147","Non-standardised","321.5","271.6","377.9",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000200","Babergh","Prostate","147","Age-standardised","245.5","207.3","288.7",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000066","Basildon","Prostate","149","Non-standardised","162.4","137.3","190.6",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000066","Basildon","Prostate","149","Age-standardised","192.9","163","226.5",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000055","Bedford","Prostate","223","Non-standardised","242","211.3","276",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000055","Bedford","Prostate","223","Age-standardised","278.7","243.2","317.8",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000067","Braintree","Prostate","157","Non-standardised","203.6","173","238.1",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000067","Braintree","Prostate","157","Age-standardised","200.6","170.4","234.7",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000143","Breckland","Prostate","165","Non-standardised","232","198","270.2",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000143","Breckland","Prostate","165","Age-standardised","193.7","165.2","225.8",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000068","Brentwood","Prostate","79","Non-standardised","210.2","166.4","261.9",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000068","Brentwood","Prostate","79","Age-standardised","213.6","169.1","266.3",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000144","Broadland","Prostate","138","Non-standardised","211.5","177.7","249.9",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000144","Broadland","Prostate","138","Age-standardised","169.5","142.3","200.3",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000095","Broxbourne","Prostate","135","Non-standardised","282.5","236.8","334.3",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000095","Broxbourne","Prostate","135","Age-standardised","318.8","267.2","377.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000008","Cambridge","Prostate","106","Non-standardised","143.4","117.4","173.5",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000008","Cambridge","Prostate","106","Age-standardised","245.2","200.5","297",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000069","Castle Point","Prostate","98","Non-standardised","225.3","182.9","274.6",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000069","Castle Point","Prostate","98","Age-standardised","190.4","154.4","232.3",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000056","Central Bedfordshire","Prostate","370","Non-standardised","249","224.3","275.7",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000056","Central Bedfordshire","Prostate","370","Age-standardised","269.2","242.4","298.2",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000070","Chelmsford","Prostate","157","Non-standardised","174.8","148.5","204.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000070","Chelmsford","Prostate","157","Age-standardised","183.4","155.8","214.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000071","Colchester","Prostate","200","Non-standardised","209.6","181.6","240.8",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000071","Colchester","Prostate","200","Age-standardised","238.9","206.9","274.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000096","Dacorum","Prostate","184","Non-standardised","239.9","206.5","277.2",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000096","Dacorum","Prostate","184","Age-standardised","268.9","231.4","310.8",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000009","East Cambridgeshire","Prostate","76","Non-standardised","173.2","136.5","216.8",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000009","East Cambridgeshire","Prostate","76","Age-standardised","166.7","131.3","208.7",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000242","East Hertfordshire","Prostate","128","Non-standardised","172.8","144.1","205.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000242","East Hertfordshire","Prostate","128","Age-standardised","182.5","152.2","217.1",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000244","East Suffolk","Prostate","350","Non-standardised","290.3","260.7","322.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000244","East Suffolk","Prostate","350","Age-standardised","216.2","194","240.2",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000072","Epping Forest","Prostate","125","Non-standardised","191.2","159.1","227.8",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000072","Epping Forest","Prostate","125","Age-standardised","194.2","161.6","231.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000010","Fenland","Prostate","143","Non-standardised","284","239.3","334.5",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000010","Fenland","Prostate","143","Age-standardised","250.3","210.9","294.9",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000145","Great Yarmouth","Prostate","106","Non-standardised","217.5","178.1","263.1",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000145","Great Yarmouth","Prostate","106","Age-standardised","181.8","148.7","220.1",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000073","Harlow","Prostate","79","Non-standardised","172.3","136.4","214.8",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000073","Harlow","Prostate","79","Age-standardised","230","181.4","287.5",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000098","Hertsmere","Prostate","118","Non-standardised","226.6","187.6","271.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000098","Hertsmere","Prostate","118","Age-standardised","251","207.7","300.6",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000011","Huntingdonshire","Prostate","171","Non-standardised","187.5","160.5","217.8",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000011","Huntingdonshire","Prostate","171","Age-standardised","184.4","157.7","214.2",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000202","Ipswich","Prostate","114","Non-standardised","165","136.1","198.2",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000202","Ipswich","Prostate","114","Age-standardised","197.4","162.8","237.3",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000146","King's Lynn and West Norfolk","Prostate","174","Non-standardised","228.4","195.7","264.9",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000146","King's Lynn and West Norfolk","Prostate","174","Age-standardised","185.3","158.7","215.1",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000032","Luton","Prostate","175","Non-standardised","152.4","130.6","176.7",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000032","Luton","Prostate","175","Age-standardised","249.7","213.5","290.3",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000074","Maldon","Prostate","74","Non-standardised","223.9","175.8","281.1",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000074","Maldon","Prostate","74","Age-standardised","179.9","141.2","226",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000203","Mid Suffolk","Prostate","155","Non-standardised","297","252.1","347.6",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000203","Mid Suffolk","Prostate","155","Age-standardised","244.5","207.4","286.3",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000099","North Hertfordshire","Prostate","160","Non-standardised","245.7","209.1","286.9",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000099","North Hertfordshire","Prostate","160","Age-standardised","254.1","216.2","296.7",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000147","North Norfolk","Prostate","148","Non-standardised","293.8","248.4","345.2",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000147","North Norfolk","Prostate","148","Age-standardised","185.3","156.4","218",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000148","Norwich","Prostate","72","Non-standardised","100.1","78.3","126",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000148","Norwich","Prostate","72","Age-standardised","138.4","108.3","174.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000031","Peterborough","Prostate","174","Non-standardised","161.8","138.7","187.8",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000031","Peterborough","Prostate","174","Age-standardised","221.6","189.7","257.3",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000075","Rochford","Prostate","78","Non-standardised","184.6","145.9","230.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000075","Rochford","Prostate","78","Age-standardised","164.8","130.2","205.7",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000012","South Cambridgeshire","Prostate","199","Non-standardised","245.1","212.3","281.7",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000012","South Cambridgeshire","Prostate","199","Age-standardised","251.5","217.7","289",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000149","South Norfolk","Prostate","134","Non-standardised","190.1","159.3","225.2",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000149","South Norfolk","Prostate","134","Age-standardised","162.5","136","192.5",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000033","Southend-on-Sea","Prostate","150","Non-standardised","170.1","144","199.6",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000033","Southend-on-Sea","Prostate","150","Age-standardised","181.7","153.8","213.3",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000240","St Albans","Prostate","156","Non-standardised","215.1","182.6","251.6",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000240","St Albans","Prostate","156","Age-standardised","247.7","210.3","289.9",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000243","Stevenage","Prostate","86","Non-standardised","194.2","155.3","239.8",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000243","Stevenage","Prostate","86","Age-standardised","240","191.4","297",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000076","Tendring","Prostate","250","Non-standardised","342.7","301.5","387.9",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000076","Tendring","Prostate","250","Age-standardised","245.1","215.5","277.7",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000102","Three Rivers","Prostate","130","Non-standardised","283.7","237","336.8",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000102","Three Rivers","Prostate","130","Age-standardised","309.6","258.6","367.7",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000034","Thurrock","Prostate","126","Non-standardised","145.5","121.2","173.2",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E06000034","Thurrock","Prostate","126","Age-standardised","208.2","173","248.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000077","Uttlesford","Prostate","115","Non-standardised","253.3","209.2","304.1",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000077","Uttlesford","Prostate","115","Age-standardised","244.2","201.6","293.2",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000103","Watford","Prostate","70","Non-standardised","138.3","107.8","174.7",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000103","Watford","Prostate","70","Age-standardised","210.5","163.6","266.6",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000241","Welwyn Hatfield","Prostate","130","Non-standardised","219.3","183.2","260.4",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000241","Welwyn Hatfield","Prostate","130","Age-standardised","273.2","228.2","324.6",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000245","West Suffolk","Prostate","168","Non-standardised","184","157.2","214",NA
+2022,"Males","All ages","Local Authority Unitary Authories (LAUA)","E07000245","West Suffolk","Prostate","168","Age-standardised","185","158","215.2",NA

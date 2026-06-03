@@ -1,0 +1,91 @@
+"Year","Gender","Age at diagnosis","Geography type","Geography code","Geography name ","NDRS main","Count","Type of rate","Rate","95% lower confidence interval","95% upper confidence interval","Flag"
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000200","Babergh","Skin cancer","552","Non-standardised","585.4","537.6","636.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000200","Babergh","Skin cancer","552","Age-gender-standardised","447.2","410.2","486.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000066","Basildon","Skin cancer","898","Non-standardised","475.6","445","507.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000066","Basildon","Skin cancer","898","Age-gender-standardised","537.7","502.8","574.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000055","Bedford","Skin cancer","724","Non-standardised","386.1","358.5","415.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000055","Bedford","Skin cancer","724","Age-gender-standardised","441.2","409.4","474.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000067","Braintree","Skin cancer","824","Non-standardised","522.8","487.7","559.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000067","Braintree","Skin cancer","824","Age-gender-standardised","505.6","471.4","541.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000143","Breckland","Skin cancer","662","Non-standardised","461.5","427","498",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000143","Breckland","Skin cancer","662","Age-gender-standardised","373.9","345.7","403.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000068","Brentwood","Skin cancer","472","Non-standardised","610.2","556.4","667.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000068","Brentwood","Skin cancer","472","Age-gender-standardised","591.5","538.9","647.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000144","Broadland","Skin cancer","648","Non-standardised","484","447.4","522.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000144","Broadland","Skin cancer","648","Age-gender-standardised","376.2","347.4","406.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000095","Broxbourne","Skin cancer","517","Non-standardised","522.2","478.2","569.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000095","Broxbourne","Skin cancer","517","Age-gender-standardised","569.3","520.9","621.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000008","Cambridge","Skin cancer","437","Non-standardised","295.6","268.6","324.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000008","Cambridge","Skin cancer","437","Age-gender-standardised","472.5","428.5","519.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000069","Castle Point","Skin cancer","651","Non-standardised","725.4","670.7","783.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000069","Castle Point","Skin cancer","651","Age-gender-standardised","590.8","545.5","638.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000056","Central Bedfordshire","Skin cancer","1241","Non-standardised","411.2","388.6","434.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000056","Central Bedfordshire","Skin cancer","1241","Age-gender-standardised","445.6","421","471.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000070","Chelmsford","Skin cancer","1071","Non-standardised","583.9","549.5","620",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000070","Chelmsford","Skin cancer","1071","Age-gender-standardised","594","558.7","630.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000071","Colchester","Skin cancer","827","Non-standardised","424.9","396.4","454.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000071","Colchester","Skin cancer","827","Age-gender-standardised","463.3","432.1","496.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000096","Dacorum","Skin cancer","663","Non-standardised","424.5","392.8","458.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000096","Dacorum","Skin cancer","663","Age-gender-standardised","461.9","427.1","498.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000009","East Cambridgeshire","Skin cancer","441","Non-standardised","493.1","448.1","541.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000009","East Cambridgeshire","Skin cancer","441","Age-gender-standardised","461.8","419.5","507.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000242","East Hertfordshire","Skin cancer","779","Non-standardised","513.5","478","550.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000242","East Hertfordshire","Skin cancer","779","Age-gender-standardised","531.3","494.4","570.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000244","East Suffolk","Skin cancer","1583","Non-standardised","640.7","609.5","673",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000244","East Suffolk","Skin cancer","1583","Age-gender-standardised","469.4","446.1","493.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000072","Epping Forest","Skin cancer","674","Non-standardised","499.2","462.2","538.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000072","Epping Forest","Skin cancer","674","Age-gender-standardised","497.2","460.1","536.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000010","Fenland","Skin cancer","437","Non-standardised","424.3","385.4","466",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000010","Fenland","Skin cancer","437","Age-gender-standardised","372.2","337.8","409",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000145","Great Yarmouth","Skin cancer","476","Non-standardised","476.8","434.9","521.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000145","Great Yarmouth","Skin cancer","476","Age-gender-standardised","400.9","365.4","438.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000073","Harlow","Skin cancer","368","Non-standardised","389.6","350.8","431.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000073","Harlow","Skin cancer","368","Age-gender-standardised","514.7","462.3","571.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000098","Hertsmere","Skin cancer","431","Non-standardised","397.9","361.2","437.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000098","Hertsmere","Skin cancer","431","Age-gender-standardised","423.7","384.3","466.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000011","Huntingdonshire","Skin cancer","875","Non-standardised","475.3","444.3","507.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000011","Huntingdonshire","Skin cancer","875","Age-gender-standardised","462.8","432.5","494.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000202","Ipswich","Skin cancer","463","Non-standardised","332.4","302.8","364.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000202","Ipswich","Skin cancer","463","Age-gender-standardised","379.6","345.6","416.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000146","King's Lynn and West Norfolk","Skin cancer","944","Non-standardised","606.2","568.2","646.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000146","King's Lynn and West Norfolk","Skin cancer","944","Age-gender-standardised","475.3","445.1","507",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000032","Luton","Skin cancer","450","Non-standardised","198","180.1","217.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000032","Luton","Skin cancer","450","Age-gender-standardised","314.5","285.6","345.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000074","Maldon","Skin cancer","504","Non-standardised","745.9","682.2","814",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000074","Maldon","Skin cancer","504","Age-gender-standardised","610","557.3","666.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000203","Mid Suffolk","Skin cancer","614","Non-standardised","580.7","535.7","628.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000203","Mid Suffolk","Skin cancer","614","Age-gender-standardised","470.6","433.7","509.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000099","North Hertfordshire","Skin cancer","587","Non-standardised","437.5","402.8","474.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000099","North Hertfordshire","Skin cancer","587","Age-gender-standardised","436.9","402","473.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000147","North Norfolk","Skin cancer","619","Non-standardised","599.7","553.4","648.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000147","North Norfolk","Skin cancer","619","Age-gender-standardised","372.1","342.3","403.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000148","Norwich","Skin cancer","369","Non-standardised","254.6","229.2","281.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000148","Norwich","Skin cancer","369","Age-gender-standardised","329.4","296.4","365.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000031","Peterborough","Skin cancer","590","Non-standardised","271.1","249.6","293.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000031","Peterborough","Skin cancer","590","Age-gender-standardised","365.1","335.9","396.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000075","Rochford","Skin cancer","570","Non-standardised","653.7","601.1","709.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000075","Rochford","Skin cancer","570","Age-gender-standardised","565.8","519.8","614.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000012","South Cambridgeshire","Skin cancer","954","Non-standardised","575.7","539.8","613.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000012","South Cambridgeshire","Skin cancer","954","Age-gender-standardised","565.8","530.3","603",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000149","South Norfolk","Skin cancer","698","Non-standardised","482.7","447.5","519.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000149","South Norfolk","Skin cancer","698","Age-gender-standardised","399.8","370.4","430.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000033","Southend-on-Sea","Skin cancer","863","Non-standardised","477.1","445.8","510",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000033","Southend-on-Sea","Skin cancer","863","Age-gender-standardised","484.1","452.1","517.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000240","St Albans","Skin cancer","638","Non-standardised","429.6","396.9","464.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000240","St Albans","Skin cancer","638","Age-gender-standardised","469.7","433.7","507.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000243","Stevenage","Skin cancer","339","Non-standardised","378.3","339.1","420.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000243","Stevenage","Skin cancer","339","Age-gender-standardised","467","417.9","520.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000076","Tendring","Skin cancer","1003","Non-standardised","662.5","622.1","704.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000076","Tendring","Skin cancer","1003","Age-gender-standardised","467.7","438.5","498.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000102","Three Rivers","Skin cancer","370","Non-standardised","392.9","353.9","435",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000102","Three Rivers","Skin cancer","370","Age-gender-standardised","417.1","375.4","462.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000034","Thurrock","Skin cancer","611","Non-standardised","345.6","318.7","374.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000034","Thurrock","Skin cancer","611","Age-gender-standardised","480","441.8","520.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000077","Uttlesford","Skin cancer","546","Non-standardised","589.2","540.8","640.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000077","Uttlesford","Skin cancer","546","Age-gender-standardised","556.1","510.1","605.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000103","Watford","Skin cancer","264","Non-standardised","256.2","226.2","289",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000103","Watford","Skin cancer","264","Age-gender-standardised","361","317.8","408.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000241","Welwyn Hatfield","Skin cancer","424","Non-standardised","352.1","319.4","387.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000241","Welwyn Hatfield","Skin cancer","424","Age-gender-standardised","419.4","380","461.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000245","West Suffolk","Skin cancer","795","Non-standardised","436","406.2","467.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000245","West Suffolk","Skin cancer","795","Age-gender-standardised","418.2","389.5","448.5",NA

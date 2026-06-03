@@ -1,0 +1,46 @@
+# Environment
+.env
+.env.local
+.env.*.local
+venv/
+env/
+ENV/
+.venv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Streamlit
+.streamlit/cache/
+.streamlit/secrets.toml
+streamlit_cache/
+
+# Data files (optional - add your data directory)
+data/uploads/
+
+# Logs
+*.log
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temp files
+*.tmp
+*.temp

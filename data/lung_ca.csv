@@ -1,0 +1,91 @@
+"Year","Gender","Age at diagnosis","Geography type","Geography code","Geography name ","NDRS main","Count","Type of rate","Rate","95% lower confidence interval","95% upper confidence interval","Flag"
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000200","Babergh","Lung","75","Non-standardised","79.5","62.6","99.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000200","Babergh","Lung","75","Age-gender-standardised","58.5","45.9","73.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000066","Basildon","Lung","145","Non-standardised","76.8","64.8","90.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000066","Basildon","Lung","145","Age-gender-standardised","85.3","71.8","100.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000055","Bedford","Lung","128","Non-standardised","68.3","57","81.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000055","Bedford","Lung","128","Age-gender-standardised","76.7","63.9","91.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000067","Braintree","Lung","88","Non-standardised","55.8","44.8","68.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000067","Braintree","Lung","88","Age-gender-standardised","52.6","42.1","64.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000143","Breckland","Lung","129","Non-standardised","89.9","75.1","106.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000143","Breckland","Lung","129","Age-gender-standardised","72","60","85.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000068","Brentwood","Lung","41","Non-standardised","53","38","71.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000068","Brentwood","Lung","41","Age-gender-standardised","51.1","36.5","69.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000144","Broadland","Lung","101","Non-standardised","75.4","61.4","91.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000144","Broadland","Lung","101","Age-gender-standardised","56.7","46.1","69.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000095","Broxbourne","Lung","52","Non-standardised","52.5","39.2","68.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000095","Broxbourne","Lung","52","Age-gender-standardised","57.4","42.8","75.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000008","Cambridge","Lung","77","Non-standardised","52.1","41.1","65.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000008","Cambridge","Lung","77","Age-gender-standardised","83.1","65.4","104.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000069","Castle Point","Lung","83","Non-standardised","92.5","73.7","114.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000069","Castle Point","Lung","83","Age-gender-standardised","70.2","55.7","87.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000056","Central Bedfordshire","Lung","175","Non-standardised","58","49.7","67.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000056","Central Bedfordshire","Lung","175","Age-gender-standardised","61.3","52.5","71.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000070","Chelmsford","Lung","109","Non-standardised","59.4","48.8","71.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000070","Chelmsford","Lung","109","Age-gender-standardised","59.5","48.8","71.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000071","Colchester","Lung","118","Non-standardised","60.6","50.2","72.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000071","Colchester","Lung","118","Age-gender-standardised","65.1","53.8","78.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000096","Dacorum","Lung","98","Non-standardised","62.8","50.9","76.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000096","Dacorum","Lung","98","Age-gender-standardised","67.5","54.7","82.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000009","East Cambridgeshire","Lung","53","Non-standardised","59.3","44.4","77.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000009","East Cambridgeshire","Lung","53","Age-gender-standardised","55","41.2","72",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000242","East Hertfordshire","Lung","78","Non-standardised","51.4","40.6","64.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000242","East Hertfordshire","Lung","78","Age-gender-standardised","52.8","41.6","65.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000244","East Suffolk","Lung","199","Non-standardised","80.5","69.7","92.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000244","East Suffolk","Lung","199","Age-gender-standardised","57.5","49.7","66.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000072","Epping Forest","Lung","95","Non-standardised","70.4","56.9","86",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000072","Epping Forest","Lung","95","Age-gender-standardised","67.9","54.9","83.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000010","Fenland","Lung","100","Non-standardised","97.1","79","118.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000010","Fenland","Lung","100","Age-gender-standardised","84.1","68.3","102.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000145","Great Yarmouth","Lung","130","Non-standardised","130.2","108.8","154.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000145","Great Yarmouth","Lung","130","Age-gender-standardised","109","90.9","129.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000073","Harlow","Lung","70","Non-standardised","74.1","57.8","93.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000073","Harlow","Lung","70","Age-gender-standardised","93.3","72.4","118.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000098","Hertsmere","Lung","69","Non-standardised","63.7","49.6","80.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000098","Hertsmere","Lung","69","Age-gender-standardised","66.7","51.7","84.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000011","Huntingdonshire","Lung","113","Non-standardised","61.4","50.6","73.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000011","Huntingdonshire","Lung","113","Age-gender-standardised","58.4","48.1","70.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000202","Ipswich","Lung","110","Non-standardised","79","64.9","95.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000202","Ipswich","Lung","110","Age-gender-standardised","91.1","74.8","109.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000146","King's Lynn and West Norfolk","Lung","126","Non-standardised","80.9","67.4","96.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000146","King's Lynn and West Norfolk","Lung","126","Age-gender-standardised","62","51.5","74",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000032","Luton","Lung","112","Non-standardised","49.3","40.6","59.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000032","Luton","Lung","112","Age-gender-standardised","77.3","63.4","93.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000074","Maldon","Lung","47","Non-standardised","69.6","51.1","92.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000074","Maldon","Lung","47","Age-gender-standardised","55.9","40.9","74.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000203","Mid Suffolk","Lung","59","Non-standardised","55.8","42.5","72",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000203","Mid Suffolk","Lung","59","Age-gender-standardised","43.7","33.2","56.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000099","North Hertfordshire","Lung","97","Non-standardised","72.3","58.6","88.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000099","North Hertfordshire","Lung","97","Age-gender-standardised","70.3","56.9","85.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000147","North Norfolk","Lung","112","Non-standardised","108.5","89.3","130.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000147","North Norfolk","Lung","112","Age-gender-standardised","68.7","56.2","83.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000148","Norwich","Lung","95","Non-standardised","65.5","53","80.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000148","Norwich","Lung","95","Age-gender-standardised","84.6","68.3","103.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000031","Peterborough","Lung","122","Non-standardised","56.1","46.5","66.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000031","Peterborough","Lung","122","Age-gender-standardised","72.7","60.3","86.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000075","Rochford","Lung","77","Non-standardised","88.3","69.7","110.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000075","Rochford","Lung","77","Age-gender-standardised","73.5","57.8","92",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000012","South Cambridgeshire","Lung","101","Non-standardised","61","49.6","74.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000012","South Cambridgeshire","Lung","101","Age-gender-standardised","59","48","71.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000149","South Norfolk","Lung","91","Non-standardised","62.9","50.7","77.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000149","South Norfolk","Lung","91","Age-gender-standardised","50.4","40.5","62",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000033","Southend-on-Sea","Lung","123","Non-standardised","68","56.5","81.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000033","Southend-on-Sea","Lung","123","Age-gender-standardised","67.6","56.1","80.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000240","St Albans","Lung","83","Non-standardised","55.9","44.5","69.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000240","St Albans","Lung","83","Age-gender-standardised","58.3","46.3","72.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000243","Stevenage","Lung","64","Non-standardised","71.4","55","91.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000243","Stevenage","Lung","64","Age-gender-standardised","85.1","65.3","109",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000076","Tendring","Lung","172","Non-standardised","113.6","97.3","131.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000076","Tendring","Lung","172","Age-gender-standardised","79.3","67.6","92.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000102","Three Rivers","Lung","63","Non-standardised","66.9","51.4","85.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000102","Three Rivers","Lung","63","Age-gender-standardised","69.6","53.4","89.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000034","Thurrock","Lung","102","Non-standardised","57.7","47","70",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000034","Thurrock","Lung","102","Age-gender-standardised","79.9","64.9","97.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000077","Uttlesford","Lung","51","Non-standardised","55","41","72.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000077","Uttlesford","Lung","51","Age-gender-standardised","51","37.9","67.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000103","Watford","Lung","57","Non-standardised","55.3","41.9","71.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000103","Watford","Lung","57","Age-gender-standardised","77.1","58","100.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000241","Welwyn Hatfield","Lung","75","Non-standardised","62.3","49","78.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000241","Welwyn Hatfield","Lung","75","Age-gender-standardised","74.1","58.1","93.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000245","West Suffolk","Lung","118","Non-standardised","64.7","53.6","77.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000245","West Suffolk","Lung","118","Age-gender-standardised","61","50.5","73.2",NA

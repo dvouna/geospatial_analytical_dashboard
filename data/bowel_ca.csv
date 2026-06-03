@@ -1,0 +1,91 @@
+"Year","Gender","Age at diagnosis","Geography type","Geography code","Geography name ","NDRS main","Count","Type of rate","Rate","95% lower confidence interval","95% upper confidence interval","Flag"
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000200","Babergh","Bowel","75","Non-standardised","79.5","62.6","99.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000200","Babergh","Bowel","75","Age-gender-standardised","60.6","47.5","76.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000066","Basildon","Bowel","126","Non-standardised","66.7","55.6","79.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000066","Basildon","Bowel","126","Age-gender-standardised","73.9","61.5","88.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000055","Bedford","Bowel","119","Non-standardised","63.5","52.6","75.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000055","Bedford","Bowel","119","Age-gender-standardised","71.2","58.9","85.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000067","Braintree","Bowel","113","Non-standardised","71.7","59.1","86.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000067","Braintree","Bowel","113","Age-gender-standardised","68.2","56.1","82.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000143","Breckland","Bowel","129","Non-standardised","89.9","75.1","106.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000143","Breckland","Bowel","129","Age-gender-standardised","74.6","62.1","88.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000068","Brentwood","Bowel","44","Non-standardised","56.9","41.3","76.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000068","Brentwood","Bowel","44","Age-gender-standardised","54.1","39.1","72.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000144","Broadland","Bowel","116","Non-standardised","86.6","71.6","103.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000144","Broadland","Bowel","116","Age-gender-standardised","66","54.4","79.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000095","Broxbourne","Bowel","57","Non-standardised","57.6","43.6","74.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000095","Broxbourne","Bowel","57","Age-gender-standardised","61.5","46.4","79.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000008","Cambridge","Bowel","61","Non-standardised","41.3","31.6","53",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000008","Cambridge","Bowel","61","Age-gender-standardised","64.6","49.2","83.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000069","Castle Point","Bowel","83","Non-standardised","92.5","73.7","114.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000069","Castle Point","Bowel","83","Age-gender-standardised","75.9","60.1","94.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000056","Central Bedfordshire","Bowel","196","Non-standardised","64.9","56.2","74.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000056","Central Bedfordshire","Bowel","196","Age-gender-standardised","68.4","59.1","78.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000070","Chelmsford","Bowel","126","Non-standardised","68.7","57.2","81.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000070","Chelmsford","Bowel","126","Age-gender-standardised","68.9","57.3","82.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000071","Colchester","Bowel","134","Non-standardised","68.8","57.7","81.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000071","Colchester","Bowel","134","Age-gender-standardised","74.1","62","87.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000096","Dacorum","Bowel","114","Non-standardised","73","60.2","87.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000096","Dacorum","Bowel","114","Age-gender-standardised","77.4","63.7","93.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000009","East Cambridgeshire","Bowel","73","Non-standardised","81.6","64","102.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000009","East Cambridgeshire","Bowel","73","Age-gender-standardised","76.2","59.6","95.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000242","East Hertfordshire","Bowel","98","Non-standardised","64.6","52.4","78.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000242","East Hertfordshire","Bowel","98","Age-gender-standardised","66","53.5","80.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000244","East Suffolk","Bowel","229","Non-standardised","92.7","81.1","105.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000244","East Suffolk","Bowel","229","Age-gender-standardised","70.6","61.5","80.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000072","Epping Forest","Bowel","117","Non-standardised","86.7","71.7","103.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000072","Epping Forest","Bowel","117","Age-gender-standardised","83.6","69","100.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000010","Fenland","Bowel","97","Non-standardised","94.2","76.4","114.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000010","Fenland","Bowel","97","Age-gender-standardised","81","65.5","98.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000145","Great Yarmouth","Bowel","108","Non-standardised","108.2","88.7","130.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000145","Great Yarmouth","Bowel","108","Age-gender-standardised","90.4","74.1","109.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000073","Harlow","Bowel","51","Non-standardised","54","40.2","71",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000073","Harlow","Bowel","51","Age-gender-standardised","69.4","51.4","91.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000098","Hertsmere","Bowel","66","Non-standardised","60.9","47.1","77.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000098","Hertsmere","Bowel","66","Age-gender-standardised","62.6","48.3","79.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000011","Huntingdonshire","Bowel","144","Non-standardised","78.2","66","92.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000011","Huntingdonshire","Bowel","144","Age-gender-standardised","74.9","63.1","88.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000202","Ipswich","Bowel","109","Non-standardised","78.3","64.3","94.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000202","Ipswich","Bowel","109","Age-gender-standardised","87.9","72","106.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000146","King's Lynn and West Norfolk","Bowel","138","Non-standardised","88.6","74.5","104.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000146","King's Lynn and West Norfolk","Bowel","138","Age-gender-standardised","68.1","57.1","80.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000032","Luton","Bowel","101","Non-standardised","44.4","36.2","54",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000032","Luton","Bowel","101","Age-gender-standardised","68.2","55.3","83.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000074","Maldon","Bowel","66","Non-standardised","97.7","75.5","124.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000074","Maldon","Bowel","66","Age-gender-standardised","80.8","62.1","103.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000203","Mid Suffolk","Bowel","98","Non-standardised","92.7","75.3","113",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000203","Mid Suffolk","Bowel","98","Age-gender-standardised","75.1","60.8","91.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000099","North Hertfordshire","Bowel","93","Non-standardised","69.3","55.9","84.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000099","North Hertfordshire","Bowel","93","Age-gender-standardised","67.7","54.5","83.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000147","North Norfolk","Bowel","119","Non-standardised","115.3","95.5","138",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000147","North Norfolk","Bowel","119","Age-gender-standardised","73.3","60.1","88.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000148","Norwich","Bowel","75","Non-standardised","51.7","40.7","64.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000148","Norwich","Bowel","75","Age-gender-standardised","64.5","50.6","81.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000031","Peterborough","Bowel","110","Non-standardised","50.5","41.5","60.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000031","Peterborough","Bowel","110","Age-gender-standardised","65","53.3","78.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000075","Rochford","Bowel","63","Non-standardised","72.3","55.5","92.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000075","Rochford","Bowel","63","Age-gender-standardised","61.1","46.8","78.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000012","South Cambridgeshire","Bowel","124","Non-standardised","74.8","62.2","89.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000012","South Cambridgeshire","Bowel","124","Age-gender-standardised","73.1","60.7","87.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000149","South Norfolk","Bowel","119","Non-standardised","82.3","68.2","98.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000149","South Norfolk","Bowel","119","Age-gender-standardised","67.9","56.1","81.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000033","Southend-on-Sea","Bowel","137","Non-standardised","75.7","63.6","89.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000033","Southend-on-Sea","Bowel","137","Age-gender-standardised","75.6","63.4","89.5",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000240","St Albans","Bowel","83","Non-standardised","55.9","44.5","69.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000240","St Albans","Bowel","83","Age-gender-standardised","57.5","45.7","71.4",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000243","Stevenage","Bowel","51","Non-standardised","56.9","42.4","74.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000243","Stevenage","Bowel","51","Age-gender-standardised","69","51.1","91",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000076","Tendring","Bowel","183","Non-standardised","120.9","104","139.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000076","Tendring","Bowel","183","Age-gender-standardised","88.1","75.4","102.3",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000102","Three Rivers","Bowel","61","Non-standardised","64.8","49.5","83.2",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000102","Three Rivers","Bowel","61","Age-gender-standardised","67.4","51.4","86.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000034","Thurrock","Bowel","103","Non-standardised","58.3","47.6","70.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E06000034","Thurrock","Bowel","103","Age-gender-standardised","80.5","65.4","97.9",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000077","Uttlesford","Bowel","59","Non-standardised","63.7","48.5","82.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000077","Uttlesford","Bowel","59","Age-gender-standardised","60.1","45.7","77.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000103","Watford","Bowel","48","Non-standardised","46.6","34.3","61.8",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000103","Watford","Bowel","48","Age-gender-standardised","63.4","46.4","84.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000241","Welwyn Hatfield","Bowel","75","Non-standardised","62.3","49","78.1",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000241","Welwyn Hatfield","Bowel","75","Age-gender-standardised","73.9","58","92.7",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000245","West Suffolk","Bowel","145","Non-standardised","79.5","67.1","93.6",NA
+2022,"Persons","All ages","Local Authority Unitary Authories (LAUA)","E07000245","West Suffolk","Bowel","145","Age-gender-standardised","73.9","62.2","87",NA
