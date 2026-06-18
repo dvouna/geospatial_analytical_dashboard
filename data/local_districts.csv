@@ -1,0 +1,46 @@
+fid,LAD24CD,LAD24NM,imd_rank,total_population,Ca_Count,ICB
+29,E06000031,Peterborough,51,215670,1104,Central East
+30,E06000032,Luton,33,225261,895,Central East
+31,E06000033,Southend-on-Sea,113,180685,1083,Essex
+32,E06000034,Thurrock,114,175993,867,Essex
+52,E06000055,Bedford,141,185224,1103,Central East
+53,E06000056,Central Bedfordshire,230,294251,1778,Central East
+64,E07000008,Cambridge,255,145674,641,Central East
+65,E07000009,East Cambridgeshire,242,87763,548,Central East
+66,E07000010,Fenland,42,102461,818,Central East
+67,E07000011,Huntingdonshire,249,180832,1163,Central East
+68,E07000012,South Cambridgeshire,281,162117,1049,Central East
+90,E07000066,Basildon,120,187567,1028,Essex
+91,E07000067,Braintree,164,155265,893,Essex
+92,E07000068,Brentwood,262,77048,443,Essex
+93,E07000069,Castle Point,162,89582,687,Essex
+94,E07000070,Chelmsford,233,181523,1013,Essex
+95,E07000071,Colchester,168,192716,1155,Essex
+96,E07000072,Epping Forest,205,134980,840,Essex
+97,E07000073,Harlow,92,93330,480,Essex
+98,E07000074,Maldon,171,66211,483,Essex
+99,E07000075,Rochford,260,85662,610,Essex
+100,E07000076,Tendring,28,148293,1388,Essex
+101,E07000077,Uttlesford,269,91344,609,Essex
+119,E07000095,Broxbourne,152,99007,575,Central East
+120,E07000096,Dacorum,211,155081,948,Central East
+121,E07000098,Hertsmere,214,107827,659,Central East
+122,E07000099,North Hertfordshire,256,133210,832,Central East
+123,E07000102,Three Rivers,275,93772,620,Central East
+124,E07000103,Watford,175,102245,495,Central East
+163,E07000143,Breckland,112,141477,1083,Norfolk & Suffolk
+164,E07000144,Broadland,240,131723,952,Norfolk & Suffolk
+165,E07000145,Great Yarmouth,25,99750,797,Norfolk & Suffolk
+166,E07000146,King's Lynn and West Norfolk,69,154326,1125,Norfolk & Suffolk
+167,E07000147,North Norfolk,89,102978,911,Norfolk & Suffolk
+168,E07000148,Norwich,64,143924,653,Norfolk & Suffolk
+169,E07000149,South Norfolk,220,141948,971,Norfolk & Suffolk
+190,E07000200,Babergh,184,92342,701,Norfolk & Suffolk
+191,E07000202,Ipswich,84,139643,819,Norfolk & Suffolk
+192,E07000203,Mid Suffolk,191,102701,788,Norfolk & Suffolk
+222,E07000240,St Albans,288,148169,838,Central East
+223,E07000241,Welwyn Hatfield,208,119835,678,Central East
+224,E07000242,East Hertfordshire,276,150159,889,Central East
+225,E07000243,Stevenage,125,89498,483,Central East
+226,E07000244,East Suffolk,138,246060,1910,Norfolk & Suffolk
+227,E07000245,West Suffolk,172,179948,1111,Norfolk & Suffolk

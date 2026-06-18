@@ -44,3 +44,67 @@ htmlcov/
 # Temp files
 *.tmp
 *.temp
+
+# Byte-compiled / optimized / DLLs
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.env
+.env.*
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# Editors
+*.sublime-workspace
+*.sublime-project
+
+# mypy/pyre
+.mypy_cache/
+.pyre/
+
+# node
+node_modules/
+
+# Secrets and keys
+secrets.json
+*.pem
+*.key
+
+# OS generated files
+Thumbs.db
+desktop.ini
+
+# Optional: ignore local run files
+.streamlit/
+

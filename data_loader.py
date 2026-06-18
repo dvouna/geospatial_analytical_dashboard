@@ -15,40 +15,47 @@ import geopandas as gpd
 @st.cache_data
 def load_csv_file(file_path: str) -> Optional[pd.DataFrame]:
     """
-    Load a CSV file with caching
-    
+    Load a CSV file with caching.
+
+    UI calls (st.success / st.error) are intentionally absent here: inside
+    ``@st.cache_data`` they only execute on the *first* call. On every
+    subsequent cache-hit the return value is replayed but side-effects such
+    as widget renders are silently skipped, so toasts and error messages would
+    disappear after the initial load. Callers should inspect the return value
+    and surface any messages themselves.
+
     Args:
         file_path: Path to CSV file
-        
+
     Returns:
-        pandas DataFrame or None if loading fails
+        pandas DataFrame, or None if loading fails.
     """
     try:
-        df = pd.read_csv(file_path)
-        st.success(f"✅ Loaded {len(df)} rows from {Path(file_path).name}")
-        return df
+        return pd.read_csv(file_path)
     except Exception as e:
-        st.error(f"❌ Error loading file: {str(e)}")
+        import sys
+        print(f"[data_loader] load_csv_file failed for {file_path!r}: {e}", file=sys.stderr)
         return None
 
 
 @st.cache_data
 def load_geojson_file(file_path: str) -> Optional[gpd.GeoDataFrame]:
     """
-    Load a GeoJSON file with caching
-    
+    Load a GeoJSON file with caching.
+
+    See ``load_csv_file`` for why Streamlit UI calls are absent here.
+
     Args:
         file_path: Path to GeoJSON file
-        
+
     Returns:
-        GeoDataFrame or None if loading fails
+        GeoDataFrame, or None if loading fails.
     """
     try:
-        gdf = gpd.read_file(file_path)
-        st.success(f"✅ Loaded {len(gdf)} features from {Path(file_path).name}")
-        return gdf
+        return gpd.read_file(file_path)
     except Exception as e:
-        st.error(f"❌ Error loading GeoJSON file: {str(e)}")
+        import sys
+        print(f"[data_loader] load_geojson_file failed for {file_path!r}: {e}", file=sys.stderr)
         return None
 
 
