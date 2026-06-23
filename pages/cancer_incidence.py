@@ -29,7 +29,7 @@ from map_utils import (
 )
 
 DATA_DIR = Path(__file__).parent.parent / "data"
-BASE_GEOJSON_PATH = DATA_DIR / "base_gdf.geojson"
+BASE_GEOJSON_PATH = DATA_DIR / "base_gdf_1.geojson"
 OVERALL_INCIDENCE_PATH = DATA_DIR / "overall_incidence.csv"
 TOP5_CANCERS_PATH = DATA_DIR / "top_5_cancers.csv"
 
