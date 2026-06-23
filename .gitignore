@@ -108,3 +108,34 @@ desktop.ini
 # Optional: ignore local run files
 .streamlit/
 
+# ── Unused / one-off scripts (identified during Option A refactor audit) ───────
+
+# Standalone data-inspection script — not imported by any app module
+inspect_data.py
+
+# One-off syntax verification script — superseded by pytest smoke tests
+verify_syntax.py
+
+# Original pytest bootstrap — superseded by tests/test_pages_import.py
+test_setup.py
+
+# Windows launch batch file — use `streamlit run app.py` directly
+run_app.bat
+
+# ── Generated / environment artefacts ─────────────────────────────────────────
+
+# Cloud Run server identity file — auto-generated at deploy time
+server_user_id.txt
+
+# Root-level Streamlit config copy — canonical copy lives in .streamlit/config.toml
+streamlit_config.toml
+
+# ── Planning / dev-only markdown ──────────────────────────────────────────────
+# These are working notes generated during development; not needed in the repo.
+
+00_START_HERE_FIRST.txt
+page_structure.md
+improvements.md
+task.md
+TESTING_SETUP_COMPLETE.md
+TEST_REPORT.md
