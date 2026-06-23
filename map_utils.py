@@ -146,17 +146,32 @@ def compute_center(gdf: gpd.GeoDataFrame) -> Tuple[float, float]:
 def prepare_geojson_payload(
     gdf: gpd.GeoDataFrame,
     id_field_candidates: Optional[List[str]] = None,
+    simplify_tolerance: float = 0.001,
 ) -> Tuple[dict, Optional[str]]:
-    """Convert GeoDataFrame to a GeoJSON payload (dict) and ensure each feature has a stable `id`.
+    """Convert GeoDataFrame to a GeoJSON payload (dict) and ensure each feature has a stable ``id``.
+
+    Applies geometry simplification before serialisation to reduce payload size.
+    ``simplify_tolerance`` is in degrees (WGS84); the default of 0.001° ≈ 100 m
+    is appropriate for UK local authority boundaries rendered at dashboard scale.
+    Pass ``simplify_tolerance=0`` to disable simplification.
+
+    Operates on an internal copy — the caller's GeoDataFrame is never mutated.
 
     Returns (payload, detected_id_field_name).
     """
     if id_field_candidates is None:
         id_field_candidates = DEFAULT_ID_CANDIDATES
 
-    payload = json.loads(gdf.to_json())
+    # Work on a copy so we do not mutate the cached GeoDataFrame held by the caller
+    gdf_work = gdf.copy()
+    if simplify_tolerance > 0:
+        gdf_work["geometry"] = gdf_work.geometry.simplify(
+            simplify_tolerance, preserve_topology=True
+        )
 
-    # detect an id field present in GeoDataFrame columns
+    payload = json.loads(gdf_work.to_json())
+
+    # Detect an id field present in the *original* GeoDataFrame columns
     id_field = next((c for c in id_field_candidates if c in gdf.columns), None)
 
     for i, feat in enumerate(payload.get("features", [])):
