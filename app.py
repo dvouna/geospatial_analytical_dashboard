@@ -57,7 +57,7 @@ st.set_page_config(
     page_title="Future Leaders Innovation Challenge",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ── Environment & config ──────────────────────────────────────────────────────
@@ -290,21 +290,23 @@ def _panel_research() -> None:
 st.session_state.setdefault("active_fid", None)
 st.session_state.setdefault("active_topic", TOPICS[0])
 
-# ── Sidebar: topic navigation + map settings ──────────────────────────────────
+# ── Page Header & Topic Navigation (Horizontal Menu Bar) ─────────────────────
 
-st.sidebar.title("📊 FLC26 Dashboard")
-st.sidebar.markdown("---")
+# Header title
+st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>📊 FLC26 Geospatial Analytical Dashboard</h1>", unsafe_allow_html=True)
 
-active_topic = st.sidebar.radio(
+# Render horizontal page navigation across full width of the screen
+active_topic = st.radio(
     "Navigate to:",
     TOPICS,
     index=TOPICS.index(st.session_state["active_topic"]),
     key="topic_radio",
+    horizontal=True,
+    label_visibility="collapsed",
 )
 st.session_state["active_topic"] = active_topic
 
-st.sidebar.markdown("---")
-tiles, attr = render_map_settings(key="map_type_main")
+st.markdown("---")
 
 # ── Load base map data (cached) ───────────────────────────────────────────────
 
@@ -321,6 +323,11 @@ except Exception as exc:
     st.error(f"❌ Failed to load base map data: {exc}")
     st.stop()
 
+# ── Resolve map tiles from session state ──────────────────────────────────────
+from map_utils import get_map_tile_config
+map_type_val = st.session_state.get("map_type_main", "Satellite (ArcGIS)")
+tiles, attr = get_map_tile_config(map_type_val)
+
 # ── Two-column layout ─────────────────────────────────────────────────────────
 
 col_map, col_panel = st.columns([6, 4], gap="medium")
@@ -336,10 +343,15 @@ with col_map:
         tiles=tiles,
         attr=attr,
     )
+    
+    # Map Type settings inline immediately below the map display
+    st.markdown("")  # Spacing
+    render_map_settings(key="map_type_main", in_sidebar=False)
 
 # ── Right panel: dispatch to the active topic ─────────────────────────────────
 
 active_fid = st.session_state.get("active_fid")
+active_topic = st.session_state["active_topic"]
 
 with col_panel:
     if active_topic == "Overview":

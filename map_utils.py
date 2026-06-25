@@ -271,17 +271,24 @@ def get_map_tile_config(map_type: str) -> Tuple[str, Optional[str]]:
 
 
 def render_map_settings(
-    key: str, index: int = 2, show_help_text: bool = False
+    key: str, index: int = 2, show_help_text: bool = False, in_sidebar: bool = True
 ) -> Tuple[str, Optional[str]]:
-    """Render shared sidebar map settings and return Folium tile config."""
-    st.sidebar.subheader("Map Settings")
-    if show_help_text:
-        st.sidebar.write("Select a map background type:")
-    map_type = st.sidebar.radio(
+    """Render map settings and return Folium tile config."""
+    container = st.sidebar if in_sidebar else st
+    
+    if in_sidebar:
+        container.subheader("Map Settings")
+        if show_help_text:
+            container.write("Select a map background type:")
+    else:
+        container.write("**Map Background Type:**")
+        
+    map_type = container.radio(
         "Map type:",
         MAP_TILE_OPTIONS,
         key=key,
         index=index,
+        horizontal=not in_sidebar,
     )
     return get_map_tile_config(map_type)
 
