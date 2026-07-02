@@ -432,5 +432,49 @@ def _render_vulnerability_table(loaded: dict) -> None:
         )
 
 
+def render_research_assistant_widget(key_suffix: str = ""):
+    """Render a compact version of the AI Research Assistant for a sidebar/column panel."""
+    st.subheader("🔬 AI Research Assistant")
+    st.write("Ask questions across the East of England datasets.")
+
+    # Load datasets
+    datasets = load_all_datasets()
+    loaded = {name: df for name, df in datasets.items() if not df.empty}
+    if not loaded:
+        st.error("No datasets could be loaded.")
+        return
+
+    engine = GeminiQueryEngine()
+    if not engine.is_available():
+        st.warning(
+            "⚠️ Gemini API key is not configured. "
+            "Set `GEMINI_API_KEY` in your `.env` file to enable AI queries."
+        )
+        return
+
+    # User input
+    user_query = st.text_input(
+        "Ask Gemini:",
+        placeholder="e.g. which area has highest cancer rate?",
+        key=f"ra_widget_query_{key_suffix}",
+        label_visibility="collapsed"
+    )
+    submit = st.button("🔍 Ask Gemini", type="primary", use_container_width=True, key=f"ra_widget_submit_{key_suffix}")
+
+    if submit and user_query:
+        context = _build_context(loaded)
+        full_prompt = (
+            f"{context}\n\n"
+            f"User question: {user_query}\n\n"
+            "Please provide a direct answer, referencing specific district names and values where possible. Be concise."
+        )
+        with st.spinner("Analyzing..."):
+            try:
+                response = engine.model.generate_content(full_prompt)
+                st.markdown(response.text)
+            except Exception as exc:
+                st.error(f"Gemini error: {exc}")
+
+
 if __name__ == "__main__":
     render_research_assistant_page()

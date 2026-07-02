@@ -35,7 +35,11 @@ def _make_tiny_gdf() -> gpd.GeoDataFrame:
         Polygon([(1, 0), (2, 0), (2, 1), (1, 1)]),
     ]
     return gpd.GeoDataFrame(
-        {"fid": ["A001", "A002"], "LAD24NM": ["Alpha", "Beta"], "LAD24CD": ["E01", "E02"]},
+        {
+            "fid": ["A001", "A002"],
+            "LAD24NM": ["Alpha", "Beta"],
+            "LAD24CD": ["E01", "E02"],
+        },
         geometry=geoms,
         crs="EPSG:4326",
     )
@@ -44,6 +48,7 @@ def _make_tiny_gdf() -> gpd.GeoDataFrame:
 # ---------------------------------------------------------------------------
 # 1. Module import smoke tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize(
     "module_path",
@@ -76,16 +81,17 @@ def test_utility_modules_importable(module_path):
 @pytest.mark.parametrize(
     "module_path",
     [
-        "pages.maps",
-        "pages.imd",
-        "pages.population",
-        "pages.cancer_incidence",
-        "pages.research_assistant",
+        "pages.1_Population_Demographics",
+        "pages.2_Deprivation_Analysis",
+        "pages.3_Cancer_Trends",
+        "pages.5_AI_Research_Assistant",
     ],
 )
 def test_page_modules_importable(module_path):
     """Every page module must be importable (no top-level side-effects)."""
-    with patch.dict("sys.modules", {"streamlit": MagicMock(), "streamlit_folium": MagicMock()}):
+    with patch.dict(
+        "sys.modules", {"streamlit": MagicMock(), "streamlit_folium": MagicMock()}
+    ):
         mod = importlib.import_module(module_path)
     assert mod is not None
 
@@ -93,6 +99,7 @@ def test_page_modules_importable(module_path):
 # ---------------------------------------------------------------------------
 # 2. map_utils unit tests (no Streamlit server required)
 # ---------------------------------------------------------------------------
+
 
 def test_compute_center():
     """compute_center should return sensible lat/lon from GeoDataFrame bounds."""
@@ -143,7 +150,11 @@ def test_build_authority_options_round_trip():
 
 def test_extract_clicked_fid_from_tooltip():
     """extract_clicked_fid should match a display name found in the tooltip."""
-    from map_utils import prepare_geojson_payload, build_authority_options, extract_clicked_fid
+    from map_utils import (
+        prepare_geojson_payload,
+        build_authority_options,
+        extract_clicked_fid,
+    )
 
     gdf = _make_tiny_gdf()
     payload, _ = prepare_geojson_payload(gdf)
@@ -180,6 +191,7 @@ def test_merge_overlay_preserves_geometry():
 # 3. Data-loading error handling
 # ---------------------------------------------------------------------------
 
+
 def test_load_geojson_raises_on_missing_file():
     """load_geojson must raise FileNotFoundError for a non-existent path."""
     from map_utils import load_geojson
@@ -200,6 +212,7 @@ def test_load_overlay_dataframe_raises_on_missing_file():
 # 4. GeoJSON geometry simplification (pre-optimisation baseline)
 # ---------------------------------------------------------------------------
 
+
 def test_geojson_payload_size_baseline():
     """Record the approximate serialised GeoJSON size (bytes) as a baseline.
 
@@ -214,6 +227,7 @@ def test_geojson_payload_size_baseline():
         pytest.skip("base_gdf_1.geojson not available in this environment")
 
     import geopandas as gpd
+
     gdf = gpd.read_file(str(base_path))
     payload, _ = prepare_geojson_payload(gdf)
     size_kb = len(json.dumps(payload).encode()) / 1024
