@@ -28,6 +28,40 @@ from map_utils import (
 )
 
 
+MAP_METRICS = {
+    "Home": {
+        "None (Simple Outline)": (None, None)
+    },
+    "Population": {
+        "Total Population": ("total_population", "YlGn"),
+        "White Sum": ("White Sum", "YlGn"),
+        "Asian Sum": ("Asian Sum", "YlGn"),
+        "Black Sum": ("Black Sum", "YlGn"),
+        "Mixed Sum": ("Mixed Sum", "YlGn"),
+        "Others Sum": ("Others Sum", "YlGn")
+    },
+    "Index of Multiple Deprivation": {
+        "IMD Rank": ("Index of Multiple Deprivation (IMD) Rank", "PuOr"),
+        "Income Rank": ("Income Rank", "PuOr"),
+        "Employment Rank": ("Employment Rank", "PuOr"),
+        "Education & Skills Rank": ("Education Skills and Training Rank", "PuOr"),
+        "Health & Disability Rank": ("Health Deprivation and Disability Rank", "PuOr"),
+        "Crime Rank": ("Crime Rank", "PuOr"),
+        "Housing & Services Rank": ("Barriers to Housing and Services Rank", "PuOr"),
+        "Living Environment Rank": ("Living Environment Rank", "PuOr")
+    },
+    "Cancer Incidence": {
+        "Overall Rate": ("Rate", "YlOrRd"),
+        "Total Incidence Count": ("Total_incidence", "YlOrRd"),
+        "Breast Cancer": ("breast", "RdPu"),
+        "Bowel Cancer": ("bowel", "RdPu"),
+        "Lung Cancer": ("lung", "RdPu"),
+        "Prostate Cancer": ("prostate", "RdPu"),
+        "Skin Cancer": ("skin", "RdPu")
+    }
+}
+
+
 @st.fragment
 def render_persistent_map(
     geojson_payload: dict,
@@ -38,6 +72,7 @@ def render_persistent_map(
     center: Tuple[float, float],
     tiles: str,
     attr: Optional[str],
+    active_topic: str = "Home",
 ) -> None:
     """
     Render the persistent map panel.
@@ -64,23 +99,37 @@ def render_persistent_map(
         Folium tile layer string or URL template.
     attr : str or None
         Attribution string for custom tile layers.
+    active_topic : str
+        The active dashboard topic (drives choropleth selectors).
     """
     active_fid = st.session_state.get("active_fid")
 
-    # ── Authority selectbox ───────────────────────────────────────────────────
-    # Determine which index to show based on the currently active feature.
-    selected_index = 0
-    if active_fid and active_fid in id_to_display:
-        display_name = id_to_display[active_fid]
-        if display_name in options:
-            selected_index = options.index(display_name)
+    # ── Choropleth & Authority selectors ──────────────────────────────────────
+    col_sel1, col_sel2 = st.columns([1, 1])
+    
+    with col_sel1:
+        # Determine which index to show based on the currently active feature.
+        selected_index = 0
+        if active_fid and active_fid in id_to_display:
+            display_name = id_to_display[active_fid]
+            if display_name in options:
+                selected_index = options.index(display_name)
 
-    selected_display = st.selectbox(
-        "Select an authority:",
-        options=options,
-        index=selected_index,
-        key="map_authority_select",
-    )
+        selected_display = st.selectbox(
+            "Select an authority:",
+            options=options,
+            index=selected_index,
+            key="map_authority_select",
+        )
+
+    with col_sel2:
+        topic_metrics = MAP_METRICS.get(active_topic, {"None (Simple Outline)": (None, None)})
+        selected_metric_label = st.selectbox(
+            "Color map by metric:",
+            options=list(topic_metrics.keys()),
+            key="choropleth_metric_select",
+        )
+        metric_field, colormap_name = topic_metrics[selected_metric_label]
 
     # Selectbox change → propagate to session state and refresh right panel.
     if selected_display:
@@ -107,12 +156,14 @@ def render_persistent_map(
         gdf_columns=tooltip_fields,
         selected_id=active_fid,
         tooltip_fields=tooltip_fields or None,
+        choropleth_metric=metric_field,
+        colormap_name=colormap_name or "YlOrRd",
     )
     map_output = render_map_st_folium(
         m,
         width="100%",
         height=620,
-        returned_objects=["last_object_clicked", "last_object_clicked_tooltip"],
+        returned_objects=["last_object_clicked", "last_object_clicked_tooltip", "last_active_drawing"],
     )
 
     # ── Map click → update session state, refresh right panel ────────────────

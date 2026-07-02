@@ -81,16 +81,33 @@ def build_authority_options(
 def extract_clicked_fid(
     map_output: dict, option_to_id: dict, id_to_props: dict
 ) -> Optional[str]:
-    """Identify the clicked feature ID from the map output or tooltip metadata."""
+    """Identify the clicked feature ID from the map output, active drawing, or tooltip metadata."""
     if not map_output:
         return None
 
+    # 1. Check last_active_drawing (most reliable for GeoJSON feature clicks in modern streamlit-folium)
+    active_drawing = map_output.get("last_active_drawing")
+    if isinstance(active_drawing, dict):
+        # Check standard GeoJSON id
+        fid = active_drawing.get("id")
+        if fid is not None and str(fid) in id_to_props:
+            return str(fid)
+        
+        # Fallback to check properties inside drawing
+        props = active_drawing.get("properties", {})
+        for key in ["fid", "id", "LAD24CD"]:
+            val = props.get(key)
+            if val is not None and str(val) in id_to_props:
+                return str(val)
+
+    # 2. Check last_object_clicked
     clicked = map_output.get("last_object_clicked")
     if isinstance(clicked, dict):
         clicked_id = clicked.get("id")
         if clicked_id is not None and str(clicked_id) in id_to_props:
             return str(clicked_id)
 
+    # 3. Check last_object_clicked_tooltip as fallback
     tooltip = map_output.get("last_object_clicked_tooltip")
     if not tooltip:
         return None
@@ -222,6 +239,11 @@ def merge_overlay(
     This does not mutate `base_gdf` and will preserve geometry. Both keys are
     normalized to strings before joining.
     """
+    if base_key not in base_gdf.columns:
+        raise ValueError(f"Base GeoDataFrame is missing join key: '{base_key}'")
+    if overlay_key not in overlay_df.columns:
+        raise ValueError(f"Overlay DataFrame is missing join key: '{overlay_key}'")
+
     # Make copies to avoid mutating inputs
     base_copy = base_gdf.copy()
     overlay_copy = overlay_df.copy()
@@ -299,27 +321,84 @@ def add_geojson_layer(
     gdf_columns,
     selected_id: Optional[str] = None,
     tooltip_fields: Optional[List[str]] = None,
+    choropleth_metric: Optional[str] = None,
+    colormap_name: str = "YlOrRd",
 ):
-    """Add a styled GeoJSON layer to a Folium map. Highlights `selected_id` if provided.
+    """Add a styled GeoJSON layer to a Folium map. Supports dynamic choropleth and selected highlight.
 
     Returns the created GeoJson object.
     """
     if tooltip_fields is None:
         tooltip_fields = [c for c in gdf_columns if c != "geometry"][:3]
 
-    def style_fn(feature):
-        if selected_id is not None and str(feature.get("id")) == str(selected_id):
-            return {
-                "fillColor": "#ff7800",
-                "color": "orange",
-                "weight": 3,
-                "fillOpacity": 0.7,
+    colormap = None
+    if choropleth_metric:
+        # Extract values for the selected metric from features
+        vals = []
+        for feat in geojson_payload.get("features", []):
+            val = feat.get("properties", {}).get(choropleth_metric)
+            if val is not None:
+                try:
+                    if isinstance(val, str):
+                        val = val.replace(",", "").strip()
+                    vals.append(float(val))
+                except ValueError:
+                    pass
+        
+        if vals:
+            min_val = min(vals)
+            max_val = max(vals)
+            if min_val == max_val:
+                max_val += 1e-5
+            
+            import branca.colormap as cm
+            # Select appropriate branca palette
+            palette_map = {
+                "YlGn": cm.linear.YlGn_09,
+                "PuOr": cm.linear.PuOr_09,
+                "RdPu": cm.linear.RdPu_09,
+                "OrRd": cm.linear.OrRd_09,
+                "Blues": cm.linear.Blues_09,
+                "Purples": cm.linear.Purples_09,
+                "Reds": cm.linear.Reds_09
             }
+            base_colormap = palette_map.get(colormap_name, cm.linear.YlOrRd_09)
+            
+            colormap = base_colormap.scale(min_val, max_val)
+            colormap.caption = choropleth_metric
+            colormap.add_to(m)
+
+    def style_fn(feature):
+        fid = str(feature.get("id"))
+        
+        # Determine fill color based on colormap and metric value
+        fill_color = "#318dcc"  # default blue
+        if colormap and choropleth_metric:
+            val = feature.get("properties", {}).get(choropleth_metric)
+            if val is not None:
+                try:
+                    if isinstance(val, str):
+                        val = val.replace(",", "").strip()
+                    fill_color = colormap(float(val))
+                except ValueError:
+                    fill_color = "#e5e5e5"  # missing/non-numeric
+            else:
+                fill_color = "#e5e5e5"  # missing
+                
+        # Highlight selected
+        if selected_id is not None and fid == str(selected_id):
+            return {
+                "fillColor": fill_color,
+                "color": "#d9534f",  # dark red/orange border
+                "weight": 3.5,
+                "fillOpacity": 0.85,
+            }
+            
         return {
-            "fillColor": "#318dcc",
+            "fillColor": fill_color,
             "color": "black",
             "weight": 1,
-            "fillOpacity": 0.4,
+            "fillOpacity": 0.6,
         }
 
     gj = folium.GeoJson(
@@ -328,7 +407,7 @@ def add_geojson_layer(
         highlight_function=lambda x: {
             "weight": 3,
             "color": "orange",
-            "fillOpacity": 0.6,
+            "fillOpacity": 0.75,
         },
         tooltip=folium.GeoJsonTooltip(fields=tooltip_fields, localize=True),
     )

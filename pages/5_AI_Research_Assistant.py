@@ -11,6 +11,9 @@ Datasets loaded at startup:
 
 import streamlit as st
 import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
 from pathlib import Path
 from gemini_queries import GeminiQueryEngine
 from visualizer import get_numeric_columns
@@ -89,16 +92,22 @@ EXAMPLE_QUERIES = [
 
 
 def render_research_assistant_page():
+    try:
+        st.set_page_config(
+            page_title="Future Leaders Innovation Challenge",
+            page_icon="📊",
+            layout="wide",
+            initial_sidebar_state="collapsed",
+        )
+    except Exception:
+        pass
+
+
     st.title("🔬 Future Leaders Innovation Challenge — Research Assistant")
     st.write(
         "Ask questions across the East of England cancer, population, "
         "and deprivation datasets. Powered by Google Gemini."
     )
-
-    # ── Sidebar ──────────────────────────────────────────────────────────────
-    st.sidebar.subheader("💡 Example Questions")
-    for q in EXAMPLE_QUERIES:
-        st.sidebar.caption(f"• {q}")
 
     # ── Load data at startup ──────────────────────────────────────────────────
     with st.spinner("Loading datasets…"):
@@ -125,7 +134,7 @@ def render_research_assistant_page():
 
     st.divider()
 
-    # ── Gemini engine ──────────────────────────────────────────────────────────
+    # ── Gemini engine ────────────────────────────────----------------──────────
     engine = GeminiQueryEngine()
 
     if not engine.is_available():
@@ -136,6 +145,11 @@ def render_research_assistant_page():
 
     # ── Ask a Question ────────────────────────────────────────────────────────
     st.subheader("❓ Ask a Question")
+    
+    with st.expander("💡 View Example Questions"):
+        for q in EXAMPLE_QUERIES:
+            st.write(f"• {q}")
+            
     col1, col2 = st.columns([4, 1])
     with col1:
         user_query = st.text_input(
@@ -193,6 +207,26 @@ def render_research_assistant_page():
 
     st.divider()
 
+    # ── Deprivation × Cancer Scatter ──────────────────────────────────────────
+    st.subheader("🔗 Deprivation vs Cancer Incidence")
+    st.write(
+        "The core analytical question: is there a relationship between deprivation rank "
+        "and overall cancer incidence in the East of England? Each point = one district."
+    )
+    _render_deprivation_cancer_scatter(loaded)
+
+    st.divider()
+
+    # ── Composite Vulnerability League Table ──────────────────────────────────
+    st.subheader("🏆 Priority for Intervention — Composite Vulnerability Score")
+    st.write(
+        "Districts ranked by a composite score that combines IMD rank, overall cancer rate, "
+        "and non-White population proportion. Higher score = greater need for targeted early-detection efforts."
+    )
+    _render_vulnerability_table(loaded)
+
+    st.divider()
+
     # ── Data Overview ─────────────────────────────────────────────────────────
     st.subheader("🔍 Data Overview")
     selected_name = st.selectbox(
@@ -226,6 +260,176 @@ def render_research_assistant_page():
             }
         )
         st.dataframe(col_info, use_container_width=True)
+
+
+# ---------------------------------------------------------------------------
+# Helper visualizations
+# ---------------------------------------------------------------------------
+
+
+def _render_deprivation_cancer_scatter(loaded: dict) -> None:
+    """Scatter: IMD Overall Rank vs Overall Cancer Rate, one point per district."""
+    imd_df = loaded.get("Index of Multiple Deprivation 2025", pd.DataFrame())
+    cancer_df = loaded.get("Cancer Incidence (Overall)", pd.DataFrame())
+
+    if imd_df.empty or cancer_df.empty:
+        st.info("Both deprivation and cancer datasets are required for this chart.")
+        return
+
+    imd_code_col = "Local Authority District code (2024)"
+    imd_name_col = "Local Authority District name (2024)"
+    imd_rank_col = "Index of Multiple Deprivation (IMD) Rank"
+    cancer_code_col = "Geography code"
+    cancer_name_col = "Geography name "
+    cancer_rate_col = "Rate"
+
+    # Clean and merge on district code
+    imd_clean = imd_df[[imd_code_col, imd_name_col, imd_rank_col]].dropna()
+    cancer_clean = cancer_df[[cancer_code_col, cancer_name_col, cancer_rate_col]].copy()
+    cancer_clean[cancer_rate_col] = pd.to_numeric(
+        cancer_clean[cancer_rate_col].astype(str).str.replace(",", ""), errors="coerce"
+    )
+    cancer_clean = cancer_clean.dropna(subset=[cancer_rate_col])
+
+    merged = pd.merge(
+        imd_clean, cancer_clean,
+        left_on=imd_code_col, right_on=cancer_code_col,
+        how="inner",
+    )
+
+    if merged.empty:
+        st.warning("No matching districts found between IMD and cancer datasets.")
+        return
+
+    color_col = imd_name_col if imd_name_col in merged.columns else None
+
+    fig = px.scatter(
+        merged,
+        x=imd_rank_col,
+        y=cancer_rate_col,
+        hover_name=imd_name_col,
+        trendline="ols",
+        labels={
+            imd_rank_col: "IMD Overall Rank (lower = more deprived)",
+            cancer_rate_col: "Overall Cancer Rate (per 100,000)",
+        },
+        title="Deprivation Rank vs Cancer Incidence Rate — East of England Districts",
+        color_discrete_sequence=["#E63946"],
+    )
+    fig.update_traces(
+        marker=dict(size=9, opacity=0.8),
+        selector=dict(mode="markers"),
+    )
+    fig.update_layout(height=480, showlegend=False)
+    st.plotly_chart(fig, use_container_width=True)
+    st.caption(
+        "Trendline = OLS regression. A negative slope would indicate that more deprived districts "
+        "(lower rank number) tend to have higher cancer rates."
+    )
+
+
+def _render_vulnerability_table(loaded: dict) -> None:
+    """Composite vulnerability score: normalise IMD rank + cancer rate + minority population."""
+    imd_df = loaded.get("Index of Multiple Deprivation 2025", pd.DataFrame())
+    cancer_df = loaded.get("Cancer Incidence (Overall)", pd.DataFrame())
+    pop_df = loaded.get("Population by Ethnicity", pd.DataFrame())
+
+    if imd_df.empty or cancer_df.empty:
+        st.info("Deprivation and cancer datasets are required for the vulnerability table.")
+        return
+
+    imd_code_col = "Local Authority District code (2024)"
+    imd_name_col = "Local Authority District name (2024)"
+    imd_rank_col = "Index of Multiple Deprivation (IMD) Rank"
+    cancer_code_col = "Geography code"
+    cancer_name_col = "Geography name "
+    cancer_rate_col = "Rate"
+
+    imd_clean = imd_df[[imd_code_col, imd_name_col, imd_rank_col]].dropna().copy()
+    cancer_clean = cancer_df[[cancer_code_col, cancer_name_col, cancer_rate_col]].copy()
+    cancer_clean[cancer_rate_col] = pd.to_numeric(
+        cancer_clean[cancer_rate_col].astype(str).str.replace(",", ""), errors="coerce"
+    )
+    cancer_clean = cancer_clean.dropna(subset=[cancer_rate_col])
+
+    merged = pd.merge(
+        imd_clean, cancer_clean,
+        left_on=imd_code_col, right_on=cancer_code_col,
+        how="inner",
+    )
+
+    # Normalise each component 0→1
+    max_rank = merged[imd_rank_col].max()
+    # More deprived = lower rank → invert so higher score = worse deprivation
+    merged["dep_score"] = 1 - (merged[imd_rank_col] - 1) / (max_rank - 1 + 1e-9)
+
+    r_min = merged[cancer_rate_col].min()
+    r_max = merged[cancer_rate_col].max()
+    merged["cancer_score"] = (merged[cancer_rate_col] - r_min) / (r_max - r_min + 1e-9)
+
+    # Add minority proportion if population data available
+    has_pop = False
+    if not pop_df.empty:
+        pop_code_col = "LAD24CD"
+        sum_cols = [c for c in ["Asian Sum", "Black Sum", "Mixed Sum", "Others Sum"] if c in pop_df.columns]
+        tot_col = "Total Sum" if "Total Sum" in pop_df.columns else None
+        if pop_code_col in pop_df.columns and sum_cols and tot_col:
+            pop_clean = pop_df[[pop_code_col] + sum_cols + [tot_col]].copy()
+            for c in sum_cols + [tot_col]:
+                pop_clean[c] = pd.to_numeric(
+                    pop_clean[c].astype(str).str.replace(",", ""), errors="coerce"
+                )
+            pop_clean["minority_pct"] = pop_clean[sum_cols].sum(axis=1) / pop_clean[tot_col].replace(0, np.nan) * 100
+            merged = pd.merge(merged, pop_clean[[pop_code_col, "minority_pct"]],
+                              left_on=imd_code_col, right_on=pop_code_col, how="left")
+            mp_min = merged["minority_pct"].min()
+            mp_max = merged["minority_pct"].max()
+            merged["pop_score"] = (merged["minority_pct"] - mp_min) / (mp_max - mp_min + 1e-9)
+            merged["Composite Score"] = (merged["dep_score"] + merged["cancer_score"] + merged["pop_score"]) / 3
+            has_pop = True
+
+    if not has_pop:
+        merged["Composite Score"] = (merged["dep_score"] + merged["cancer_score"]) / 2
+        merged["minority_pct"] = np.nan
+
+    merged["Composite Score"] = (merged["Composite Score"] * 100).round(1)
+    merged = merged.sort_values("Composite Score", ascending=False).reset_index(drop=True)
+    merged.index += 1  # 1-based rank
+
+    display_cols = {
+        imd_name_col: "District",
+        imd_rank_col: "IMD Rank",
+        cancer_rate_col: "Cancer Rate (per 100k)",
+    }
+    if has_pop:
+        display_cols["minority_pct"] = "Minority Pop. (%)"
+    display_cols["Composite Score"] = "Vulnerability Score"
+
+    table = merged[[c for c in display_cols if c in merged.columns]].rename(columns=display_cols)
+    table.index.name = "Priority Rank"
+
+    # Style the score column
+    styled = table.style.background_gradient(
+        subset=["Vulnerability Score"], cmap="YlOrRd"
+    ).format({
+        "IMD Rank": "{:.0f}",
+        "Cancer Rate (per 100k)": "{:.1f}",
+        "Minority Pop. (%)": "{:.1f}",
+        "Vulnerability Score": "{:.1f}",
+    })
+
+    st.dataframe(styled, use_container_width=True, height=480)
+
+    if has_pop:
+        st.caption(
+            "Score = average of normalised IMD deprivation, cancer rate, and minority population proportion. "
+            "Higher score = greater priority for early cancer detection outreach."
+        )
+    else:
+        st.caption(
+            "Score = average of normalised IMD deprivation and cancer rate "
+            "(population data not available for minority proportion)."
+        )
 
 
 if __name__ == "__main__":
