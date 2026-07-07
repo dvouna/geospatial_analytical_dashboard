@@ -1,8 +1,6 @@
 import streamlit as st
-import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import numpy as np
 from pathlib import Path
 
 from map_utils import load_overlay_dataframe
@@ -57,6 +55,7 @@ def render_deprivation_playground():
 
     with col_sidebar:
         import importlib
+
         ra_module = importlib.import_module("pages.5_AI_Research_Assistant")
         ra_module.render_research_assistant_widget(key_suffix="dep_playground")
 
@@ -65,40 +64,74 @@ def render_deprivation_playground():
         st.divider()
 
         rank_cols = [c for c in df.columns if "Rank" in c]
-        short_rank_cols = {c: DOMAIN_SHORT.get(c, c.replace(" Rank", "").strip()) for c in rank_cols}
+        short_rank_cols = {
+            c: DOMAIN_SHORT.get(c, c.replace(" Rank", "").strip()) for c in rank_cols
+        }
+        sorted_rank_cols = sorted(rank_cols, key=lambda c: short_rank_cols[c])
 
         # ── Tabs ───────────────────────────────────────────────────────────────────
-        tab_scatter, tab_radar, tab_parallel, tab_box, tab_heatmap, tab_table = st.tabs([
-            "🔍 Scatter",
-            "🕸️ District Radar",
-            "〰️ Parallel Coords",
-            "📦 Domain Box Plots",
-            "🌡️ Correlation Heatmap",
-            "📋 Data Table",
-        ])
+        (
+            tab_scatter,
+            tab_radar,
+            tab_parallel,
+            tab_box,
+            tab_heatmap,
+            tab_comp,
+            tab_table,
+        ) = st.tabs(
+            [
+                "🔍 Scatter",
+                "🕸️ District Radar",
+                "〰️ Parallel Coords",
+                "📦 Domain Box Plots",
+                "🌡️ Correlation Heatmap",
+                "⚔️ District Comparison",
+                "📋 Data Table",
+            ]
+        )
 
         # ── Scatter ────────────────────────────────────────────────────────────────
         with tab_scatter:
             st.subheader("Correlation Between Deprivation Domains")
-            st.info("💡 Lower rank = higher deprivation in the UK (rank #1 = most deprived).")
+            st.info(
+                "💡 Lower rank = higher deprivation in the UK (rank #1 = most deprived)."
+            )
             col_x, col_y = st.columns(2)
             with col_x:
-                x_var = st.selectbox("X-Axis:", options=rank_cols,
-                                     format_func=lambda c: short_rank_cols[c],
-                                     index=0, key="imd_s_x")
+                x_var = st.selectbox(
+                    "X-Axis:",
+                    options=sorted_rank_cols,
+                    format_func=lambda c: short_rank_cols[c],
+                    index=sorted_rank_cols.index("Index of Multiple Deprivation (IMD) Rank") if "Index of Multiple Deprivation (IMD) Rank" in sorted_rank_cols else 0,
+                    key="imd_s_x",
+                )
             with col_y:
-                y_var = st.selectbox("Y-Axis:", options=rank_cols,
-                                     format_func=lambda c: short_rank_cols[c],
-                                     index=min(1, len(rank_cols) - 1), key="imd_s_y")
+                y_var = st.selectbox(
+                    "Y-Axis:",
+                    options=sorted_rank_cols,
+                    format_func=lambda c: short_rank_cols[c],
+                    index=sorted_rank_cols.index("Income Rank") if "Income Rank" in sorted_rank_cols else min(1, len(sorted_rank_cols) - 1),
+                    key="imd_s_y",
+                )
             plot_df = df.dropna(subset=[x_var, y_var]).copy()
             color_col = next(
-                (c for c in ["ICB", "Local Authority District name (2024)"] if c in df.columns), None
+                (
+                    c
+                    for c in ["ICB", "Local Authority District name (2024)"]
+                    if c in df.columns
+                ),
+                None,
             )
             fig = create_scatter_chart(
-                plot_df, x_col=x_var, y_col=y_var, color_col=color_col,
-                title=f"{short_rank_cols[x_var]} vs {short_rank_cols[y_var]}"
+                plot_df,
+                x_col=x_var,
+                y_col=y_var,
+                color_col=color_col,
+                title=f"{short_rank_cols[x_var]} vs {short_rank_cols[y_var]}",
             )
-            fig.update_layout(xaxis_title=short_rank_cols[x_var], yaxis_title=short_rank_cols[y_var])
+            fig.update_layout(
+                xaxis_title=short_rank_cols[x_var], yaxis_title=short_rank_cols[y_var]
+            )
             st.plotly_chart(fig, use_container_width=True)
 
         # ── Radar chart ───────────────────────────────────────────────────────────
@@ -111,16 +144,24 @@ def render_deprivation_playground():
             )
 
             name_col_imd = "Local Authority District name (2024)"
-            code_col_imd = "Local Authority District code (2024)"
 
             # Offer only the 8 main sub-domains (not IDACI/IDAOPI to keep readable)
-            radar_domains = [c for c in rank_cols if c not in (
-                "Income Deprivation Affecting Children Index (IDACI) Rank",
-                "Income Deprivation Affecting Older People (IDAOPI) Rank",
-            )]
+            radar_domains = [
+                c
+                for c in rank_cols
+                if c
+                not in (
+                    "Income Deprivation Affecting Children Index (IDACI) Rank",
+                    "Income Deprivation Affecting Older People (IDAOPI) Rank",
+                )
+            ]
             radar_labels = [DOMAIN_SHORT.get(c, c) for c in radar_domains]
 
-            districts_available = df[name_col_imd].dropna().sort_values().tolist() if name_col_imd in df.columns else []
+            districts_available = (
+                df[name_col_imd].dropna().sort_values().tolist()
+                if name_col_imd in df.columns
+                else []
+            )
 
             if not districts_available:
                 st.warning("District name column not found.")
@@ -136,6 +177,7 @@ def render_deprivation_playground():
                 max_rank = df[radar_domains].max().max()
                 # England average = median rank ≈ halfway
                 eng_avg = df[radar_domains].median().tolist()
+
                 # Invert so that MORE deprived = larger on chart (more visible)
                 def invert(vals):
                     return [max_rank - v + 1 for v in vals]
@@ -144,26 +186,39 @@ def render_deprivation_playground():
                 # England average baseline
                 avg_vals = invert(eng_avg) + [invert(eng_avg)[0]]
                 theta = radar_labels + [radar_labels[0]]
-                fig.add_trace(go.Scatterpolar(
-                    r=avg_vals, theta=theta,
-                    fill="toself", name="England Average",
-                    line_color="rgba(150,150,150,0.6)",
-                    fillcolor="rgba(200,200,200,0.2)",
-                ))
+                fig.add_trace(
+                    go.Scatterpolar(
+                        r=avg_vals,
+                        theta=theta,
+                        fill="toself",
+                        name="England Average",
+                        line_color="rgba(150,150,150,0.6)",
+                        fillcolor="rgba(200,200,200,0.2)",
+                    )
+                )
 
                 colors = ["#E63946", "#2A9D8F", "#E9C46A"]
+                fill_colors = [
+                    "rgba(230, 57, 70, 0.15)",
+                    "rgba(42, 157, 143, 0.15)",
+                    "rgba(233, 196, 106, 0.15)",
+                ]
                 for i, district in enumerate(selected_districts):
                     row = df[df[name_col_imd] == district]
                     if row.empty:
                         continue
                     vals = row[radar_domains].iloc[0].tolist()
                     inv_vals = invert(vals) + [invert(vals)[0]]
-                    fig.add_trace(go.Scatterpolar(
-                        r=inv_vals, theta=theta,
-                        fill="toself", name=district,
-                        line_color=colors[i % len(colors)],
-                        fillcolor=colors[i % len(colors)].replace(")", ",0.15)").replace("rgb", "rgba") if "rgb" in colors[i % len(colors)] else colors[i % len(colors)] + "26",
-                    ))
+                    fig.add_trace(
+                        go.Scatterpolar(
+                            r=inv_vals,
+                            theta=theta,
+                            fill="toself",
+                            name=district,
+                            line_color=colors[i % len(colors)],
+                            fillcolor=fill_colors[i % len(colors)],
+                        )
+                    )
 
                 fig.update_layout(
                     polar=dict(radialaxis=dict(visible=True, range=[0, max_rank])),
@@ -187,24 +242,31 @@ def render_deprivation_playground():
             para_df = df[rank_cols].dropna().copy()
             para_df_renamed = para_df.rename(columns=short_rank_cols)
             short_labels = list(para_df_renamed.columns)
-            imd_col_short = DOMAIN_SHORT.get("Index of Multiple Deprivation (IMD) Rank", "Overall IMD")
+            imd_col_short = DOMAIN_SHORT.get(
+                "Index of Multiple Deprivation (IMD) Rank", "Overall IMD"
+            )
 
             dims = [
-                dict(range=[para_df_renamed[c].max(), para_df_renamed[c].min()],
-                     label=c, values=para_df_renamed[c])
+                dict(
+                    range=[para_df_renamed[c].max(), para_df_renamed[c].min()],
+                    label=c,
+                    values=para_df_renamed[c],
+                )
                 for c in short_labels
             ]
-            fig = go.Figure(data=go.Parcoords(
-                line=dict(
-                    color=para_df_renamed[imd_col_short],
-                    colorscale="RdYlGn_r",
-                    showscale=True,
-                    cmin=para_df_renamed[imd_col_short].min(),
-                    cmax=para_df_renamed[imd_col_short].max(),
-                    colorbar=dict(title="IMD Rank<br>(low=deprived)"),
-                ),
-                dimensions=dims,
-            ))
+            fig = go.Figure(
+                data=go.Parcoords(
+                    line=dict(
+                        color=para_df_renamed[imd_col_short],
+                        colorscale="RdYlGn_r",
+                        showscale=True,
+                        cmin=para_df_renamed[imd_col_short].min(),
+                        cmax=para_df_renamed[imd_col_short].max(),
+                        colorbar=dict(title="IMD Rank<br>(low=deprived)"),
+                    ),
+                    dimensions=dims,
+                )
+            )
             fig.update_layout(
                 title="Parallel Coordinates — Deprivation Ranks Across All Domains",
                 height=540,
@@ -226,7 +288,9 @@ def render_deprivation_playground():
                 melted.groupby("Domain")["Rank"].median().sort_values().index.tolist()
             )
             fig = px.box(
-                melted, x="Domain", y="Rank",
+                melted,
+                x="Domain",
+                y="Rank",
                 category_orders={"Domain": domain_order},
                 color="Domain",
                 title="Rank Distribution by Deprivation Domain (all 296 English districts)",
@@ -244,8 +308,162 @@ def render_deprivation_playground():
             st.subheader("Correlation Heatmap — All Deprivation Domains")
             st.write("Strength of linear relationship between deprivation sub-domains.")
             corr_df = df[rank_cols].rename(columns=short_rank_cols).dropna()
-            fig = create_heatmap(corr_df, title="Deprivation Sub-Domain Correlation Matrix")
+            fig = create_heatmap(
+                corr_df, title="Deprivation Sub-Domain Correlation Matrix"
+            )
             st.plotly_chart(fig, use_container_width=True)
+
+        # ── Tab 6: District Comparison ─────────────────────────────────────────────
+        with tab_comp:
+            st.subheader("⚔️ District Comparison")
+            st.info(
+                "Select and compare deprivation domain rankings across districts. "
+                "You can select up to 5 districts for comparison."
+            )
+
+            name_col_imd = "Local Authority District name (2024)"
+            districts_available = (
+                df[name_col_imd].dropna().sort_values().tolist()
+                if name_col_imd in df.columns
+                else []
+            )
+
+            if not districts_available:
+                st.warning("District name column not found.")
+            else:
+                col_sel1, col_sel2, col_sel3 = st.columns([2, 1, 1])
+                with col_sel1:
+                    selected_districts = st.multiselect(
+                        "Select districts (up to 5):",
+                        options=districts_available,
+                        default=districts_available[:1],
+                        max_selections=5,
+                        key="imd_comp_districts",
+                    )
+                with col_sel2:
+                    view_mode = st.radio(
+                        "Rank display:",
+                        [
+                            "Raw Rank (lower = more deprived)",
+                            "Inverted (higher = more deprived)",
+                        ],
+                        key="imd_comp_mode",
+                    )
+                with col_sel3:
+                    domain_filter = st.selectbox(
+                        "Filter domains:",
+                        options=["All Domains", "Main Domains Only"]
+                        + sorted(list(DOMAIN_SHORT.values())),
+                        key="imd_comp_filter",
+                    )
+
+                if not selected_districts:
+                    st.warning("⚠️ Please select at least one district to compare.")
+                else:
+                    # Filter and melt data for selected districts
+                    comp_df = df[df[name_col_imd].isin(selected_districts)].copy()
+
+                    long_df = comp_df[[name_col_imd] + rank_cols].melt(
+                        id_vars=[name_col_imd],
+                        value_vars=rank_cols,
+                        var_name="Domain_Raw",
+                        value_name="Rank",
+                    )
+                    long_df["Domain"] = long_df["Domain_Raw"].map(short_rank_cols)
+
+                    # Filter domains if requested
+                    if domain_filter == "Main Domains Only":
+                        main_domains = [
+                            DOMAIN_SHORT[c]
+                            for c in rank_cols
+                            if c
+                            not in (
+                                "Income Deprivation Affecting Children Index (IDACI) Rank",
+                                "Income Deprivation Affecting Older People (IDAOPI) Rank",
+                            )
+                        ]
+                        long_df = long_df[long_df["Domain"].isin(main_domains)]
+                    elif domain_filter != "All Domains":
+                        long_df = long_df[long_df["Domain"] == domain_filter]
+
+                    # Max rank in dataset for inversion (usually 296)
+                    max_rank = df[rank_cols].max().max()
+
+                    # Compute rank representation based on mode
+                    if "Inverted" in view_mode:
+                        long_df["Value"] = max_rank - long_df["Rank"] + 1
+                        y_axis_title = (
+                            "Inverted Deprivation Rank (higher = more deprived)"
+                        )
+                    else:
+                        long_df["Value"] = long_df["Rank"]
+                        y_axis_title = "Raw Deprivation Rank (lower = more deprived)"
+
+                    # Visualizations
+                    palette_imd = px.colors.qualitative.Set2
+                    if len(selected_districts) == 1:
+                        # Single district horizontal bar chart
+                        fig = px.bar(
+                            long_df,
+                            x="Value",
+                            y="Domain",
+                            color="Domain",
+                            orientation="h",
+                            title=f"Deprivation Domain Rankings for {selected_districts[0]}",
+                            labels={
+                                "Value": y_axis_title,
+                                "Domain": "Deprivation Domain",
+                            },
+                            color_discrete_sequence=palette_imd,
+                            category_orders={
+                                "Domain": sorted(long_df["Domain"].unique())
+                            },
+                        )
+                        # For raw rank, we want the lowest rank (most deprived) at the top/right, so we can invert the x-axis
+                        if "Inverted" not in view_mode:
+                            fig.update_layout(xaxis=dict(autorange="reversed"))
+                        fig.update_layout(
+                            height=500,
+                            showlegend=False,
+                            yaxis={"categoryorder": "total ascending"},
+                            hovermode="y unified",
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        # Multi-district grouped bar chart comparison
+                        fig = px.bar(
+                            long_df,
+                            x="Domain",
+                            y="Value",
+                            color=name_col_imd,
+                            barmode="group",
+                            title=f"District Deprivation Comparison ({view_mode})",
+                            labels={
+                                "Value": y_axis_title,
+                                "Domain": "Deprivation Domain",
+                                name_col_imd: "District",
+                            },
+                            color_discrete_sequence=palette_imd,
+                        )
+                        if "Inverted" not in view_mode:
+                            fig.update_layout(yaxis=dict(autorange="reversed"))
+                        fig.update_layout(
+                            height=520, xaxis_tickangle=-30, hovermode="x unified"
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+
+                    # Comparison Data Table
+                    st.write("### 📋 Comparison Data Table")
+                    pivot_df = long_df.pivot(
+                        index="Domain", columns=name_col_imd, values="Rank"
+                    )
+
+                    st.dataframe(
+                        pivot_df.style.background_gradient(
+                            cmap="RdYlGn", axis=None, vmin=1, vmax=max_rank
+                        ).format("{:,.0f}"),
+                        use_container_width=True,
+                    )
 
         # ── Data table ────────────────────────────────────────────────────────────
         with tab_table:

@@ -3,20 +3,20 @@ Research Assistant Page
 Multi-dataset natural language querying with Google Gemini API.
 
 Datasets loaded at startup:
-  - overall_incidence   : overall_incidence.csv
-  - top_5_cancers       : top_5_cancers.csv
-  - population_detail   : population_detail.csv
-  - deprivation         : iod_2025.csv
+  - Cancer Incidence (Overall)
+  - Cancer Incidence (Top 5 by Area)
+  - Population by Ethnicity
+  - Deprivation (Index of Multiple Deprivation 2025)
 """
 
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import plotly.graph_objects as go
 from pathlib import Path
 from gemini_queries import GeminiQueryEngine
 from visualizer import get_numeric_columns
+from utils.data_loader_cancer import get_cancer_overall_df, get_cancer_top5_df
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -37,9 +37,19 @@ def _load(path: Path) -> pd.DataFrame:
 
 @st.cache_data
 def load_all_datasets() -> dict[str, pd.DataFrame]:
+    try:
+        overall_df = get_cancer_overall_df(year_filter="all")
+    except Exception:
+        overall_df = pd.DataFrame()
+
+    try:
+        top5_df = get_cancer_top5_df(year_filter="all")
+    except Exception:
+        top5_df = pd.DataFrame()
+
     return {
-        "Cancer Incidence (Overall)": _load(DATA_DIR / "overall_incidence.csv"),
-        "Cancer Incidence (Top 5 by Area)": _load(DATA_DIR / "top_5_cancers.csv"),
+        "Cancer Incidence (Overall)": overall_df,
+        "Cancer Incidence (Top 5 by Area)": top5_df,
         "Population by Ethnicity": _load(DATA_DIR / "population_detail.csv"),
         "Index of Multiple Deprivation 2025": _load(DATA_DIR / "iod_2025.csv"),
     }
@@ -102,7 +112,6 @@ def render_research_assistant_page():
     except Exception:
         pass
 
-
     st.title("🔬 Future Leaders Innovation Challenge — Research Assistant")
     st.write(
         "Ask questions across the East of England cancer, population, "
@@ -145,11 +154,11 @@ def render_research_assistant_page():
 
     # ── Ask a Question ────────────────────────────────────────────────────────
     st.subheader("❓ Ask a Question")
-    
+
     with st.expander("💡 View Example Questions"):
         for q in EXAMPLE_QUERIES:
             st.write(f"• {q}")
-            
+
     col1, col2 = st.columns([4, 1])
     with col1:
         user_query = st.text_input(
@@ -292,8 +301,10 @@ def _render_deprivation_cancer_scatter(loaded: dict) -> None:
     cancer_clean = cancer_clean.dropna(subset=[cancer_rate_col])
 
     merged = pd.merge(
-        imd_clean, cancer_clean,
-        left_on=imd_code_col, right_on=cancer_code_col,
+        imd_clean,
+        cancer_clean,
+        left_on=imd_code_col,
+        right_on=cancer_code_col,
         how="inner",
     )
 
@@ -301,7 +312,6 @@ def _render_deprivation_cancer_scatter(loaded: dict) -> None:
         st.warning("No matching districts found between IMD and cancer datasets.")
         return
 
-    color_col = imd_name_col if imd_name_col in merged.columns else None
 
     fig = px.scatter(
         merged,
@@ -335,7 +345,9 @@ def _render_vulnerability_table(loaded: dict) -> None:
     pop_df = loaded.get("Population by Ethnicity", pd.DataFrame())
 
     if imd_df.empty or cancer_df.empty:
-        st.info("Deprivation and cancer datasets are required for the vulnerability table.")
+        st.info(
+            "Deprivation and cancer datasets are required for the vulnerability table."
+        )
         return
 
     imd_code_col = "Local Authority District code (2024)"
@@ -353,8 +365,10 @@ def _render_vulnerability_table(loaded: dict) -> None:
     cancer_clean = cancer_clean.dropna(subset=[cancer_rate_col])
 
     merged = pd.merge(
-        imd_clean, cancer_clean,
-        left_on=imd_code_col, right_on=cancer_code_col,
+        imd_clean,
+        cancer_clean,
+        left_on=imd_code_col,
+        right_on=cancer_code_col,
         how="inner",
     )
 
@@ -371,21 +385,42 @@ def _render_vulnerability_table(loaded: dict) -> None:
     has_pop = False
     if not pop_df.empty:
         pop_code_col = "LAD24CD"
-        sum_cols = [c for c in ["Asian Sum", "Black Sum", "Mixed Sum", "Others Sum"] if c in pop_df.columns]
-        tot_col = "Total Sum" if "Total Sum" in pop_df.columns else None
-        if pop_code_col in pop_df.columns and sum_cols and tot_col:
-            pop_clean = pop_df[[pop_code_col] + sum_cols + [tot_col]].copy()
+        pop_df_clean = pop_df.copy()
+        pop_df_clean.columns = [c.replace("\r\n", "\n").replace("\r", "\n") for c in pop_df_clean.columns]
+        sum_cols = [
+            c
+            for c in ["Asian Sum", "Black Sum", "Mixed Sum", "Others Sum",
+                      "Total - All Asian Groups", "Total - All Black Groups",
+                      "Total - All Mixed Groups", "Total - Other Ethnic Groups"]
+            if c in pop_df_clean.columns
+        ]
+        tot_col = next((c for c in ["Total Population", "Total Sum"] if c in pop_df_clean.columns), None)
+        if pop_code_col in pop_df_clean.columns and sum_cols and tot_col:
+            pop_clean = pop_df_clean[[pop_code_col] + sum_cols + [tot_col]].copy()
             for c in sum_cols + [tot_col]:
                 pop_clean[c] = pd.to_numeric(
                     pop_clean[c].astype(str).str.replace(",", ""), errors="coerce"
                 )
-            pop_clean["minority_pct"] = pop_clean[sum_cols].sum(axis=1) / pop_clean[tot_col].replace(0, np.nan) * 100
-            merged = pd.merge(merged, pop_clean[[pop_code_col, "minority_pct"]],
-                              left_on=imd_code_col, right_on=pop_code_col, how="left")
+            pop_clean["minority_pct"] = (
+                pop_clean[sum_cols].sum(axis=1)
+                / pop_clean[tot_col].replace(0, np.nan)
+                * 100
+            )
+            merged = pd.merge(
+                merged,
+                pop_clean[[pop_code_col, "minority_pct"]],
+                left_on=imd_code_col,
+                right_on=pop_code_col,
+                how="left",
+            )
             mp_min = merged["minority_pct"].min()
             mp_max = merged["minority_pct"].max()
-            merged["pop_score"] = (merged["minority_pct"] - mp_min) / (mp_max - mp_min + 1e-9)
-            merged["Composite Score"] = (merged["dep_score"] + merged["cancer_score"] + merged["pop_score"]) / 3
+            merged["pop_score"] = (merged["minority_pct"] - mp_min) / (
+                mp_max - mp_min + 1e-9
+            )
+            merged["Composite Score"] = (
+                merged["dep_score"] + merged["cancer_score"] + merged["pop_score"]
+            ) / 3
             has_pop = True
 
     if not has_pop:
@@ -393,7 +428,9 @@ def _render_vulnerability_table(loaded: dict) -> None:
         merged["minority_pct"] = np.nan
 
     merged["Composite Score"] = (merged["Composite Score"] * 100).round(1)
-    merged = merged.sort_values("Composite Score", ascending=False).reset_index(drop=True)
+    merged = merged.sort_values("Composite Score", ascending=False).reset_index(
+        drop=True
+    )
     merged.index += 1  # 1-based rank
 
     display_cols = {
@@ -405,18 +442,22 @@ def _render_vulnerability_table(loaded: dict) -> None:
         display_cols["minority_pct"] = "Minority Pop. (%)"
     display_cols["Composite Score"] = "Vulnerability Score"
 
-    table = merged[[c for c in display_cols if c in merged.columns]].rename(columns=display_cols)
+    table = merged[[c for c in display_cols if c in merged.columns]].rename(
+        columns=display_cols
+    )
     table.index.name = "Priority Rank"
 
     # Style the score column
     styled = table.style.background_gradient(
         subset=["Vulnerability Score"], cmap="YlOrRd"
-    ).format({
-        "IMD Rank": "{:.0f}",
-        "Cancer Rate (per 100k)": "{:.1f}",
-        "Minority Pop. (%)": "{:.1f}",
-        "Vulnerability Score": "{:.1f}",
-    })
+    ).format(
+        {
+            "IMD Rank": "{:.0f}",
+            "Cancer Rate (per 100k)": "{:.1f}",
+            "Minority Pop. (%)": "{:.1f}",
+            "Vulnerability Score": "{:.1f}",
+        }
+    )
 
     st.dataframe(styled, use_container_width=True, height=480)
 
@@ -457,9 +498,14 @@ def render_research_assistant_widget(key_suffix: str = ""):
         "Ask Gemini:",
         placeholder="e.g. which area has highest cancer rate?",
         key=f"ra_widget_query_{key_suffix}",
-        label_visibility="collapsed"
+        label_visibility="collapsed",
     )
-    submit = st.button("🔍 Ask Gemini", type="primary", use_container_width=True, key=f"ra_widget_submit_{key_suffix}")
+    submit = st.button(
+        "🔍 Ask Gemini",
+        type="primary",
+        use_container_width=True,
+        key=f"ra_widget_submit_{key_suffix}",
+    )
 
     if submit and user_query:
         context = _build_context(loaded)

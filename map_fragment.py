@@ -53,11 +53,20 @@ MAP_METRICS = {
     "Cancer Incidence": {
         "Overall Rate": ("Rate", "YlOrRd"),
         "Total Incidence Count": ("Total_incidence", "YlOrRd"),
-        "Breast Cancer": ("breast", "RdPu"),
+        "Bladder Cancer": ("bladder", "RdPu"),
+        "Blood Cancer": ("blood cancer", "RdPu"),
         "Bowel Cancer": ("bowel", "RdPu"),
+        "Brain Cancer": ("brain", "RdPu"),
+        "Breast Cancer": ("breast", "RdPu"),
+        "Head & Neck Cancer": ("head and neck", "RdPu"),
+        "Kidney Cancer": ("kidney", "RdPu"),
+        "Liver & Biliary Cancer": ("liver and biliary tract", "RdPu"),
         "Lung Cancer": ("lung", "RdPu"),
+        "Ovarian Cancer": ("ovary", "RdPu"),
+        "Pancreatic Cancer": ("pancreas", "RdPu"),
         "Prostate Cancer": ("prostate", "RdPu"),
-        "Skin Cancer": ("skin", "RdPu")
+        "Skin Cancer": ("skin", "RdPu"),
+        "Uterine Cancer": ("uterus", "RdPu")
     }
 }
 

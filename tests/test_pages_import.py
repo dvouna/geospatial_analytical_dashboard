@@ -219,7 +219,6 @@ def test_geojson_payload_size_baseline():
     This test always passes — it just prints the size so we can compare it
     against the optimised version after the refactor.
     """
-    import json
     from map_utils import prepare_geojson_payload
 
     base_path = DATA_DIR / "base_gdf_1.geojson"
@@ -233,3 +232,40 @@ def test_geojson_payload_size_baseline():
     size_kb = len(json.dumps(payload).encode()) / 1024
     print(f"\n[BASELINE] base_gdf_1.geojson serialised size: {size_kb:.1f} KB")
     assert size_kb > 0  # always passes; value captured in output
+
+
+# ---------------------------------------------------------------------------
+# 5. Cancer data loader unit tests
+# ---------------------------------------------------------------------------
+
+
+def test_load_cancer_raw_data():
+    """Verify that load_cancer_raw_data loads the dataset correctly."""
+    from utils.data_loader_cancer import load_cancer_raw_data
+    df = load_cancer_raw_data()
+    assert not df.empty
+    assert "Cancer Type" in df.columns
+    assert "Total Incidence" in df.columns
+
+
+def test_get_cancer_overall_df():
+    """Verify get_cancer_overall_df aggregates rates and confidence intervals."""
+    from utils.data_loader_cancer import get_cancer_overall_df
+    df = get_cancer_overall_df(year_filter="all")
+    assert not df.empty
+    assert "Rate" in df.columns
+    assert "Total_incidence" in df.columns
+    assert "breast" in df.columns
+    assert "skin" in df.columns
+    assert "95% lower confidence interval" in df.columns
+    assert "Geography name" in df.columns
+
+
+def test_get_cancer_top5_df():
+    """Verify get_cancer_top5_df aggregates age bands correctly."""
+    from utils.data_loader_cancer import get_cancer_top5_df
+    df = get_cancer_top5_df(year_filter="all")
+    assert not df.empty
+    assert "All ages" in df.columns
+    assert "Age 25 to 49" in df.columns
+
