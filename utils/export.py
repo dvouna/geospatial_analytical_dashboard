@@ -12,7 +12,6 @@ so they can be imported as:
 import io
 import pandas as pd
 import streamlit as st
-from typing import List, Tuple
 
 
 def export_dataframe_to_csv(df: pd.DataFrame, filename: str = "data_export.csv") -> bytes:

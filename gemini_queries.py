@@ -5,9 +5,7 @@ Handles natural language queries via Google Gemini API
 
 import streamlit as st
 import pandas as pd
-import os
 from typing import Optional, Dict, Any
-import json
 from config import Config
 
 try:

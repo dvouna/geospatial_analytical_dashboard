@@ -5,10 +5,8 @@ Handles CSV and public dataset loading with Streamlit caching
 
 import streamlit as st
 import pandas as pd
-from pathlib import Path
 from typing import Optional, Dict, List
 import os
-import json
 import geopandas as gpd
 
 # Cache data loading for performance
@@ -80,7 +78,6 @@ def load_sample_dataset(dataset_name: str) -> Optional[pd.DataFrame]:
 
 def generate_sample_sales_data() -> pd.DataFrame:
     """Generate sample sales data for demo"""
-    import random
     import numpy as np
     from datetime import datetime, timedelta
     
@@ -100,7 +97,6 @@ def generate_sample_sales_data() -> pd.DataFrame:
 
 def generate_sample_locations_data() -> pd.DataFrame:
     """Generate sample location data with lat/lon for geospatial demo"""
-    import random
     import numpy as np
     
     np.random.seed(42)
@@ -150,7 +146,6 @@ def validate_geospatial_data(df: pd.DataFrame) -> bool:
     Returns:
         True if lat/lon columns exist, False otherwise
     """
-    required_cols = ['lat', 'lon', 'latitude', 'longitude']
     df_cols = [col.lower() for col in df.columns]
     
     has_lat = any(col in df_cols for col in ['lat', 'latitude'])
@@ -171,7 +166,7 @@ def validate_geodataframe(gdf) -> bool:
     """
     try:
         return isinstance(gdf, gpd.GeoDataFrame) and 'geometry' in gdf.columns
-    except:
+    except Exception:
         return False
 
 

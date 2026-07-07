@@ -116,5 +116,5 @@ def check_environment():
     if errors:
         if Config.DEBUG:
             st.warning(
-                f"⚠️ Configuration warnings:\n" + "\n".join(f"• {e}" for e in errors)
+                "⚠️ Configuration warnings:\n" + "\n".join(f"• {e}" for e in errors)
             )

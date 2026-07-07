@@ -36,8 +36,9 @@ from map_utils import (
     merge_overlay,
     prepare_geojson_payload,
     render_map_settings,
-    display_props_as_kv,
+    get_map_tile_config,
 )
+from utils.data_loader_cancer import get_cancer_overall_df, get_cancer_top5_df
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -236,9 +237,12 @@ def load_map_data() -> tuple:
     except Exception as exc:
         st.warning(f"⚠️ Failed to merge deprivation data: {exc}")
 
-    # 4. Merge Cancer overlay (overall_incidence.csv)
+    # 4. Merge Cancer overlay (cancer_2018_2022.csv via get_cancer_overall_df)
     try:
-        cancer_df = load_overlay_dataframe(DATA_DIR / "overall_incidence.csv", index_col="fid")
+        cancer_df = get_cancer_overall_df(year_filter="all")
+        # Prevent duplicate columns (e.g. LAD24NM, total_population) that cause GeoDataFrame validation to fail
+        cols_to_keep = ["fid"] + [c for c in cancer_df.columns if c not in gdf.columns]
+        cancer_df = cancer_df[cols_to_keep]
         gdf = merge_overlay(gdf, cancer_df, base_key="fid", overlay_key="fid")
     except Exception as exc:
         st.warning(f"⚠️ Failed to merge cancer incidence data: {exc}")
@@ -267,16 +271,16 @@ def _load_districts_overlay() -> pd.DataFrame:
 @st.cache_data
 def _load_cancer_overlay() -> pd.DataFrame:
     try:
-        return load_overlay_dataframe(DATA_DIR / "overall_incidence.csv", index_col="fid")
-    except FileNotFoundError:
+        return get_cancer_overall_df(year_filter="all")
+    except Exception:
         return pd.DataFrame()
 
 
 @st.cache_data
 def _load_top5_overlay() -> pd.DataFrame:
     try:
-        return load_overlay_dataframe(DATA_DIR / "top_5_cancers.csv", index_col="fid")
-    except FileNotFoundError:
+        return get_cancer_top5_df(year_filter="all")
+    except Exception:
         return pd.DataFrame()
 
 
@@ -483,16 +487,6 @@ def _panel_cancer(active_fid: str | None, id_to_props: dict) -> None:
     """Cancer incidence panel for the selected authority."""
     st.markdown("## 🎗️ Cancer Incidence")
 
-    SIDE_PANEL_COLS = [
-        "Geography name ",
-        "Total_incidence",
-        "Rate",
-        "breast",
-        "bowel",
-        "lung",
-        "prostate",
-        "skin",
-    ]
 
     overall_df = _load_cancer_overlay()
     top5_df = _load_top5_overlay()
@@ -631,7 +625,6 @@ except Exception as exc:
     st.stop()
 
 # ── Resolve map tiles from session state ──────────────────────────────────────
-from map_utils import get_map_tile_config
 map_type_val = st.session_state.get("map_type_main", "Satellite (ArcGIS)")
 tiles, attr = get_map_tile_config(map_type_val)
 
