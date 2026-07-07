@@ -50,6 +50,14 @@ def render_deprivation_playground():
         st.error(f"❌ Error loading deprivation data: {exc}")
         return
 
+    try:
+        local_df = load_overlay_dataframe(DATA_DIR / "local_districts.csv")
+        eoe_codes = set(local_df["LAD24CD"].dropna().unique())
+        eoe_df = df[df["Local Authority District code (2024)"].isin(eoe_codes)].copy()
+    except Exception as exc:
+        st.warning(f"⚠️ Could not load or filter East of England districts: {exc}")
+        eoe_df = df.copy()
+
     # ── Split page layout ──────────────────────────────────────────────────────
     col_main, col_sidebar = st.columns([7, 3])
 
@@ -73,18 +81,14 @@ def render_deprivation_playground():
         (
             tab_scatter,
             tab_radar,
-            tab_parallel,
-            tab_box,
-            tab_heatmap,
+            tab_eoe,
             tab_comp,
             tab_table,
         ) = st.tabs(
             [
                 "🔍 Scatter",
                 "🕸️ District Radar",
-                "〰️ Parallel Coords",
-                "📦 Domain Box Plots",
-                "🌡️ Correlation Heatmap",
+                "📈 East of England Analysis",
                 "⚔️ District Comparison",
                 "📋 Data Table",
             ]
@@ -232,86 +236,98 @@ def render_deprivation_playground():
                     "rank #296 (least deprived) plots at the centre."
                 )
 
-        # ── Parallel coordinates ──────────────────────────────────────────────────
-        with tab_parallel:
-            st.subheader("Parallel Coordinates — Multi-Domain Deprivation Profiles")
+        # ── East of England Analysis ──────────────────────────────────────────────
+        with tab_eoe:
+            st.subheader("📈 East of England Regional Analysis")
             st.info(
-                "Each line is a district. Lines that cross similarly reveal typological clusters. "
-                "Colour = Overall IMD Rank (darker = more deprived)."
+                "This section analyzes deprivation ranks and correlations specifically for the "
+                "45 local authority districts in the East of England region."
             )
-            para_df = df[rank_cols].dropna().copy()
+
+            # 1. Parallel coordinates
+            st.write("### 〰️ Parallel Coordinates — Regional Deprivation Profiles")
+            st.write("Each line represents an East of England district. Lines crossing similarly indicate shared typological patterns.")
+            para_df = eoe_df[rank_cols].dropna().copy()
             para_df_renamed = para_df.rename(columns=short_rank_cols)
             short_labels = list(para_df_renamed.columns)
             imd_col_short = DOMAIN_SHORT.get(
                 "Index of Multiple Deprivation (IMD) Rank", "Overall IMD"
             )
 
-            dims = [
-                dict(
-                    range=[para_df_renamed[c].max(), para_df_renamed[c].min()],
-                    label=c,
-                    values=para_df_renamed[c],
+            if para_df_renamed.empty:
+                st.warning("No data available for Parallel Coordinates.")
+            else:
+                dims = [
+                    dict(
+                        range=[para_df_renamed[c].max(), para_df_renamed[c].min()],
+                        label=c,
+                        values=para_df_renamed[c],
+                    )
+                    for c in short_labels
+                ]
+                fig = go.Figure(
+                    data=go.Parcoords(
+                        line=dict(
+                            color=para_df_renamed[imd_col_short],
+                            colorscale="RdYlGn_r",
+                            showscale=True,
+                            cmin=para_df_renamed[imd_col_short].min(),
+                            cmax=para_df_renamed[imd_col_short].max(),
+                            colorbar=dict(title="IMD Rank<br>(low=deprived)"),
+                        ),
+                        dimensions=dims,
+                    )
                 )
-                for c in short_labels
-            ]
-            fig = go.Figure(
-                data=go.Parcoords(
-                    line=dict(
-                        color=para_df_renamed[imd_col_short],
-                        colorscale="RdYlGn_r",
-                        showscale=True,
-                        cmin=para_df_renamed[imd_col_short].min(),
-                        cmax=para_df_renamed[imd_col_short].max(),
-                        colorbar=dict(title="IMD Rank<br>(low=deprived)"),
-                    ),
-                    dimensions=dims,
+                fig.update_layout(
+                    title="Parallel Coordinates — Deprivation Ranks (East of England)",
+                    height=540,
                 )
-            )
-            fig.update_layout(
-                title="Parallel Coordinates — Deprivation Ranks Across All Domains",
-                height=540,
-            )
-            st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True)
 
-        # ── Box plots by domain ───────────────────────────────────────────────────
-        with tab_box:
-            st.subheader("Rank Distribution per Deprivation Domain")
-            st.info(
-                "How spread out are the deprivation ranks for each domain across all 296 districts? "
-                "Narrow boxes = more uniform distribution; wide boxes = high inequality across districts."
-            )
-            melted = df[rank_cols].copy().rename(columns=short_rank_cols)
-            melted = melted.melt(var_name="Domain", value_name="Rank").dropna()
+            st.divider()
 
-            # Order domains by median rank ascending (most deprived first)
-            domain_order = (
-                melted.groupby("Domain")["Rank"].median().sort_values().index.tolist()
-            )
-            fig = px.box(
-                melted,
-                x="Domain",
-                y="Rank",
-                category_orders={"Domain": domain_order},
-                color="Domain",
-                title="Rank Distribution by Deprivation Domain (all 296 English districts)",
-                labels={"Rank": "Deprivation Rank (lower = more deprived)"},
-            )
-            fig.update_layout(
-                xaxis_tickangle=-30,
-                showlegend=False,
-                height=500,
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            # 2. Box plots by domain
+            st.write("### 📦 Rank Distribution per Deprivation Domain (East of England)")
+            st.write("Distribution of deprivation ranks within the region. Narrow boxes = more uniform; wide boxes = higher regional disparity.")
+            if eoe_df.empty:
+                st.warning("No data available for Box Plots.")
+            else:
+                melted = eoe_df[rank_cols].copy().rename(columns=short_rank_cols)
+                melted = melted.melt(var_name="Domain", value_name="Rank").dropna()
 
-        # ── Correlation heatmap ───────────────────────────────────────────────────
-        with tab_heatmap:
-            st.subheader("Correlation Heatmap — All Deprivation Domains")
-            st.write("Strength of linear relationship between deprivation sub-domains.")
-            corr_df = df[rank_cols].rename(columns=short_rank_cols).dropna()
-            fig = create_heatmap(
-                corr_df, title="Deprivation Sub-Domain Correlation Matrix"
-            )
-            st.plotly_chart(fig, use_container_width=True)
+                # Order domains by median rank ascending (most deprived first)
+                domain_order = (
+                    melted.groupby("Domain")["Rank"].median().sort_values().index.tolist()
+                )
+                fig = px.box(
+                    melted,
+                    x="Domain",
+                    y="Rank",
+                    category_orders={"Domain": domain_order},
+                    color="Domain",
+                    title="Rank Distribution by Deprivation Domain (East of England districts)",
+                    labels={"Rank": "Deprivation Rank (lower = more deprived)"},
+                )
+                fig.update_layout(
+                    xaxis_tickangle=-30,
+                    showlegend=False,
+                    height=500,
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+            st.divider()
+
+            # 3. Correlation heatmap
+            st.write("### 🌡️ Correlation Heatmap — Regional Deprivation Domains")
+            st.write("Strength of linear relationship between deprivation domains across East of England districts.")
+            if eoe_df.empty:
+                st.warning("No data available for Heatmap.")
+            else:
+                corr_df = eoe_df[rank_cols].rename(columns=short_rank_cols).dropna()
+                fig = create_heatmap(
+                    corr_df, title="Deprivation Sub-Domain Correlation Matrix (East of England)"
+                )
+                st.plotly_chart(fig, use_container_width=True)
 
         # ── Tab 6: District Comparison ─────────────────────────────────────────────
         with tab_comp:
