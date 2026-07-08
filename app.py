@@ -235,36 +235,6 @@ div.row-widget.stRadio > div[role="radiogroup"] > label[data-checked="true"] { b
 """
 st.markdown(_CSS, unsafe_allow_html=True)
 
-# -- Session state defaults ---------------------------------------------------
-
-st.session_state.setdefault("dark_mode", False)
-
-# -- Dark-mode sidebar toggle + JS injection ----------------------------------
-
-with st.sidebar:
-    _is_dark = st.session_state["dark_mode"]
-    _toggle_label = "☀️ Light Mode" if _is_dark else "🌙 Dark Mode"
-    if st.button(_toggle_label, key="dark_mode_toggle", width="stretch"):
-        st.session_state["dark_mode"] = not _is_dark
-        st.rerun()
-
-_theme_attr = "dark" if st.session_state["dark_mode"] else ""
-st.markdown(
-    f"""
-    <script>
-        (function() {{
-            var theme = "{_theme_attr}";
-            if (theme) {{
-                document.documentElement.setAttribute('data-theme', theme);
-            }} else {{
-                document.documentElement.removeAttribute('data-theme');
-            }}
-        }})();
-    </script>
-    """,
-    unsafe_allow_html=True,
-)
-
 # -- Page routing via st.navigation ------------------------------------------
 # Defines sidebar labels explicitly -- "Home" replaces the legacy "App" label.
 

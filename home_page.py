@@ -155,7 +155,7 @@ def _get_clean_kpi_value(props: dict, key: str) -> str:
         if pk.replace("\n", " ").replace("\r", "").strip() == cleaned_target_key:
             val = pv
             break
-            
+
     if val is not None:
         try:
             clean_str = str(val).replace(",", "").strip()
@@ -243,7 +243,7 @@ def _panel_overview(active_fid: str | None, id_to_props: dict) -> None:
 
 def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
     """Population panel: demographic breakdown for the selected authority."""
-    st.markdown("## 👥 Population Profiles")
+    st.markdown("### District Population Profile")
     with st.popover("💡 Guide: Analyzing Demographics", use_container_width=True):
         st.markdown(
             """
@@ -286,37 +286,76 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
         # ── Detailed Subgroup Breakdowns ──────────────────────────────────────
         st.markdown("<br>", unsafe_allow_html=True)
         st.subheader("📋 Subgroup Breakdown")
-        
+
         subgroups = {
             "White Group": [
-                ("White British", "White: English, Welsh, Scottish, Northern Irish or British (number)"),
+                (
+                    "White British",
+                    "White: English, Welsh, Scottish, Northern Irish or British (number)",
+                ),
                 ("White Irish", "White: Irish (number)"),
-                ("Gypsy or Irish Traveller", "White: Gypsy or Irish Traveller (number)"),
+                (
+                    "Gypsy or Irish Traveller",
+                    "White: Gypsy or Irish Traveller (number)",
+                ),
                 ("White Roma", "White: Roma (number)"),
-                ("Other White", "White: Other White (number)")
+                ("Other White", "White: Other White (number)"),
             ],
             "Asian Group": [
                 ("Indian", "Asian, Asian British or Asian Welsh: Indian (number)"),
-                ("Pakistani", "Asian, Asian British or Asian Welsh: Pakistani (number)"),
-                ("Bangladeshi", "Asian, Asian British or Asian Welsh: Bangladeshi (number)"),
+                (
+                    "Pakistani",
+                    "Asian, Asian British or Asian Welsh: Pakistani (number)",
+                ),
+                (
+                    "Bangladeshi",
+                    "Asian, Asian British or Asian Welsh: Bangladeshi (number)",
+                ),
                 ("Chinese", "Asian, Asian British or Asian Welsh: Chinese (number)"),
-                ("Other Asian", "Asian, Asian British or Asian Welsh: Other Asian (number)")
+                (
+                    "Other Asian",
+                    "Asian, Asian British or Asian Welsh: Other Asian (number)",
+                ),
             ],
             "Black Group": [
-                ("African", "Black, Black British, Black Welsh, Caribbean or African: African (number)"),
-                ("Caribbean", "Black, Black British, Black Welsh, Caribbean or African: Caribbean (number)"),
-                ("Other Black", "Black, Black British, Black Welsh, Caribbean or African: Other Black (number)")
+                (
+                    "African",
+                    "Black, Black British, Black Welsh, Caribbean or African: African (number)",
+                ),
+                (
+                    "Caribbean",
+                    "Black, Black British, Black Welsh, Caribbean or African: Caribbean (number)",
+                ),
+                (
+                    "Other Black",
+                    "Black, Black British, Black Welsh, Caribbean or African: Other Black (number)",
+                ),
             ],
             "Mixed Group": [
-                ("White and Asian", "Mixed or Multiple ethnic groups: White and Asian (number)"),
-                ("White and Black African", "Mixed or Multiple ethnic groups: White and Black African (number)"),
-                ("White and Black Caribbean", "Mixed or Multiple ethnic groups: White and Black Caribbean (number)"),
-                ("Other Mixed", "Mixed or Multiple ethnic groups: Other Mixed or Multiple ethnic groups (number)")
+                (
+                    "White and Asian",
+                    "Mixed or Multiple ethnic groups: White and Asian (number)",
+                ),
+                (
+                    "White and Black African",
+                    "Mixed or Multiple ethnic groups: White and Black African (number)",
+                ),
+                (
+                    "White and Black Caribbean",
+                    "Mixed or Multiple ethnic groups: White and Black Caribbean (number)",
+                ),
+                (
+                    "Other Mixed",
+                    "Mixed or Multiple ethnic groups: Other Mixed or Multiple ethnic groups (number)",
+                ),
             ],
             "Others Group": [
                 ("Arab", "Other ethnic group: Arab (number)"),
-                ("Any other ethnic group", "Other ethnic group: Any other ethnic group (number)")
-            ]
+                (
+                    "Any other ethnic group",
+                    "Other ethnic group: Any other ethnic group (number)",
+                ),
+            ],
         }
 
         for group_name, sub_list in subgroups.items():
@@ -572,7 +611,7 @@ st.markdown(
     """
     <div style="
         font-family: 'Inter', sans-serif;
-        font-size: 2.2rem;
+        font-size: 2.1rem;
         font-weight: 800;
         letter-spacing: -0.03em;
         background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
@@ -580,7 +619,7 @@ st.markdown(
         -webkit-text-fill-color: transparent;
         background-clip: text;
         margin-bottom: 2px;
-        margin-top: 0;
+        margin-top: 2.5rem;
         line-height: 1.15;
     ">Cancer Health Dashboard — East of England</div>
     """,
@@ -594,7 +633,7 @@ st.markdown(
         color: var(--color-text-muted, #64748B);
         font-weight: 400;
         margin-bottom: 17px;
-        margin-top: 2px;
+        margin-top: 1.5rem;
     ">Public Health and Cancer Risk Explorer — East of England. This geospatial analytical platform integrates population demographics, deprivation subdomains, and cancer incidence datasets. Its primary objective is to assist public health analysts and policymakers in identifying deprived communities that would benefit most from targeted campaigns to improve early cancer detection.</div>
     """,
     unsafe_allow_html=True,

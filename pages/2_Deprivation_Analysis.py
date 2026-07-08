@@ -71,7 +71,7 @@ def render_deprivation_playground():
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 2px;
-            margin-top: 0;
+            margin-top: 1.5rem;
             line-height: 1.15;
         ">Deprivation Analysis Playground</div>
         """,
@@ -155,18 +155,18 @@ def render_deprivation_playground():
 
         # ── Tabs ───────────────────────────────────────────────────────────────────
         (
+            tab_district,
+            tab_region,
             tab_scatter,
             tab_radar,
-            tab_eoe,
-            tab_comp,
             tab_table,
         ) = st.tabs(
             [
-                "🔍 Scatter",
-                "🕸️ District Radar",
-                "📈 East of England Analysis",
-                "⚔️ District Comparison",
-                "📋 Data Table",
+                "District Comparison",
+                "Regional Analysis",
+                "Scatter plot",
+                "District Radar",
+                "Data Table",
             ]
         )
 
@@ -322,8 +322,8 @@ def render_deprivation_playground():
                 )
 
         # ── East of England Analysis ──────────────────────────────────────────────
-        with tab_eoe:
-            st.subheader("📈 East of England Regional Analysis")
+        with tab_region:
+            st.subheader("East of England Regional Analysis")
             st.info(
                 "This section analyzes deprivation ranks and correlations specifically for the "
                 "45 local authority districts in the East of England region."
@@ -375,9 +375,7 @@ def render_deprivation_playground():
             st.divider()
 
             # 2. Box plots by domain
-            st.write(
-                "### 📦 Rank Distribution per Deprivation Domain (East of England)"
-            )
+            st.write("### Rank Distribution per Deprivation Domain (East of England)")
             st.write(
                 "Distribution of deprivation ranks within the region. Narrow boxes = more uniform; wide boxes = higher regional disparity."
             )
@@ -414,7 +412,7 @@ def render_deprivation_playground():
             st.divider()
 
             # 3. Correlation heatmap
-            st.write("### 🌡️ Correlation Heatmap — Regional Deprivation Domains")
+            st.write("### Correlation Heatmap — Regional Deprivation Domains")
             st.write(
                 "Strength of linear relationship between deprivation domains across East of England districts."
             )
@@ -429,8 +427,8 @@ def render_deprivation_playground():
                 st.plotly_chart(fig, width="stretch")
 
         # ── Tab 6: District Comparison ─────────────────────────────────────────────
-        with tab_comp:
-            st.subheader("⚔️ District Comparison")
+        with tab_district:
+            st.subheader("District Comparison")
             st.info(
                 "Select and compare deprivation domain rankings across districts. "
                 "You can select up to 5 districts for comparison."
@@ -572,7 +570,7 @@ def render_deprivation_playground():
                         st.plotly_chart(fig, width="stretch")
 
                     # Comparison Data Table
-                    st.write("### 📋 Comparison Data Table")
+                    st.write("### Comparison Data Table")
                     pivot_df = long_df.pivot(
                         index="Domain", columns=name_col_imd, values="Rank"
                     )
@@ -586,7 +584,7 @@ def render_deprivation_playground():
 
         # ── Data table ────────────────────────────────────────────────────────────
         with tab_table:
-            st.subheader("📋 Dataset Preview")
+            st.subheader("Dataset Preview")
             st.dataframe(df, width="stretch")
 
 

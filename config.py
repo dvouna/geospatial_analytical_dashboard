@@ -38,7 +38,7 @@ class Config:
     DATA_DIR: str = os.getenv("DATA_DIR", "data")
 
     # AI Configuration
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     GEMINI_MAX_TOKENS: int = int(os.getenv("GEMINI_MAX_TOKENS", 2048))
     GEMINI_TEMPERATURE: float = float(os.getenv("GEMINI_TEMPERATURE", 0.7))
 

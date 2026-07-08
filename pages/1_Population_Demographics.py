@@ -124,7 +124,7 @@ def render_population_playground():
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 2px;
-            margin-top: 0;
+            margin-top: 1.5rem;
             line-height: 1.15;
         ">Population Demographics</div>
         """,
@@ -138,7 +138,7 @@ def render_population_playground():
             color: var(--color-text-muted, #64748B);
             font-weight: 500;
             margin-bottom: 17px;
-            margin-top: 5px;
+            margin-top: 1.5rem;
         ">Analyze and compare ethnic group proportions and sub-group breakdowns across East of England districts.</div>
         """,
         unsafe_allow_html=True,

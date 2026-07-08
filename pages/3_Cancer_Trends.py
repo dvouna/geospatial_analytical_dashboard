@@ -116,7 +116,7 @@ def render_cancer_trends():
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 2px;
-            margin-top: 0;
+            margin-top: 1.5rem;
             line-height: 1.15;
         ">Cancer Trends Analysis Playground</div>
         """,
@@ -136,7 +136,9 @@ def render_cancer_trends():
         unsafe_allow_html=True,
     )
 
-    with st.popover("💡 Guide: Analyzing Cancer Trends Playground", use_container_width=True):
+    with st.popover(
+        "💡 Guide: Analyzing Cancer Trends Playground", use_container_width=True
+    ):
         st.markdown(
             """
             **How to use the Cancer Trends Analysis Playground:**
@@ -727,9 +729,7 @@ def render_cancer_trends():
                                 color_discrete_sequence=FLC26_QUALITATIVE,
                             )
                             fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
-                            fig.update_layout(
-                                height=440, hovermode="x unified"
-                            )
+                            fig.update_layout(height=440, hovermode="x unified")
                             st.plotly_chart(fig, width="stretch")
 
                         # Show all districts for the selected cancer type (second viz)
@@ -766,9 +766,7 @@ def render_cancer_trends():
                                 color_discrete_sequence=px.colors.sequential.Viridis,
                             )
                             fig2.update_layout(**PLOTLY_LIGHT_LAYOUT)
-                            fig2.update_layout(
-                                xaxis_tickangle=-45, height=500
-                            )
+                            fig2.update_layout(xaxis_tickangle=-45, height=500)
                             st.plotly_chart(fig2, width="stretch")
 
         # ── Tab 5: Regional Analysis ──────────────────────────────────────────────
