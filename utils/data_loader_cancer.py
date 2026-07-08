@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from pathlib import Path
+from typing import Union
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -31,7 +32,7 @@ def load_cancer_raw_data() -> pd.DataFrame:
     return pd.read_csv(csv_path)
 
 @st.cache_data
-def get_cancer_overall_df(year_filter: str or int = "all") -> pd.DataFrame:
+def get_cancer_overall_df(year_filter: Union[str, int] = "all") -> pd.DataFrame:
     """
     Pivot and aggregate the cancer data to produce a district-level DataFrame
     with overall and specific cancer metrics.
@@ -107,7 +108,7 @@ def get_cancer_overall_df(year_filter: str or int = "all") -> pd.DataFrame:
     return result_df
 
 @st.cache_data
-def get_cancer_top5_df(year_filter: str or int = "all") -> pd.DataFrame:
+def get_cancer_top5_df(year_filter: Union[str, int] = "all") -> pd.DataFrame:
     """
     Aggregate the age-band counts grouped by district and cancer type.
     """

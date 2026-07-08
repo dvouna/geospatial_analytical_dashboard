@@ -7,10 +7,8 @@ Run with:
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import pandas as pd
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from utils.code_cache import SemanticCodeCache
 from utils.profile_generator import generate_district_profiles
@@ -101,8 +99,8 @@ def test_profile_generator_merging():
     df_pop = pd.DataFrame({
         "LAD24CD": ["E07000001", "E07000002"],
         "Total Population": [150000, 180000],
-        "White Sum": [130000, 140000],
-        "Asian Sum": [10000, 25000]
+        "Total - All White Groups": [130000, 140000],
+        "Total - All Asian Groups": [10000, 25000]
     })
     
     profiles_json = generate_district_profiles(df_cancer, df_imd, df_pop)
@@ -114,6 +112,8 @@ def test_profile_generator_merging():
     alpha = profiles["District Alpha"]
     assert alpha["Code"] == "E07000001"
     assert alpha["Population"]["Total"] == 150000
+    assert alpha["Population"]["Ethnic_Shares"]["White"] == "86.7%"
+    assert alpha["Population"]["Ethnic_Shares"]["Asian"] == "6.7%"
     assert alpha["Deprivation"]["IMD_Overall_Rank"] == 120
     assert alpha["Cancer"]["Overall_Rate_Per_100k"] == 450.5
     assert alpha["Cancer"]["Type_Rates_Per_100k"]["Lung"] == 45.1

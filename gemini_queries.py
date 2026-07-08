@@ -9,7 +9,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import re
-from typing import Optional, Dict, Any
+from typing import Optional, Any
 
 try:
     import google.generativeai as genai
