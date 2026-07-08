@@ -114,10 +114,7 @@ def render_persistent_map(
     active_fid = st.session_state.get("active_fid")
 
     # ── Choropleth & Authority selectors ──────────────────────────────────────
-    col_sel1, col_sel2 = st.columns([1, 1])
-    
-    with col_sel1:
-        # Determine which index to show based on the currently active feature.
+    if active_topic == "Home":
         selected_index = 0
         if active_fid and active_fid in id_to_display:
             display_name = id_to_display[active_fid]
@@ -130,15 +127,31 @@ def render_persistent_map(
             index=selected_index,
             key="map_authority_select",
         )
+        metric_field, colormap_name = None, None
+    else:
+        col_sel1, col_sel2 = st.columns([1, 1])
+        with col_sel1:
+            selected_index = 0
+            if active_fid and active_fid in id_to_display:
+                display_name = id_to_display[active_fid]
+                if display_name in options:
+                    selected_index = options.index(display_name)
 
-    with col_sel2:
-        topic_metrics = MAP_METRICS.get(active_topic, {"None (Simple Outline)": (None, None)})
-        selected_metric_label = st.selectbox(
-            "Color map by metric:",
-            options=list(topic_metrics.keys()),
-            key="choropleth_metric_select",
-        )
-        metric_field, colormap_name = topic_metrics[selected_metric_label]
+            selected_display = st.selectbox(
+                "Select an authority:",
+                options=options,
+                index=selected_index,
+                key="map_authority_select",
+            )
+
+        with col_sel2:
+            topic_metrics = MAP_METRICS.get(active_topic, {"None (Simple Outline)": (None, None)})
+            selected_metric_label = st.selectbox(
+                "Color map by metric:",
+                options=list(topic_metrics.keys()),
+                key="choropleth_metric_select",
+            )
+            metric_field, colormap_name = topic_metrics[selected_metric_label]
 
     # Selectbox change → propagate to session state and refresh right panel.
     if selected_display:

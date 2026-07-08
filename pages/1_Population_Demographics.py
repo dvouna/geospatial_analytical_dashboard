@@ -9,7 +9,8 @@ from visualizer import (
     create_bar_chart,
     create_histogram,
     create_box_plot,
-    display_summary_statistics,
+    FLC26_QUALITATIVE,
+    PLOTLY_LIGHT_LAYOUT,
 )
 
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -69,7 +70,7 @@ SUBGROUP_LABELS = {
     "Others": ["Arab", "Any Other"],
 }
 
-PALETTE = px.colors.qualitative.Set2
+PALETTE = FLC26_QUALITATIVE
 
 
 def _clean_numeric(df: pd.DataFrame, cols: list) -> pd.DataFrame:
@@ -91,10 +92,56 @@ def render_population_playground():
     except Exception:
         pass
 
-    st.title("Population Demographics Playground")
-    st.write(
-        "Analyze and compare ethnic group proportions and sub-group breakdowns "
-        "across East of England districts."
+    st.markdown(
+        """
+        <style>
+        /* Reduce Streamlit's default top block padding */
+        .block-container { padding-top: 1rem !important; }
+
+        /* Enforce Inter font and increase font size by 2px (to 16px) for tabs */
+        div[data-testid="stTabs"] > div:first-child button {
+            font-family: 'Inter', sans-serif !important;
+        }
+        div[data-testid="stTabs"] > div:first-child button p {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div style="
+            font-family: 'Inter', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2px;
+            margin-top: 0;
+            line-height: 1.15;
+        ">Population Demographics Playground</div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        """
+        <div style="
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: var(--color-text-muted, #64748B);
+            font-weight: 400;
+            margin-bottom: 18px;
+            margin-top: 2px;
+        ">Analyze and compare ethnic group proportions and sub-group breakdowns across East of England districts.</div>
+        """,
+        unsafe_allow_html=True,
     )
 
     # ── Load data ──────────────────────────────────────────────────────────────
@@ -120,9 +167,6 @@ def render_population_playground():
         ra_module.render_research_assistant_widget(key_suffix="pop_playground")
 
     with col_main:
-        display_summary_statistics(df)
-        st.divider()
-
         name_col = next(
             (
                 c
@@ -140,19 +184,21 @@ def render_population_playground():
         df = _clean_numeric(df, all_num_cols)
 
         # ── Tabs ───────────────────────────────────────────────────────────────────
-        tab_dist_pop, tab_ethnic_groups, tab_subgroup, tab_regional_pop, tab_data = st.tabs(
-            [
-                "⚔️ District Population Analysis",
-                "📊 Ethnic Groups",
-                "🔬 Sub Group Breakdown",
-                "🌳 Regional Population Analysis",
-                "📋 Data Table",
-            ]
+        tab_dist_pop, tab_ethnic_groups, tab_subgroup, tab_regional_pop, tab_data = (
+            st.tabs(
+                [
+                    "District Population Analysis",
+                    "Ethnic Groups",
+                    "Sub Group Breakdown",
+                    "Regional Population Analysis",
+                    "Data Table",
+                ]
+            )
         )
 
         # ── Tab 1: District Population Analysis ───────────────────────────────────
         with tab_dist_pop:
-            st.subheader("⚔️ District Population Analysis")
+            st.subheader("District Population Analysis")
             st.info(
                 "Select and compare ethnic-subgroup distributions across districts. "
                 "You can select up to 5 districts for comparison."
@@ -253,12 +299,13 @@ def render_population_playground():
                             "Subgroup": sorted(long_df["Subgroup"].unique())
                         },
                     )
+                    fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                     fig.update_layout(
                         height=550,
                         yaxis={"categoryorder": "total ascending"},
                         hovermode="y unified",
                     )
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
                 else:
                     # Multi-district grouped bar chart
                     fig = px.bar(
@@ -275,23 +322,24 @@ def render_population_playground():
                         },
                         color_discrete_sequence=PALETTE,
                     )
+                    fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                     fig.update_layout(
                         height=550, xaxis_tickangle=-45, hovermode="x unified"
                     )
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
 
                 # Comparison Table
-                st.write("### 📋 Comparison Data Table")
+                st.write("Comparison Data Table")
                 pivot_df = long_df.pivot(
                     index=["Parent Group", "Subgroup"], columns=name_col, values="Value"
                 )
                 if view_mode == "Proportional (%)":
                     st.dataframe(
-                        pivot_df.style.format("{:.2f}%"), use_container_width=True
+                        pivot_df.style.format("{:.2f}%"), width="stretch"
                     )
                 else:
                     st.dataframe(
-                        pivot_df.style.format("{:,.0f}"), use_container_width=True
+                        pivot_df.style.format("{:,.0f}"), width="stretch"
                     )
 
         # ── Tab 2: Ethnic Groups ──────────────────────────────────────────────────
@@ -339,19 +387,19 @@ def render_population_playground():
                     y_col=metric_col,
                     title=f"Top {num_districts} districts — {metric_col}",
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             elif chart_type == "Histogram":
                 fig = create_histogram(
                     plot_df,
                     col=metric_col,
                     title=f"Distribution of {metric_col} across all districts",
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             elif chart_type == "Box Plot":
                 fig = create_box_plot(
                     plot_df, y_col=metric_col, title=f"Box Plot: {metric_col} Spread"
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
         # ── Tab 3: Sub Group Breakdown ────────────────────────────────────────────
         with tab_subgroup:
@@ -398,6 +446,7 @@ def render_population_playground():
                         fig.add_trace(
                             go.Bar(name=label, x=x_vals, y=sub_df[label].tolist())
                         )
+                fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                 fig.update_layout(
                     barmode="group",
                     title=f"{selected_group} Sub-Group Breakdown (Top {num_top} districts)",
@@ -407,7 +456,7 @@ def render_population_playground():
                     xaxis_tickangle=-45,
                     height=520,
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
         # ── Tab 4: Regional Population Analysis ──────────────────────────────────
         with tab_regional_pop:
@@ -466,6 +515,7 @@ def render_population_playground():
                             y=comp_df[col].tolist(),
                         )
                     )
+            fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
             fig.update_layout(
                 barmode=barmode,
                 title="Ethnic Composition by District",
@@ -475,7 +525,7 @@ def render_population_playground():
                 xaxis_tickangle=-45,
                 height=520,
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
             st.divider()
 
@@ -518,14 +568,14 @@ def render_population_playground():
                     color_discrete_sequence=PALETTE,
                     title="Population Distribution: Ethnic Groups × Districts",
                 )
-                fig.update_layout(height=620)
+                fig.update_layout(height=620, **PLOTLY_LIGHT_LAYOUT)
                 fig.update_traces(textinfo="label+percent parent")
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
         # ── Tab 5: Data Table ─────────────────────────────────────────────────────
         with tab_data:
-            st.subheader("📋 Dataset Preview")
-            st.dataframe(df, use_container_width=True)
+            st.subheader("Dataset Preview")
+            st.dataframe(df, width="stretch")
 
 
 if __name__ == "__main__":

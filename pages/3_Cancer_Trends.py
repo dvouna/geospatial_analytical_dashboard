@@ -8,7 +8,8 @@ from map_utils import load_overlay_dataframe
 from visualizer import (
     create_bar_chart,
     create_scatter_chart,
-    display_summary_statistics,
+    FLC26_QUALITATIVE,
+    PLOTLY_LIGHT_LAYOUT,
 )
 from utils.data_loader_cancer import (
     get_cancer_overall_df,
@@ -83,9 +84,56 @@ def render_cancer_trends():
     except Exception:
         pass
 
-    st.title("🎗️ Cancer Trends Analysis Playground")
-    st.write(
-        "Compare oncology rates, age profiles, confidence intervals, and cancer type compositions across East of England districts."
+    st.markdown(
+        """
+        <style>
+        /* Reduce Streamlit's default top block padding */
+        .block-container { padding-top: 1rem !important; }
+
+        /* Enforce Inter font and increase font size by 2px (to 16px) for tabs */
+        div[data-testid="stTabs"] > div:first-child button {
+            font-family: 'Inter', sans-serif !important;
+        }
+        div[data-testid="stTabs"] > div:first-child button p {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div style="
+            font-family: 'Inter', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2px;
+            margin-top: 0;
+            line-height: 1.15;
+        ">Cancer Trends Analysis Playground</div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        """
+        <div style="
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: var(--color-text-muted, #64748B);
+            font-weight: 400;
+            margin-bottom: 18px;
+            margin-top: 2px;
+        ">Compare oncology rates, age profiles, confidence intervals, and cancer type compositions across East of England districts.</div>
+        """,
+        unsafe_allow_html=True,
     )
 
     # ── Year Selector ──────────────────────────────────────────────────────────
@@ -137,9 +185,6 @@ def render_cancer_trends():
         ra_module.render_research_assistant_widget(key_suffix="cancer_playground")
 
     with col_main:
-        display_summary_statistics(overall_df)
-        st.divider()
-
         name_col = next(
             (
                 c
@@ -159,18 +204,18 @@ def render_cancer_trends():
             tab_data,
         ) = st.tabs(
             [
-                "⚔️ District Cancer Analysis",
-                "🧪 Cancer Type Analysis",
-                "📈 Historical Trends",
-                "🧒 Age Profiles",
-                "📈 Regional Analysis",
-                "📋 Data Table",
+                "District Cancer Analysis",
+                "Cancer Type Analysis",
+                "Historical Trends",
+                "Age Profiles",
+                "Regional Analysis",
+                "Data Table",
             ]
         )
 
         # ── Tab 1: District Cancer Analysis ───────────────────────────────────────
         with tab_comp:
-            st.subheader("⚔️ District Cancer Analysis")
+            st.subheader("District Cancer Analysis")
             st.info(
                 "Select and compare cancer incidence rates and confidence intervals across districts. "
                 "You can select up to 5 districts for comparison."
@@ -252,7 +297,7 @@ def render_cancer_trends():
                                 yaxis={"categoryorder": "total ascending"},
                                 hovermode="y unified",
                             )
-                            st.plotly_chart(fig, use_container_width=True)
+                            st.plotly_chart(fig, width="stretch")
                         else:
                             # Multi-district grouped vertical bar chart
                             fig = px.bar(
@@ -266,19 +311,20 @@ def render_cancer_trends():
                                     "Rate": "Incidence Rate (per 100k)",
                                     name_col: "District",
                                 },
-                                color_discrete_sequence=px.colors.qualitative.Set2,
+                                color_discrete_sequence=FLC26_QUALITATIVE,
                             )
+                            fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                             fig.update_layout(height=500, hovermode="x unified")
-                            st.plotly_chart(fig, use_container_width=True)
+                            st.plotly_chart(fig, width="stretch")
 
                         # Comparison Data Table
-                        st.write("### 📋 Comparison Data Table")
+                        st.write("#### 📋 Comparison Data Table")
                         pivot_df = long_df.pivot(
                             index="Cancer Type", columns=name_col, values="Rate"
                         )
                         st.dataframe(
                             pivot_df.style.format("{:.1f} per 100k"),
-                            use_container_width=True,
+                            width="stretch",
                         )
                     else:
                         # Overall Rate with 95% CI comparison (scatter with error_y)
@@ -320,6 +366,7 @@ def render_cancer_trends():
                                 )
                             )
 
+                            fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                             fig.update_layout(
                                 title="Overall Standardised Cancer Rates with 95% CI",
                                 xaxis_title="District",
@@ -327,7 +374,7 @@ def render_cancer_trends():
                                 height=500,
                                 hovermode="x unified",
                             )
-                            st.plotly_chart(fig, use_container_width=True)
+                            st.plotly_chart(fig, width="stretch")
 
                             # Comparison Data Table
                             st.write("### 📋 Comparison Data Table")
@@ -338,7 +385,7 @@ def render_cancer_trends():
                             )
                             st.dataframe(
                                 summary_df.style.format("{:.1f}"),
-                                use_container_width=True,
+                                width="stretch",
                             )
 
         # ── Tab 2: Cancer Type Analysis ──────────────────────────────────────────
@@ -391,7 +438,7 @@ def render_cancer_trends():
                 y_col=metric_field,
                 title=f"{selected_label} — Top {limit} Districts",
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
             st.divider()
 
@@ -451,6 +498,7 @@ def render_cancer_trends():
                         marker_color=CANCER_COLORS.get(cancer, None),
                     )
                 )
+            fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
             fig.update_layout(
                 barmode="stack",
                 title="Cancer Type Composition by District",
@@ -459,7 +507,7 @@ def render_cancer_trends():
                 xaxis_tickangle=-45,
                 height=520,
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         # ── Tab 3: Historical Trends ──────────────────────────────────────────────
         with tab_trends:
@@ -545,14 +593,15 @@ def render_cancer_trends():
                         color="Geography name",
                         title=f"{sel_trend_cancer} — {trend_metric} Trend Over Time",
                         markers=True,
-                        color_discrete_sequence=px.colors.qualitative.Set2,
+                        color_discrete_sequence=FLC26_QUALITATIVE,
                     )
+                    fig_trend.update_layout(**PLOTLY_LIGHT_LAYOUT)
                     fig_trend.update_layout(
                         xaxis=dict(tickmode="linear", tick0=2018, dtick=1),
                         hovermode="x unified",
                         height=480,
                     )
-                    st.plotly_chart(fig_trend, use_container_width=True)
+                    st.plotly_chart(fig_trend, width="stretch")
 
         # ── Tab 4: Age Profiles ───────────────────────────────────────────────────
         with tab_age:
@@ -601,7 +650,9 @@ def render_cancer_trends():
                     )
 
                 if not sel_districts:
-                    st.warning("⚠️ Please select at least one district to view age profiles.")
+                    st.warning(
+                        "⚠️ Please select at least one district to view age profiles."
+                    )
                 else:
                     avail_age_cols = [c for c in AGE_BANDS if c in top5_df.columns]
                     filt = top5_df.copy()
@@ -630,23 +681,26 @@ def render_cancer_trends():
                                     textposition="outside",
                                 )
                             )
+                            fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                             fig.update_layout(
                                 title=f"{sel_cancer} Diagnoses by Age Group — {sel_districts[0]}",
                                 xaxis_title="Age Band",
                                 yaxis_title="Number of Diagnoses",
                                 height=440,
                             )
-                            st.plotly_chart(fig, use_container_width=True)
+                            st.plotly_chart(fig, width="stretch")
                         else:
                             # Grouped bar chart comparison
                             melted_dist = filt.melt(
                                 id_vars=[age_name_col],
                                 value_vars=avail_age_cols,
                                 var_name="Age Band Raw",
-                                value_name="Diagnoses"
+                                value_name="Diagnoses",
                             )
-                            melted_dist["Age Band"] = melted_dist["Age Band Raw"].str.replace("Age ", "")
-                            
+                            melted_dist["Age Band"] = melted_dist[
+                                "Age Band Raw"
+                            ].str.replace("Age ", "")
+
                             fig = px.bar(
                                 melted_dist,
                                 x="Age Band",
@@ -654,14 +708,17 @@ def render_cancer_trends():
                                 color=age_name_col,
                                 barmode="group",
                                 title=f"{sel_cancer} Diagnoses by Age Group — Comparison",
-                                labels={"Diagnoses": "Number of Diagnoses", age_name_col: "District"},
-                                color_discrete_sequence=px.colors.qualitative.Set2,
+                                labels={
+                                    "Diagnoses": "Number of Diagnoses",
+                                    age_name_col: "District",
+                                },
+                                color_discrete_sequence=FLC26_QUALITATIVE,
                             )
+                            fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                             fig.update_layout(
-                                height=440,
-                                hovermode="x unified"
+                                height=440, hovermode="x unified"
                             )
-                            st.plotly_chart(fig, use_container_width=True)
+                            st.plotly_chart(fig, width="stretch")
 
                         # Show all districts for the selected cancer type (second viz)
                         st.subheader(f"All Districts — {sel_cancer} by Age Band")
@@ -696,8 +753,11 @@ def render_cancer_trends():
                                 title=f"{sel_cancer} — All Districts, Stacked by Age Band",
                                 color_discrete_sequence=px.colors.sequential.Viridis,
                             )
-                            fig2.update_layout(xaxis_tickangle=-45, height=500)
-                            st.plotly_chart(fig2, use_container_width=True)
+                            fig2.update_layout(**PLOTLY_LIGHT_LAYOUT)
+                            fig2.update_layout(
+                                xaxis_tickangle=-45, height=500
+                            )
+                            st.plotly_chart(fig2, width="stretch")
 
         # ── Tab 5: Regional Analysis ──────────────────────────────────────────────
         with tab_regional:
@@ -709,7 +769,9 @@ def render_cancer_trends():
 
             # 1. Confidence Intervals
             st.write("### 📉 Cancer Rates with 95% Confidence Intervals")
-            st.write("Error bars show the 95% confidence interval (CI) for each district's overall standardised rate.")
+            st.write(
+                "Error bars show the 95% confidence interval (CI) for each district's overall standardised rate."
+            )
             ci_lower = "95% lower confidence interval"
             ci_upper = "95% upper confidence interval"
             avail_ci = [
@@ -727,7 +789,11 @@ def render_cancer_trends():
                 ci_df = ci_df.sort_values("Rate", ascending=False)
 
                 ci_limit = st.slider(
-                    "Districts to show in CI plot:", 5, max(5, len(ci_df)), 20, key="cancer_ra_ci_limit"
+                    "Districts to show in CI plot:",
+                    5,
+                    max(5, len(ci_df)),
+                    20,
+                    key="cancer_ra_ci_limit",
                 )
                 ci_df = ci_df.head(ci_limit)
 
@@ -753,6 +819,7 @@ def render_cancer_trends():
                         name="Overall Rate",
                     )
                 )
+                fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                 fig.update_layout(
                     title="Overall Standardised Cancer Rate with 95% CI",
                     xaxis_title="District",
@@ -760,13 +827,15 @@ def render_cancer_trends():
                     xaxis_tickangle=-45,
                     height=500,
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
             st.divider()
 
             # 2. Cross-Type Heatmap
             st.write("### 🌡️ Cancer Type × District Heatmap")
-            st.write("Reveals geographic clusters where multiple cancer types have high age-standardised incidence rates.")
+            st.write(
+                "Reveals geographic clusters where multiple cancer types have high age-standardised incidence rates."
+            )
             avail_cancers = [c for c in CANCER_TYPES if c in overall_df.columns]
             hm_df = (
                 overall_df[[name_col] + avail_cancers].dropna().set_index(name_col)
@@ -775,7 +844,9 @@ def render_cancer_trends():
             )
 
             sort_hm = st.selectbox(
-                "Sort heatmap districts by:", sorted(avail_cancers), key="cancer_ra_sort_hm"
+                "Sort heatmap districts by:",
+                sorted(avail_cancers),
+                key="cancer_ra_sort_hm",
             )
             hm_df = hm_df.sort_values(sort_hm, ascending=False)
 
@@ -786,18 +857,23 @@ def render_cancer_trends():
                 title="Incidence Rate Heatmap — Cancer Type × District",
                 aspect="auto",
             )
+            fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
             fig.update_layout(height=360, xaxis_tickangle=-45)
             fig.update_traces(colorbar_title_text="Rate (per 100k)")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
             st.divider()
 
             # 3. Scatter Relationships
             st.write("### 🎯 Specific Cancer vs Overall Rate")
-            st.write("Scatter relationship showing how strongly a specific cancer type tracks with a district's overall oncology rate.")
+            st.write(
+                "Scatter relationship showing how strongly a specific cancer type tracks with a district's overall oncology rate."
+            )
             avail_cancers = [c for c in CANCER_TYPES if c in overall_df.columns]
             selected_specific = st.selectbox(
-                "Select cancer type for scatter:", sorted(avail_cancers), key="cancer_ra_scatter_specific"
+                "Select cancer type for scatter:",
+                sorted(avail_cancers),
+                key="cancer_ra_scatter_specific",
             )
             compare_df = overall_df.dropna(subset=["Rate", selected_specific]).copy()
             fig = create_scatter_chart(
@@ -807,11 +883,12 @@ def render_cancer_trends():
                 color_col=name_col,
                 title=f"Overall Rate vs {selected_specific.capitalize()} Rate",
             )
+            fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
             fig.update_layout(
                 xaxis_title="Overall Cancer Rate (per 100k)",
                 yaxis_title=f"{selected_specific.capitalize()} Rate",
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         # ── Tab 6: Data Table ─────────────────────────────────────────────────────
         with tab_data:
@@ -820,10 +897,10 @@ def render_cancer_trends():
                 ["Incidence Overview", "Top 5 Cancers (Long)"]
             )
             with preview_tab1:
-                st.dataframe(overall_df, use_container_width=True)
+                st.dataframe(overall_df, width="stretch")
             with preview_tab2:
                 if not top5_df.empty:
-                    st.dataframe(top5_df, use_container_width=True)
+                    st.dataframe(top5_df, width="stretch")
                 else:
                     st.info("Top-5 cancers dataset is not loaded.")
 

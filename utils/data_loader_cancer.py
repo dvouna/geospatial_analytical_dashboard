@@ -76,7 +76,7 @@ def get_cancer_overall_df(year_filter: str or int = "all") -> pd.DataFrame:
         total_incidence = raw_total_count.copy()
         
     # Join with district info (population, names)
-    df_dist_key = df_dist[["fid", "LAD24NM", "total_population"]].set_index("fid")
+    df_dist_key = df_dist[["fid", "LAD24CD", "LAD24NM", "total_population"]].set_index("fid")
     result_df = counts_df.join(df_dist_key, how="inner")
     
     # Calculate rates (per 100k) and keep counts in separate columns
@@ -97,9 +97,10 @@ def get_cancer_overall_df(year_filter: str or int = "all") -> pd.DataFrame:
     result_df["95% lower confidence interval"] = (lci_raw / (num_years * result_df["total_population"])) * 100000
     result_df["95% upper confidence interval"] = (uci_raw / (num_years * result_df["total_population"])) * 100000
     
-    # Re-add name columns (with and without trailing space for compatibility)
+    # Re-add name/code columns (for compatibility with other modules)
     result_df["Geography name"] = result_df["LAD24NM"]
     result_df["Geography name "] = result_df["LAD24NM"]
+    result_df["Geography code"] = result_df["LAD24CD"]
     
     result_df = result_df.reset_index()
     result_df["fid"] = result_df["fid"].astype(str).str.strip()

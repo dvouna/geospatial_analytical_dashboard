@@ -4,7 +4,12 @@ import plotly.graph_objects as go
 from pathlib import Path
 
 from map_utils import load_overlay_dataframe
-from visualizer import create_scatter_chart, create_heatmap, display_summary_statistics
+from visualizer import (
+    create_scatter_chart,
+    create_heatmap,
+    FLC26_QUALITATIVE,
+    PLOTLY_LIGHT_LAYOUT,
+)
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -34,10 +39,56 @@ def render_deprivation_playground():
     except Exception:
         pass
 
-    st.title("📊 Deprivation Analysis Playground")
-    st.write(
-        "Explore correlations and distribution patterns across IMD 2025 "
-        "deprivation domains — across England and within the East of England region."
+    st.markdown(
+        """
+        <style>
+        /* Reduce Streamlit's default top block padding */
+        .block-container { padding-top: 1rem !important; }
+
+        /* Enforce Inter font and increase font size by 2px (to 16px) for tabs */
+        div[data-testid="stTabs"] > div:first-child button {
+            font-family: 'Inter', sans-serif !important;
+        }
+        div[data-testid="stTabs"] > div:first-child button p {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div style="
+            font-family: 'Inter', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2px;
+            margin-top: 0;
+            line-height: 1.15;
+        ">Deprivation Analysis Playground</div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        """
+        <div style="
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: var(--color-text-muted, #64748B);
+            font-weight: 400;
+            margin-bottom: 18px;
+            margin-top: 2px;
+        ">Explore correlations and distribution patterns across IMD 2025 deprivation domains — across England and within the East of England region.</div>
+        """,
+        unsafe_allow_html=True,
     )
 
     # ── Load data ──────────────────────────────────────────────────────────────
@@ -68,9 +119,6 @@ def render_deprivation_playground():
         ra_module.render_research_assistant_widget(key_suffix="dep_playground")
 
     with col_main:
-        display_summary_statistics(df)
-        st.divider()
-
         rank_cols = [c for c in df.columns if "Rank" in c]
         short_rank_cols = {
             c: DOMAIN_SHORT.get(c, c.replace(" Rank", "").strip()) for c in rank_cols
@@ -133,10 +181,12 @@ def render_deprivation_playground():
                 color_col=color_col,
                 title=f"{short_rank_cols[x_var]} vs {short_rank_cols[y_var]}",
             )
+            fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
             fig.update_layout(
-                xaxis_title=short_rank_cols[x_var], yaxis_title=short_rank_cols[y_var]
+                xaxis_title=short_rank_cols[x_var],
+                yaxis_title=short_rank_cols[y_var],
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         # ── Radar chart ───────────────────────────────────────────────────────────
         with tab_radar:
@@ -229,8 +279,9 @@ def render_deprivation_playground():
                     showlegend=True,
                     title="Deprivation Profile (larger area = more deprived on that domain)",
                     height=520,
+                    **PLOTLY_LIGHT_LAYOUT
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
                 st.caption(
                     "Axes are inverted: rank #1 (most deprived) plots furthest out; "
                     "rank #296 (least deprived) plots at the centre."
@@ -281,8 +332,9 @@ def render_deprivation_playground():
                 fig.update_layout(
                     title="Parallel Coordinates — Deprivation Ranks (East of England)",
                     height=540,
+                    **PLOTLY_LIGHT_LAYOUT
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
             st.divider()
 
@@ -308,12 +360,13 @@ def render_deprivation_playground():
                     title="Rank Distribution by Deprivation Domain (East of England districts)",
                     labels={"Rank": "Deprivation Rank (lower = more deprived)"},
                 )
+                fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                 fig.update_layout(
                     xaxis_tickangle=-30,
                     showlegend=False,
                     height=500,
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
             st.divider()
 
@@ -327,7 +380,7 @@ def render_deprivation_playground():
                 fig = create_heatmap(
                     corr_df, title="Deprivation Sub-Domain Correlation Matrix (East of England)"
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
         # ── Tab 6: District Comparison ─────────────────────────────────────────────
         with tab_comp:
@@ -416,7 +469,7 @@ def render_deprivation_playground():
                         y_axis_title = "Raw Deprivation Rank (lower = more deprived)"
 
                     # Visualizations
-                    palette_imd = px.colors.qualitative.Set2
+                    palette_imd = FLC26_QUALITATIVE
                     if len(selected_districts) == 1:
                         # Single district horizontal bar chart
                         fig = px.bar(
@@ -438,13 +491,14 @@ def render_deprivation_playground():
                         # For raw rank, we want the lowest rank (most deprived) at the top/right, so we can invert the x-axis
                         if "Inverted" not in view_mode:
                             fig.update_layout(xaxis=dict(autorange="reversed"))
+                        fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                         fig.update_layout(
                             height=500,
                             showlegend=False,
                             yaxis={"categoryorder": "total ascending"},
                             hovermode="y unified",
                         )
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width="stretch")
                     else:
                         # Multi-district grouped bar chart comparison
                         fig = px.bar(
@@ -463,10 +517,11 @@ def render_deprivation_playground():
                         )
                         if "Inverted" not in view_mode:
                             fig.update_layout(yaxis=dict(autorange="reversed"))
+                        fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                         fig.update_layout(
-                            height=520, xaxis_tickangle=-30, hovermode="x unified"
+                            height=520, xaxis_tickangle=-30, hovermode="x unified",
                         )
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width="stretch")
 
                     # Comparison Data Table
                     st.write("### 📋 Comparison Data Table")
@@ -478,13 +533,13 @@ def render_deprivation_playground():
                         pivot_df.style.background_gradient(
                             cmap="RdYlGn", axis=None, vmin=1, vmax=max_rank
                         ).format("{:,.0f}"),
-                        use_container_width=True,
+                        width="stretch",
                     )
 
         # ── Data table ────────────────────────────────────────────────────────────
         with tab_table:
             st.subheader("📋 Dataset Preview")
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width="stretch")
 
 
 if __name__ == "__main__":

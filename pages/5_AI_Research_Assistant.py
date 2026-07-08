@@ -13,9 +13,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 from pathlib import Path
 from gemini_queries import GeminiQueryEngine
-from visualizer import get_numeric_columns
+from visualizer import get_numeric_columns, PLOTLY_LIGHT_LAYOUT
 from utils.data_loader_cancer import get_cancer_overall_df, get_cancer_top5_df
 
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -104,18 +105,54 @@ EXAMPLE_QUERIES = [
 def render_research_assistant_page():
     try:
         st.set_page_config(
-            page_title="Future Leaders Innovation Challenge",
-            page_icon="📊",
+            page_title="Research Assistant",
+            page_icon="🤖",
             layout="wide",
             initial_sidebar_state="collapsed",
         )
     except Exception:
         pass
 
-    st.title("🔬 Future Leaders Innovation Challenge — Research Assistant")
-    st.write(
-        "Ask questions across the East of England cancer, population, "
-        "and deprivation datasets. Powered by Google Gemini."
+    st.markdown(
+        """
+        <style>
+        /* Reduce Streamlit's default top block padding */
+        .block-container { padding-top: 1rem !important; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div style="
+            font-family: 'Inter', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2px;
+            margin-top: 0;
+            line-height: 1.15;
+        ">Research Assistant</div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        """
+        <div style="
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: var(--color-text-muted, #64748B);
+            font-weight: 400;
+            margin-bottom: 18px;
+            margin-top: 2px;
+        ">Ask questions across the East of England cancer, population, and deprivation datasets. Powered by Google Gemini.</div>
+        """,
+        unsafe_allow_html=True,
     )
 
     # ── Load data at startup ──────────────────────────────────────────────────
@@ -168,7 +205,7 @@ def render_research_assistant_page():
             key="ra_query_input",
         )
     with col2:
-        submit = st.button("🔍 Ask Gemini", type="primary", use_container_width=True)
+        submit = st.button("🔍 Ask Gemini", type="primary", width="stretch")
 
     if submit and user_query:
         if not engine.is_available():
@@ -248,13 +285,13 @@ def render_research_assistant_page():
     tab1, tab2, tab3 = st.tabs(["Preview", "Statistics", "Columns"])
 
     with tab1:
-        st.dataframe(df.head(10), use_container_width=True)
+        st.dataframe(df.head(10), width="stretch")
 
     with tab2:
         numeric_cols = get_numeric_columns(df)
         if numeric_cols:
             st.write("**Numeric Columns Summary:**")
-            st.dataframe(df[numeric_cols].describe(), use_container_width=True)
+            st.dataframe(df[numeric_cols].describe(), width="stretch")
         else:
             st.info("No numeric columns found in this dataset.")
 
@@ -268,7 +305,7 @@ def render_research_assistant_page():
                 "Null Count": df.isnull().sum().values,
             }
         )
-        st.dataframe(col_info, use_container_width=True)
+        st.dataframe(col_info, width="stretch")
 
 
 # ---------------------------------------------------------------------------
@@ -312,26 +349,56 @@ def _render_deprivation_cancer_scatter(loaded: dict) -> None:
         st.warning("No matching districts found between IMD and cancer datasets.")
         return
 
+    fig = go.Figure()
 
-    fig = px.scatter(
-        merged,
-        x=imd_rank_col,
-        y=cancer_rate_col,
-        hover_name=imd_name_col,
-        trendline="ols",
-        labels={
-            imd_rank_col: "IMD Overall Rank (lower = more deprived)",
-            cancer_rate_col: "Overall Cancer Rate (per 100,000)",
-        },
+    # 1. Add Scatter trace for districts
+    fig.add_trace(
+        go.Scatter(
+            x=merged[imd_rank_col].tolist(),
+            y=merged[cancer_rate_col].tolist(),
+            mode="markers",
+            name="Districts",
+            text=merged[imd_name_col].tolist(),
+            hovertemplate="<b>%{text}</b><br>IMD Rank: %{x}<br>Cancer Rate: %{y:.1f}<extra></extra>",
+            marker=dict(
+                size=9,
+                color="#E63946",
+                opacity=0.8,
+                line=dict(width=1, color="DarkSlateGrey"),
+            ),
+        )
+    )
+
+    # 2. Add OLS regression line trace using numpy
+    try:
+        x_vals = merged[imd_rank_col].dropna().values
+        y_vals = merged[cancer_rate_col].dropna().values
+        if len(x_vals) > 1:
+            slope, intercept = np.polyfit(x_vals, y_vals, 1)
+            x_line = np.array([x_vals.min(), x_vals.max()])
+            y_line = slope * x_line + intercept
+            fig.add_trace(
+                go.Scatter(
+                    x=x_line.tolist(),
+                    y=y_line.tolist(),
+                    mode="lines",
+                    name="OLS Trendline",
+                    line=dict(color="#2A9D8F", width=2, dash="dash"),
+                    hovertemplate="Trendline<extra></extra>",
+                )
+            )
+    except Exception:
+        pass
+
+    fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
+    fig.update_layout(
         title="Deprivation Rank vs Cancer Incidence Rate — East of England Districts",
-        color_discrete_sequence=["#E63946"],
+        xaxis_title="IMD Overall Rank (lower = more deprived)",
+        yaxis_title="Overall Cancer Rate (per 100,000)",
+        height=480,
+        showlegend=False,
     )
-    fig.update_traces(
-        marker=dict(size=9, opacity=0.8),
-        selector=dict(mode="markers"),
-    )
-    fig.update_layout(height=480, showlegend=False)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     st.caption(
         "Trendline = OLS regression. A negative slope would indicate that more deprived districts "
         "(lower rank number) tend to have higher cancer rates."
@@ -386,15 +453,27 @@ def _render_vulnerability_table(loaded: dict) -> None:
     if not pop_df.empty:
         pop_code_col = "LAD24CD"
         pop_df_clean = pop_df.copy()
-        pop_df_clean.columns = [c.replace("\r\n", "\n").replace("\r", "\n") for c in pop_df_clean.columns]
+        pop_df_clean.columns = [
+            c.replace("\r\n", "\n").replace("\r", "\n") for c in pop_df_clean.columns
+        ]
         sum_cols = [
             c
-            for c in ["Asian Sum", "Black Sum", "Mixed Sum", "Others Sum",
-                      "Total - All Asian Groups", "Total - All Black Groups",
-                      "Total - All Mixed Groups", "Total - Other Ethnic Groups"]
+            for c in [
+                "Asian Sum",
+                "Black Sum",
+                "Mixed Sum",
+                "Others Sum",
+                "Total - All Asian Groups",
+                "Total - All Black Groups",
+                "Total - All Mixed Groups",
+                "Total - Other Ethnic Groups",
+            ]
             if c in pop_df_clean.columns
         ]
-        tot_col = next((c for c in ["Total Population", "Total Sum"] if c in pop_df_clean.columns), None)
+        tot_col = next(
+            (c for c in ["Total Population", "Total Sum"] if c in pop_df_clean.columns),
+            None,
+        )
         if pop_code_col in pop_df_clean.columns and sum_cols and tot_col:
             pop_clean = pop_df_clean[[pop_code_col] + sum_cols + [tot_col]].copy()
             for c in sum_cols + [tot_col]:
@@ -459,7 +538,7 @@ def _render_vulnerability_table(loaded: dict) -> None:
         }
     )
 
-    st.dataframe(styled, use_container_width=True, height=480)
+    st.dataframe(styled, width="stretch", height=480)
 
     if has_pop:
         st.caption(
@@ -503,7 +582,7 @@ def render_research_assistant_widget(key_suffix: str = ""):
     submit = st.button(
         "🔍 Ask Gemini",
         type="primary",
-        use_container_width=True,
+        width="stretch",
         key=f"ra_widget_submit_{key_suffix}",
     )
 
