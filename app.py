@@ -1,4 +1,4 @@
-"""
+﻿"""
 Cancer Health Dashboard - East of England
 -------------------------------------------
 Single entrypoint / router.
@@ -40,7 +40,7 @@ _CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-    --color-bg:             #F8FAFC;
+    --color-bg:             #FFFFFF;
     --color-surface:        #FFFFFF;
     --color-surface-alt:    #F1F5F9;
     --color-border:         #E2E8F0;
@@ -92,6 +92,10 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Inter', sans-serif;
     background-color: var(--color-bg) !important;
     color: var(--color-text-body);
+}
+.block-container {
+    padding-left: 10rem !important;
+    padding-right: 15rem !important;
 }
 h1, h2, h3, h4 {
     font-family: 'Inter', sans-serif;
@@ -241,10 +245,18 @@ st.markdown(_CSS, unsafe_allow_html=True)
 pg = st.navigation(
     [
         st.Page("home_page.py", title="Home", icon="🏠", default=True),
-        st.Page("pages/1_Population_Demographics.py", title="Population Demographics", icon="👥"),
-        st.Page("pages/2_Deprivation_Analysis.py", title="Deprivation Analysis", icon="📊"),
+        st.Page(
+            "pages/1_Population_Demographics.py",
+            title="Population Demographics",
+            icon="👥",
+        ),
+        st.Page(
+            "pages/2_Deprivation_Analysis.py", title="Deprivation Analysis", icon="📊"
+        ),
         st.Page("pages/3_Cancer_Trends.py", title="Cancer Trends", icon="🎗️"),
-        st.Page("pages/5_AI_Research_Assistant.py", title="Research Assistant", icon="🤖"),
+        st.Page(
+            "pages/5_AI_Research_Assistant.py", title="Research Assistant", icon="🤖"
+        ),
     ]
 )
 pg.run()

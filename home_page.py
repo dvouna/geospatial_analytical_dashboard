@@ -374,7 +374,7 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
 
 def _panel_imd(active_fid: str | None, id_to_props: dict) -> None:
     """IMD panel: deprivation data for the selected authority."""
-    st.markdown("## 📊 Index of Multiple Deprivation")
+    st.markdown("### Index of Multiple Deprivation")
     with st.popover("💡 Guide: Deprivation Ranks", use_container_width=True):
         st.markdown(
             """
@@ -462,7 +462,7 @@ def _panel_imd(active_fid: str | None, id_to_props: dict) -> None:
 
 def _panel_cancer(active_fid: str | None, id_to_props: dict) -> None:
     """Cancer incidence panel for the selected authority."""
-    st.markdown("## 🎗️ Cancer Incidence")
+    st.markdown("### Cancer Incidence")
     with st.popover("💡 Guide: Cancer Incidence Rates", use_container_width=True):
         st.markdown(
             """

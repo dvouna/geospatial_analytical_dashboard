@@ -1,64 +1,97 @@
-# Geospatial Analytical Dashboard
+# Geospatial Cancer Health Dashboard (East of England)
 
-A Streamlit application for exploring tabular and geospatial data (East of England Local Authorities). The project focuses on interactive mapping with Folium, dataset overlays, and simple AI-assisted query features.
+![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat-square&logo=Streamlit&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75C2?style=flat-square&logo=googlegemini&logoColor=white)
+![Tests](https://img.shields.io/badge/Tests-27%20Passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)
+![Linter](https://img.shields.io/badge/Linter-Ruff-black?style=flat-square&logo=ruff&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
-Key points
-- Interactive maps using Folium and `streamlit_folium`
-- Centralized map helpers in `map_utils.py`
-- Pages grouped under the `pages/` package
-- Data stored in the `data/` folder (GeoJSON + CSV overlays)
-- Small `utils/` package for I/O and path helpers
+A Streamlit-based geospatial analytical platform for exploring demographics, deprivation indices, and cancer incidence rates across the 45 local authority districts in the East of England.
 
-Repository layout (top-level):
+This dashboard is designed to assist public health analysts and policymakers in identifying vulnerable or deprived communities that would benefit most from targeted early detection campaigns.
 
+---
+
+## Key Features
+
+* **Interactive Geospatial Mapping**: High-performance choropleth maps powered by Folium and `streamlit-folium` displaying overall and subdomain deprivation ranks, cancer rates, and ethnic group populations.
+* **Demographic & Deprivation Analysis**: In-depth profiling of ethnic subgroups and Index of Multiple Deprivation (IoD 2025) rankings (income, employment, health, housing, etc.) for selected districts.
+* **Conversational AI Research Assistant**: 
+  * Powered by Google Gemini (`gemini-2.5-flash` or `gemini-2.0-flash`).
+  * Analyzes questions across multiple tables (demographics, deprivation, cancer).
+  * Implements a **Semantic Code Cache** to store and retrieve previously verified analytical query results for instantaneous responses.
+  * Runs analytical code in a restricted execution sandbox for safe, local data processing.
+
+---
+
+## Repository Structure
+
+```text
+├── app.py                  # Entrypoint & multi-page navigation layout
+├── config.py               # Environment configuration and validation
+├── map_fragment.py         # Leaflet/Folium map rendering component
+├── map_utils.py            # GIS, GeoJSON, and data-merge helpers
+├── visualizer.py           # Shared Plotly charts and layout configurations
+├── data/                   # Local authority GeoJSON and CSV datasets
+├── pages/                  # Dashboard analytical playgrounds
+│   ├── 1_Population_Demographics.py
+│   ├── 2_Deprivation_Analysis.py
+│   ├── 3_Cancer_Trends.py
+│   └── 5_AI_Research_Assistant.py
+├── utils/                  # Shared backend utilities
+│   ├── code_cache.py       # Semantic code cache manager
+│   ├── data_loader_cancer.py # Public health & cancer dataset loader
+│   └── profile_generator.py # Context profile builder for Gemini
+└── tests/                  # Pytest verification suite
 ```
-app.py                  # Streamlit entrypoint and navigation
-map_utils.py            # Map helpers (load, prepare, render)
-utils/                  # Small helper package (io, paths)
-pages/                  # UI pages (maps, population, imd, cancer)
-data/                   # GeoJSON and CSV data used by the app
-.gitignore
-requirements.txt
-```
 
-Quick start (Windows)
+---
 
-1. Create and activate a virtual environment
+## Quick Start (Windows)
 
+### 1. Create and Activate Virtual Environment
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 ```
 
-2. Install dependencies
-
+### 2. Install Dependencies
 ```powershell
 pip install -r requirements.txt
 ```
 
-3. Run the app
+### 3. Configure Environment Variables
+Copy `.env.example` to `.env` and configure your API credentials:
+```env
+# Gemini API Key (required for AI Assistant)
+GEMINI_API_KEY="your_api_key_here"
 
+# Model name configuration (defaults to gemini-2.5-flash)
+GEMINI_MODEL="gemini-2.5-flash"
+```
+
+### 4. Run the Streamlit Dashboard
 ```powershell
 streamlit run app.py
 ```
+Open **`http://localhost:8501`** in your browser.
 
-Open http://localhost:8501 in your browser.
+---
 
-Configuration
-- Copy `.env.example` to `.env` and set required variables (e.g. Gemini API key) if you use AI features.
-- `streamlit_config.toml` holds Streamlit-specific settings.
+## Running the Test Suite
 
-Development notes
-- Pages live in the `pages/` package (e.g. `pages/maps.py`, `pages/population.py`).
-- Use helpers in `utils` for consistent paths: `from utils.paths import data_path; p = data_path() / 'population_detail.csv'`.
-- Map utilities are in `map_utils.py` to keep folium integration centralized.
+Run the full suite of unit tests to verify data loading, profile generation, semantic caching, and the sandbox compiler:
+```powershell
+pytest -v
+```
 
-Contributing
-- Create a branch, add tests where relevant, open a PR.
+---
 
-License
-- MIT
+## Configuration Parameters
 
-If you'd like, I can:
-- Add examples for running tests or basic unit tests for `utils`.
-- Create a small CONTRIBUTING.md and DEVELOPMENT.md.
+Supported variables in `.env`:
+* `GEMINI_API_KEY`: API Key for Google Generative AI.
+* `GEMINI_MODEL`: Model version to query (e.g. `gemini-2.5-flash`).
+* `DATA_DIR`: Directory where data files are located (default: `data`).
+* `STREAMLIT_SERVER_PORT`: Port to bind the server to (default: `8501`).
