@@ -85,7 +85,7 @@ def _clean_numeric(df: pd.DataFrame, cols: list) -> pd.DataFrame:
 def render_population_playground():
     try:
         st.set_page_config(
-            page_title="Population Demographics Playground",
+            page_title="Population Demographics",
             page_icon="👥",
             layout="wide",
         )
@@ -126,7 +126,7 @@ def render_population_playground():
             margin-bottom: 2px;
             margin-top: 0;
             line-height: 1.15;
-        ">Population Demographics Playground</div>
+        ">Population Demographics</div>
         """,
         unsafe_allow_html=True,
     )
@@ -136,13 +136,40 @@ def render_population_playground():
             font-family: 'Inter', sans-serif;
             font-size: 1rem;
             color: var(--color-text-muted, #64748B);
-            font-weight: 400;
-            margin-bottom: 18px;
-            margin-top: 2px;
+            font-weight: 500;
+            margin-bottom: 17px;
+            margin-top: 5px;
         ">Analyze and compare ethnic group proportions and sub-group breakdowns across East of England districts.</div>
         """,
         unsafe_allow_html=True,
     )
+    st.markdown(
+        """
+    <div style="
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        color: var(--color-text-muted, #64748B);
+        font-weight: 400;
+        margin-bottom: 15px;
+        margin-top: 2px;
+    ">How to use this page
+    - Use the tabs below to explore population visualizations.
+    </div>.
+    """,
+        unsafe_allow_html=True,
+    )
+    with st.popover(
+        "💡 Guide: Analyzing Demographics Playground", use_container_width=True
+    ):
+        st.markdown(
+            """
+            **How to use the Population Demographics Playground:**
+            - **District Population Analysis**: Select up to 5 districts to compare their ethnic subgroup distributions. Toggle between absolute count and proportional share (%).
+            - **Ethnic Groups**: Focus on a single broad group (e.g., Asian, Black, White). Visualize the distribution across districts using Bar Charts, Histograms, or Box Plots.
+            - **Sub Group Breakdown**: Compare detailed components within a broad group (e.g., Bangladeshi, Indian, Chinese within Asian) for top districts.
+            - **Regional Population Analysis**: Review overall makeup stack charts, or explore the Diversity Treemap to see ethnic concentrations.
+            """
+        )
 
     # ── Load data ──────────────────────────────────────────────────────────────
     try:
@@ -334,13 +361,9 @@ def render_population_playground():
                     index=["Parent Group", "Subgroup"], columns=name_col, values="Value"
                 )
                 if view_mode == "Proportional (%)":
-                    st.dataframe(
-                        pivot_df.style.format("{:.2f}%"), width="stretch"
-                    )
+                    st.dataframe(pivot_df.style.format("{:.2f}%"), width="stretch")
                 else:
-                    st.dataframe(
-                        pivot_df.style.format("{:,.0f}"), width="stretch"
-                    )
+                    st.dataframe(pivot_df.style.format("{:,.0f}"), width="stretch")
 
         # ── Tab 2: Ethnic Groups ──────────────────────────────────────────────────
         with tab_ethnic_groups:

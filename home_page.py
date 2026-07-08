@@ -147,11 +147,38 @@ def _load_iod_overlay() -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def _get_clean_kpi_value(props: dict, key: str) -> str:
+    """Safely retrieve, clean (commas/spaces/newlines), and format numeric KPI values from geojson properties."""
+    val = None
+    cleaned_target_key = key.replace("\n", " ").replace("\r", "").strip()
+    for pk, pv in props.items():
+        if pk.replace("\n", " ").replace("\r", "").strip() == cleaned_target_key:
+            val = pv
+            break
+            
+    if val is not None:
+        try:
+            clean_str = str(val).replace(",", "").strip()
+            return f"{int(float(clean_str)):,}"
+        except ValueError:
+            return str(val)
+    return "N/A"
+
+
 # ── Panel renderers ───────────────────────────────────────────────────────────
 
 
 def _panel_overview(active_fid: str | None, id_to_props: dict) -> None:
     """Overview panel: authority summary, mission statement, and quick start."""
+    with st.popover("💡 Guide: Using the Home Page", use_container_width=True):
+        st.markdown(
+            """
+            **How to Explore the Dashboard:**
+            - **Select a Topic**: Use the radio buttons above (e.g., *Population*, *Cancer Incidence*) to explore different domains.
+            - **Select a District**: Click any region on the map or select one from the dropdown to display its metrics.
+            - **Visual Highlights**: The selected district is highlighted by a thick boundary on the map, and its details display in the right-hand panel.
+            """
+        )
 
     if active_fid:
         props = id_to_props.get(str(active_fid), {})
@@ -160,11 +187,9 @@ def _panel_overview(active_fid: str | None, id_to_props: dict) -> None:
 
         col1, col2 = st.columns(2)
         with col1:
-            pop_val = (
-                f"{int(float(props.get('total_population'))):,}"
-                if props.get("total_population") is not None
-                else "N/A"
-            )
+            pop_val = _get_clean_kpi_value(props, "Total Population")
+            if pop_val == "N/A":
+                pop_val = _get_clean_kpi_value(props, "total_population")
             render_kpi_card("Total Population", pop_val)
 
             icb_val = str(props.get("ICB", "N/A"))
@@ -219,6 +244,17 @@ def _panel_overview(active_fid: str | None, id_to_props: dict) -> None:
 def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
     """Population panel: demographic breakdown for the selected authority."""
     st.markdown("## 👥 Population Profiles")
+    with st.popover("💡 Guide: Analyzing Demographics", use_container_width=True):
+        st.markdown(
+            """
+            **How to Analyze Population Data:**
+            1. Select the **Population** tab using the radio buttons above.
+            2. Choose a district on the map or search using the dropdown.
+            3. Choose which ethnic group to color the map by in the **Color map by metric** dropdown (under the map).
+            4. The map will display a spectrum: **the darker the shade, the higher the count/value of the metric**.
+            5. The selected district stands out with a thick bold boundary, and its ethnic proportion pie chart appears below the map settings.
+            """
+        )
 
     try:
         overlay_df = _load_population_overlay()
@@ -233,43 +269,61 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
 
         col1, col2 = st.columns(2)
         with col1:
-            pop_val = (
-                f"{int(float(props.get('total_population'))):,}"
-                if props.get("total_population") is not None
-                else "N/A"
-            )
+            pop_val = _get_clean_kpi_value(props, "Total Population")
             render_kpi_card("Total Population", pop_val)
-            white_val = (
-                f"{int(float(props.get('White Sum'))):,}"
-                if props.get("White Sum") is not None
-                else "N/A"
-            )
+            white_val = _get_clean_kpi_value(props, "Total - All White Groups")
             render_kpi_card("White Group", white_val)
-            asian_val = (
-                f"{int(float(props.get('Asian Sum'))):,}"
-                if props.get("Asian Sum") is not None
-                else "N/A"
-            )
+            asian_val = _get_clean_kpi_value(props, "Total - All Asian Groups")
             render_kpi_card("Asian Group", asian_val)
         with col2:
-            black_val = (
-                f"{int(float(props.get('Black Sum'))):,}"
-                if props.get("Black Sum") is not None
-                else "N/A"
-            )
+            black_val = _get_clean_kpi_value(props, "Total - All Black Groups")
             render_kpi_card("Black Group", black_val)
-            mixed_val = (
-                f"{int(float(props.get('Mixed Sum'))):,}"
-                if props.get("Mixed Sum") is not None
-                else "N/A"
-            )
+            mixed_val = _get_clean_kpi_value(props, "Total - All Mixed Groups")
             render_kpi_card("Mixed Group", mixed_val)
-            others_val = (
-                f"{int(float(props.get('Others Sum'))):,}"
-                if props.get("Others Sum") is not None
-                else "N/A"
-            )
+            others_val = _get_clean_kpi_value(props, "Total - Other Ethnic Groups")
             render_kpi_card("Others Group", others_val)
+
+        # ── Detailed Subgroup Breakdowns ──────────────────────────────────────
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.subheader("📋 Subgroup Breakdown")
+        
+        subgroups = {
+            "White Group": [
+                ("White British", "White: English, Welsh, Scottish, Northern Irish or British (number)"),
+                ("White Irish", "White: Irish (number)"),
+                ("Gypsy or Irish Traveller", "White: Gypsy or Irish Traveller (number)"),
+                ("White Roma", "White: Roma (number)"),
+                ("Other White", "White: Other White (number)")
+            ],
+            "Asian Group": [
+                ("Indian", "Asian, Asian British or Asian Welsh: Indian (number)"),
+                ("Pakistani", "Asian, Asian British or Asian Welsh: Pakistani (number)"),
+                ("Bangladeshi", "Asian, Asian British or Asian Welsh: Bangladeshi (number)"),
+                ("Chinese", "Asian, Asian British or Asian Welsh: Chinese (number)"),
+                ("Other Asian", "Asian, Asian British or Asian Welsh: Other Asian (number)")
+            ],
+            "Black Group": [
+                ("African", "Black, Black British, Black Welsh, Caribbean or African: African (number)"),
+                ("Caribbean", "Black, Black British, Black Welsh, Caribbean or African: Caribbean (number)"),
+                ("Other Black", "Black, Black British, Black Welsh, Caribbean or African: Other Black (number)")
+            ],
+            "Mixed Group": [
+                ("White and Asian", "Mixed or Multiple ethnic groups: White and Asian (number)"),
+                ("White and Black African", "Mixed or Multiple ethnic groups: White and Black African (number)"),
+                ("White and Black Caribbean", "Mixed or Multiple ethnic groups: White and Black Caribbean (number)"),
+                ("Other Mixed", "Mixed or Multiple ethnic groups: Other Mixed or Multiple ethnic groups (number)")
+            ],
+            "Others Group": [
+                ("Arab", "Other ethnic group: Arab (number)"),
+                ("Any other ethnic group", "Other ethnic group: Any other ethnic group (number)")
+            ]
+        }
+
+        for group_name, sub_list in subgroups.items():
+            with st.expander(f"🔍 {group_name} Subgroup Details"):
+                for label, col_key in sub_list:
+                    formatted_val = _get_clean_kpi_value(props, col_key)
+                    st.write(f"• **{label}**: {formatted_val}")
     else:
         st.info("Select an authority on the map to view its population profile.")
 
@@ -282,6 +336,16 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
 def _panel_imd(active_fid: str | None, id_to_props: dict) -> None:
     """IMD panel: deprivation data for the selected authority."""
     st.markdown("## 📊 Index of Multiple Deprivation")
+    with st.popover("💡 Guide: Deprivation Ranks", use_container_width=True):
+        st.markdown(
+            """
+            **How to Analyze Deprivation Data:**
+            1. Select the **Index of Multiple Deprivation** tab above.
+            2. Choose a district to view its rankings across the 8 subdomains (Income, Employment, Education, etc.) in the cards below.
+            3. Use the **Color map by metric** dropdown under the map to color by overall IMD Rank or subdomains.
+            4. **Remember**: Ranks range from 1 (most deprived) to 296 (least deprived). Lower rank numbers represent higher deprivation.
+            """
+        )
 
     try:
         overlay_df = _load_iod_overlay()
@@ -360,6 +424,16 @@ def _panel_imd(active_fid: str | None, id_to_props: dict) -> None:
 def _panel_cancer(active_fid: str | None, id_to_props: dict) -> None:
     """Cancer incidence panel for the selected authority."""
     st.markdown("## 🎗️ Cancer Incidence")
+    with st.popover("💡 Guide: Cancer Incidence Rates", use_container_width=True):
+        st.markdown(
+            """
+            **How to Explore Cancer Rates:**
+            1. Select the **Cancer Incidence** tab above.
+            2. Select a district to display its age-standardised rate (per 100k) and total diagnosed cases.
+            3. Choose a specific cancer type or overall rate in the **Color map by metric** dropdown under the map to dynamically color the tiles.
+            4. Darker shades indicate higher incidence rates.
+            """
+        )
 
     overall_df = _load_cancer_overlay()
     top5_df = _load_top5_overlay()
@@ -464,6 +538,16 @@ def _panel_research() -> None:
     """Research assistant panel — delegates to the existing page renderer."""
     import importlib
 
+    with st.popover("💡 Guide: Conversational AI Analysis", use_container_width=True):
+        st.markdown(
+            """
+            **How to use the AI Assistant:**
+            1. Ask questions in plain English in the query input (e.g., *"Which districts have high deprivation and high bowel cancer rates?"*).
+            2. Click **Ask Gemini** to get data-backed insights combining population, deprivation, and cancer datasets.
+            3. Pro tip: Use the automatic insights generator and scatter plots below to explore cross-dataset relationships.
+            """
+        )
+
     module = importlib.import_module("pages.5_AI_Research_Assistant")
     module.render_research_assistant_page()
 
@@ -509,9 +593,28 @@ st.markdown(
         font-size: 1rem;
         color: var(--color-text-muted, #64748B);
         font-weight: 400;
-        margin-bottom: 18px;
+        margin-bottom: 17px;
         margin-top: 2px;
     ">Public Health and Cancer Risk Explorer — East of England. This geospatial analytical platform integrates population demographics, deprivation subdomains, and cancer incidence datasets. Its primary objective is to assist public health analysts and policymakers in identifying deprived communities that would benefit most from targeted campaigns to improve early cancer detection.</div>
+    """,
+    unsafe_allow_html=True,
+)
+st.markdown(
+    """
+    <div style="
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        color: var(--color-text-muted, #64748B);
+        font-weight: 400;
+        margin-bottom: 15px;
+        margin-top: 2px;
+    ">How to use this page
+    - Use the radio buttons below to navigate between the different topics.
+    - Use the select district dropdown to filter the data to a specific district.
+    - Use color map by metric dropdown to color by a selected feature
+    - The map will display a spectrum: the darker the shade, the higher the count/value of the metric.
+    - The selected district stands out with a thick bold boundary.
+    </div>.
     """,
     unsafe_allow_html=True,
 )
@@ -582,11 +685,11 @@ with col_map:
                     name = props.get("LAD24NM") or active_fid
 
                     target_cols = {
-                        "White": "White Sum",
-                        "Asian": "Asian Sum",
-                        "Black": "Black Sum",
-                        "Mixed": "Mixed Sum",
-                        "Others": "Others Sum",
+                        "White": "Total - All White Groups",
+                        "Asian": "Total - All Asian Groups",
+                        "Black": "Total - All Black Groups",
+                        "Mixed": "Total - All Mixed Groups",
+                        "Others": "Total - Other Ethnic Groups",
                     }
                     labels, values = [], []
                     for label, col in target_cols.items():

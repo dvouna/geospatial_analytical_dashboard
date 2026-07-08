@@ -33,12 +33,12 @@ MAP_METRICS = {
         "None (Simple Outline)": (None, None)
     },
     "Population": {
-        "Total Population": ("total_population", "YlGn"),
-        "White Sum": ("White Sum", "YlGn"),
-        "Asian Sum": ("Asian Sum", "YlGn"),
-        "Black Sum": ("Black Sum", "YlGn"),
-        "Mixed Sum": ("Mixed Sum", "YlGn"),
-        "Others Sum": ("Others Sum", "YlGn")
+        "Total Population": ("Total Population", "YlGn"),
+        "White Groups Total": ("Total - All White Groups", "YlGn"),
+        "Asian Groups Total": ("Total - All Asian Groups", "YlGn"),
+        "Black Groups Total": ("Total - All Black Groups", "YlGn"),
+        "Mixed Groups Total": ("Total - All Mixed Groups", "YlGn"),
+        "Other Ethnic Groups Total": ("Total - Other Ethnic Groups", "YlGn")
     },
     "Index of Multiple Deprivation": {
         "IMD Rank": ("Index of Multiple Deprivation (IMD) Rank", "PuOr"),
@@ -126,6 +126,7 @@ def render_persistent_map(
             options=options,
             index=selected_index,
             key="map_authority_select",
+            help="Select a district in the East of England to highlight on the map and display details below. You can also click directly on the map.",
         )
         metric_field, colormap_name = None, None
     else:
@@ -142,6 +143,7 @@ def render_persistent_map(
                 options=options,
                 index=selected_index,
                 key="map_authority_select",
+                help="Select a district in the East of England to zoom in and view specific data. You can also click directly on the map.",
             )
 
         with col_sel2:
@@ -150,6 +152,7 @@ def render_persistent_map(
                 "Color map by metric:",
                 options=list(topic_metrics.keys()),
                 key="choropleth_metric_select",
+                help="Choose which variable colors the map. The darker the shade, the higher the value. The selected district stands out with a thick boundary.",
             )
             metric_field, colormap_name = topic_metrics[selected_metric_label]
 

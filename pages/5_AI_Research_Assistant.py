@@ -18,6 +18,8 @@ from pathlib import Path
 from gemini_queries import GeminiQueryEngine
 from visualizer import get_numeric_columns, PLOTLY_LIGHT_LAYOUT
 from utils.data_loader_cancer import get_cancer_overall_df, get_cancer_top5_df
+from utils.code_cache import SemanticCodeCache
+from utils.profile_generator import generate_district_profiles
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -57,29 +59,96 @@ def load_all_datasets() -> dict[str, pd.DataFrame]:
 
 
 # ---------------------------------------------------------------------------
-# Prompt builder — combines schema summaries from all four datasets
+# Prompt builder — cached, pre-aggregated context for Gemini
 # ---------------------------------------------------------------------------
 
 
-def _build_context(datasets: dict[str, pd.DataFrame]) -> str:
-    """Produce a concise schema + sample summary for every loaded dataset."""
+@st.cache_data(show_spinner=False)
+def _build_context(*dataframes: pd.DataFrame, names: tuple[str, ...] = ()) -> str:
+    """
+    Build a rich, pre-aggregated context string for Gemini.
+
+    Decorated with ``@st.cache_data`` so the string is computed ONCE per
+    unique combination of dataset content and then reused on every subsequent
+    user query — Gemini never re-reads raw rows on each button click.
+
+    The context includes, for each dataset:
+    - Column schema and data types
+    - Descriptive statistics (.describe()) across all numeric columns
+    - The 5 highest and 5 lowest-ranked districts for the first key metric
+    - Total district count
+
+    Parameters
+    ----------
+    *dataframes
+        DataFrames in the same order as ``names``.
+    names
+        Tuple of dataset names matching the positional dataframes.
+    """
     parts = [
-        "You are a public-health data analyst assistant.\n"
-        "You have access to the following East of England datasets:\n"
+        "You are a public-health data analyst for the East of England.\n"
+        "Below are pre-computed statistical summaries of the available datasets.\n"
+        "Do NOT ask for raw data — use these summaries to answer questions precisely.\n"
     ]
-    for name, df in datasets.items():
+
+    for name, df in zip(names, dataframes):
         if df.empty:
             parts.append(f"### {name}\n(Dataset unavailable)\n")
             continue
+
         numeric_cols = df.select_dtypes(include="number").columns.tolist()
-        parts.append(
+        text_cols = df.select_dtypes(include="object").columns.tolist()
+
+        # Schema block
+        schema = (
             f"### {name}\n"
-            f"Shape: {df.shape[0]} rows × {df.shape[1]} columns\n"
-            f"Columns: {', '.join(str(c) for c in df.columns)}\n"
-            f"Numeric columns: {', '.join(numeric_cols[:10])}\n"
-            f"Sample rows (first 3):\n{df.head(3).to_string(max_colwidth=40)}\n"
+            f"Rows: {df.shape[0]}  |  Columns: {df.shape[1]}\n"
+            f"Text columns: {', '.join(text_cols[:8])}\n"
+            f"Numeric columns: {', '.join(numeric_cols[:15])}\n"
         )
+
+        # Descriptive statistics for numeric columns
+        if numeric_cols:
+            desc = df[numeric_cols[:15]].describe().round(2).to_string()
+            schema += f"\nDescriptive statistics:\n{desc}\n"
+
+        # Top 5 and bottom 5 for the first key numeric metric
+        name_col = next(
+            (c for c in ["LAD24NM", "Geography name ", "Geography name",
+                         "Local Authority District name (2024)"]
+             if c in df.columns),
+            None,
+        )
+        if name_col and numeric_cols:
+            key_metric = numeric_cols[0]
+            try:
+                sorted_df = df[[name_col, key_metric]].dropna().sort_values(
+                    key_metric, ascending=False
+                )
+                top5 = sorted_df.head(5).to_string(index=False)
+                bot5 = sorted_df.tail(5).to_string(index=False)
+                schema += (
+                    f"\nHighest 5 districts by {key_metric}:\n{top5}\n"
+                    f"\nLowest 5 districts by {key_metric}:\n{bot5}\n"
+                )
+            except Exception:
+                pass
+
+        parts.append(schema)
+
     return "\n".join(parts)
+
+
+def _get_context(loaded: dict[str, pd.DataFrame]) -> str:
+    """
+    Thin helper that unpacks ``loaded`` into positional args so
+    ``_build_context`` can be hashed and cached by Streamlit.
+
+    Call this everywhere instead of calling ``_build_context`` directly.
+    """
+    names = tuple(loaded.keys())
+    frames = tuple(loaded.values())
+    return _build_context(*frames, names=names)
 
 
 # ---------------------------------------------------------------------------
@@ -103,6 +172,7 @@ EXAMPLE_QUERIES = [
 
 
 def render_research_assistant_page():
+    st.session_state.setdefault("ra_chat_history", [])
     try:
         st.set_page_config(
             page_title="Research Assistant",
@@ -155,6 +225,17 @@ def render_research_assistant_page():
         unsafe_allow_html=True,
     )
 
+    with st.popover("💡 Guide: Conversational AI Analysis", use_container_width=True):
+        st.markdown(
+            """
+            **How to use the AI Research Assistant:**
+            - **Conversational Queries**: Type natural language questions in the query box (e.g., *"Which districts in the East of England have high deprivation and also high breast cancer rates?"*).
+            - **Integrated Context**: Gemini automatically receives contextual dataset summaries of population demographics, deprivation subdomains, and cancer incidence.
+            - **Interactive Visualizations**: Review the correlation scatter plot of deprivation vs overall cancer rate, complete with OLS trendlines.
+            - **Composite Vulnerability Priority**: Read the composite vulnerability table combining deprivation, cancer rates, and minority population shares to rank priority areas.
+            """
+        )
+
     # ── Load data at startup ──────────────────────────────────────────────────
     with st.spinner("Loading datasets…"):
         datasets = load_all_datasets()
@@ -180,7 +261,7 @@ def render_research_assistant_page():
 
     st.divider()
 
-    # ── Gemini engine ────────────────────────────────----------------──────────
+    # ── Gemini engine ──────────────────────────────────────────────────────────
     engine = GeminiQueryEngine()
 
     if not engine.is_available():
@@ -189,45 +270,150 @@ def render_research_assistant_page():
             "Set `GEMINI_API_KEY` in your `.env` file to enable AI queries."
         )
 
+    # Initialize Semantic Cache
+    cache_manager = SemanticCodeCache()
+
+    # Sidebar settings
+    with st.sidebar:
+        st.markdown("### ⚙️ AI Settings")
+        if st.button("🗑️ Clear Semantic Cache", use_container_width=True):
+            cache_manager.clear_cache()
+            st.success("Semantic cache cleared!")
+        if st.button("🧹 Clear Chat History", use_container_width=True):
+            st.session_state["ra_chat_history"] = []
+            st.rerun()
+
     # ── Ask a Question ────────────────────────────────────────────────────────
-    st.subheader("❓ Ask a Question")
+    st.subheader("❓ Conversational AI Assistant")
 
     with st.expander("💡 View Example Questions"):
         for q in EXAMPLE_QUERIES:
             st.write(f"• {q}")
 
-    col1, col2 = st.columns([4, 1])
-    with col1:
-        user_query = st.text_input(
-            "Enter your question:",
-            placeholder="e.g. Which district has the highest cancer incidence and worst deprivation score?",
-            label_visibility="collapsed",
-            key="ra_query_input",
-        )
-    with col2:
-        submit = st.button("🔍 Ask Gemini", type="primary", width="stretch")
+    # Render previous conversation history
+    for chat in st.session_state["ra_chat_history"]:
+        with st.chat_message(chat["role"]):
+            st.markdown(chat["content"])
+            if "code" in chat and chat["code"]:
+                with st.expander("💻 View Generated Code"):
+                    st.code(chat["code"], language="python")
+            if "df" in chat and chat["df"] is not None:
+                st.dataframe(chat["df"], width="stretch")
+            if "metric" in chat and chat["metric"] is not None:
+                st.metric("Calculation Result", chat["metric"])
 
-    if submit and user_query:
+    # User input chat bar
+    user_query = st.chat_input("Ask about East of England public health...")
+
+    if user_query:
+        # 1. Display user query instantly and append to history
+        with st.chat_message("user"):
+            st.markdown(user_query)
+        st.session_state["ra_chat_history"].append({"role": "user", "content": user_query})
+
         if not engine.is_available():
-            st.error("❌ Gemini API key is not set — cannot process queries.")
+            err_msg = "❌ Gemini API key is not set — cannot process queries."
+            with st.chat_message("assistant"):
+                st.error(err_msg)
+            st.session_state["ra_chat_history"].append({"role": "assistant", "content": err_msg})
         else:
-            context = _build_context(loaded)
-            full_prompt = (
-                f"{context}\n\n"
-                f"User question: {user_query}\n\n"
-                "Please provide:\n"
-                "1. A direct answer, referencing specific district names and values where possible.\n"
-                "2. Any relevant patterns, comparisons, or caveats.\n"
-                "3. Suggested follow-up questions if useful.\n\n"
-                "Be concise but specific. If the answer requires data not present, say so clearly."
-            )
-            with st.spinner("🤔 Analysing across all datasets…"):
-                try:
-                    response = engine.model.generate_content(full_prompt)
-                    st.success("✅ Analysis complete")
-                    st.markdown(response.text)
-                except Exception as exc:
-                    st.error(f"❌ Gemini error: {exc}")
+            # Format last 3 conversation turns as history context
+            turns = []
+            for t in st.session_state["ra_chat_history"][:-1]:  # Exclude the current user question
+                role_label = "User" if t["role"] == "user" else "Assistant"
+                turns.append(f"{role_label}: {t['content']}")
+            history_context = "\n".join(turns[-6:])  # Up to 3 full turns
+            
+            context = _get_context(loaded)
+            
+            with st.spinner("🤔 Checking query scope..."):
+                in_scope = engine.is_query_in_scope(user_query, history_context)
+                
+            if not in_scope:
+                warning_msg = "I am only configured to analyze and discuss public health, deprivation, and cancer trends within the East of England."
+                with st.chat_message("assistant"):
+                    st.warning(warning_msg)
+                st.session_state["ra_chat_history"].append({"role": "assistant", "content": warning_msg})
+            else:
+                with st.spinner("🤔 Analyzing query..."):
+                    # Ask Gemini to generate code or decide to use static profiles
+                    code_suggestion = engine.generate_pandas_code(user_query, context, history_context)
+                
+                if "USE_PROFILES" in code_suggestion:
+                    with st.spinner("⚡ Fetching district profiles..."):
+                        profiles_json = generate_district_profiles(
+                            df_cancer=loaded.get("Cancer Incidence (Overall)", pd.DataFrame()),
+                            df_imd=loaded.get("Index of Multiple Deprivation 2025", pd.DataFrame()),
+                            df_pop=loaded.get("Population by Ethnicity", pd.DataFrame())
+                        )
+                        answer = engine.answer_lookup_query(user_query, profiles_json, history_context)
+                    with st.chat_message("assistant"):
+                        st.markdown(answer)
+                    st.session_state["ra_chat_history"].append({"role": "assistant", "content": answer})
+                else:
+                    # Execution path for complex analytical queries
+                    query_vector = engine.get_query_embedding(user_query)
+                    cached_result = cache_manager.get_cached_code(query_vector) if query_vector else None
+                    
+                    if cached_result:
+                        code_to_run, sim_score = cached_result
+                        st.info(f"⚡ Semantic Cache Hit (similarity: {sim_score:.1%}) — running cached code")
+                    else:
+                        code_to_run = code_suggestion
+                        
+                    with st.spinner("⚙️ Executing analysis locally..."):
+                        exec_result = engine.execute_pandas_code(code_to_run, loaded)
+                    
+                    if exec_result["status"] == "success":
+                        res = exec_result["result"]
+                        code = exec_result["code"]
+                        
+                        # Explain results in natural language
+                        with st.spinner("✍️ Writing summary..."):
+                            summary_input = f"Code executed:\n{code}\n\nResult:\n{str(res)[:1000]}"
+                            explanation = engine.explain_results(user_query, summary_input, history_context)
+                        
+                        # Render assistant response bubble
+                        with st.chat_message("assistant"):
+                            st.markdown(explanation)
+                            with st.expander("💻 View Generated Code"):
+                                st.code(code, language="python")
+                            
+                            df_val, metric_val = None, None
+                            if isinstance(res, (pd.DataFrame, pd.Series)):
+                                st.dataframe(res, width="stretch")
+                                df_val = res
+                            elif isinstance(res, (int, float, np.integer, np.floating)):
+                                st.metric("Calculation Result", f"{res:,.2f}")
+                                metric_val = f"{res:,.2f}"
+                            else:
+                                st.write(res)
+                        
+                        # Append to chat history
+                        history_entry = {
+                            "role": "assistant",
+                            "content": explanation,
+                            "code": code,
+                            "df": df_val,
+                            "metric": metric_val
+                        }
+                        st.session_state["ra_chat_history"].append(history_entry)
+                        
+                        # If it was a cache miss, save the verified code to the cache
+                        if not cached_result and query_vector and code_to_run:
+                            cache_manager.add_to_cache(user_query, query_vector, code_to_run)
+                    else:
+                        error_msg = f"❌ Execution Error: {exec_result['error']}"
+                        with st.chat_message("assistant"):
+                            st.error(error_msg)
+                            with st.expander("💻 View Failed Code"):
+                                st.code(exec_result["code"], language="python")
+                        st.session_state["ra_chat_history"].append({
+                            "role": "assistant",
+                            "content": error_msg,
+                            "code": exec_result["code"]
+                        })
+        st.rerun()
 
     st.divider()
 
@@ -237,7 +423,7 @@ def render_research_assistant_page():
         if not engine.is_available():
             st.warning("Please configure the Gemini API key first.")
         else:
-            context = _build_context(loaded)
+            context = _get_context(loaded)  # cached — no rebuild on each click
             prompt = (
                 f"{context}\n\n"
                 "Generate 5 key insights about public health, deprivation, and cancer incidence "
@@ -553,9 +739,9 @@ def _render_vulnerability_table(loaded: dict) -> None:
 
 
 def render_research_assistant_widget(key_suffix: str = ""):
-    """Render a compact version of the AI Research Assistant for a sidebar/column panel."""
+    """Render a compact, conversational version of the AI Research Assistant for a sidebar/column panel."""
     st.subheader("🔬 AI Research Assistant")
-    st.write("Ask questions across the East of England datasets.")
+    st.session_state.setdefault("ra_chat_history", [])
 
     # Load datasets
     datasets = load_all_datasets()
@@ -572,33 +758,107 @@ def render_research_assistant_widget(key_suffix: str = ""):
         )
         return
 
-    # User input
-    user_query = st.text_input(
-        "Ask Gemini:",
-        placeholder="e.g. which area has highest cancer rate?",
-        key=f"ra_widget_query_{key_suffix}",
-        label_visibility="collapsed",
-    )
-    submit = st.button(
-        "🔍 Ask Gemini",
-        type="primary",
-        width="stretch",
-        key=f"ra_widget_submit_{key_suffix}",
-    )
+    cache_manager = SemanticCodeCache()
 
-    if submit and user_query:
-        context = _build_context(loaded)
-        full_prompt = (
-            f"{context}\n\n"
-            f"User question: {user_query}\n\n"
-            "Please provide a direct answer, referencing specific district names and values where possible. Be concise."
-        )
-        with st.spinner("Analyzing..."):
-            try:
-                response = engine.model.generate_content(full_prompt)
-                st.markdown(response.text)
-            except Exception as exc:
-                st.error(f"Gemini error: {exc}")
+    # Clear chat button in widget
+    col_w1, col_w2 = st.columns([2, 1])
+    with col_w2:
+        if st.button("🧹 Clear Chat", key=f"ra_widget_clear_{key_suffix}", use_container_width=True):
+            st.session_state["ra_chat_history"] = []
+            st.rerun()
+    with col_w1:
+        st.caption("Shared conversation history")
+
+    # Render history inside a scrollable container of fixed height
+    with st.container(height=300):
+        if not st.session_state["ra_chat_history"]:
+            st.info("Ask any question about East of England demographics, deprivation, or cancer data below!")
+        for chat in st.session_state["ra_chat_history"]:
+            with st.chat_message(chat["role"]):
+                st.markdown(chat["content"])
+                if "code" in chat and chat["code"]:
+                    with st.expander("💻 View Code"):
+                        st.code(chat["code"], language="python")
+                if "df" in chat and chat["df"] is not None:
+                    st.dataframe(chat["df"], width="stretch")
+                if "metric" in chat and chat["metric"] is not None:
+                    st.metric("Result", chat["metric"])
+
+    # Sticky chat input for this widget
+    widget_query = st.chat_input("Ask Gemini...", key=f"ra_widget_input_{key_suffix}")
+
+    if widget_query:
+        # Append user query
+        st.session_state["ra_chat_history"].append({"role": "user", "content": widget_query})
+        
+        # Build history context
+        turns = []
+        for t in st.session_state["ra_chat_history"][:-1]:
+            role_label = "User" if t["role"] == "user" else "Assistant"
+            turns.append(f"{role_label}: {t['content']}")
+        history_context = "\n".join(turns[-6:])  # Up to 3 turns
+        
+        if not engine.is_query_in_scope(widget_query, history_context):
+            warning_msg = "⚠️ Question out of scope for the East of England."
+            st.session_state["ra_chat_history"].append({"role": "assistant", "content": warning_msg})
+        else:
+            context = _get_context(loaded)
+            
+            # Ask Gemini to generate code or decide to use static profiles
+            code_suggestion = engine.generate_pandas_code(widget_query, context, history_context)
+            
+            if "USE_PROFILES" in code_suggestion:
+                profiles_json = generate_district_profiles(
+                    df_cancer=loaded.get("Cancer Incidence (Overall)", pd.DataFrame()),
+                    df_imd=loaded.get("Index of Multiple Deprivation 2025", pd.DataFrame()),
+                    df_pop=loaded.get("Population by Ethnicity", pd.DataFrame())
+                )
+                answer = engine.answer_lookup_query(widget_query, profiles_json, history_context)
+                st.session_state["ra_chat_history"].append({"role": "assistant", "content": answer})
+            else:
+                # Execution path for complex analytical queries
+                query_vector = engine.get_query_embedding(widget_query)
+                cached_result = cache_manager.get_cached_code(query_vector) if query_vector else None
+                
+                if cached_result:
+                    code_to_run, _ = cached_result
+                else:
+                    code_to_run = code_suggestion
+                    
+                exec_result = engine.execute_pandas_code(code_to_run, loaded)
+                
+                if exec_result["status"] == "success":
+                    res = exec_result["result"]
+                    code = exec_result["code"]
+                    
+                    summary_input = f"Code executed:\n{code}\n\nResult:\n{str(res)[:1000]}"
+                    explanation = engine.explain_results(widget_query, summary_input, history_context)
+                    
+                    df_val, metric_val = None, None
+                    if isinstance(res, (pd.DataFrame, pd.Series)):
+                        df_val = res
+                    elif isinstance(res, (int, float, np.integer, np.floating)):
+                        metric_val = f"{res:,.2f}"
+                        
+                    st.session_state["ra_chat_history"].append({
+                        "role": "assistant",
+                        "content": explanation,
+                        "code": code,
+                        "df": df_val,
+                        "metric": metric_val
+                    })
+                    
+                    # If cache miss, save verified code
+                    if not cached_result and query_vector and code_to_run:
+                        cache_manager.add_to_cache(widget_query, query_vector, code_to_run)
+                else:
+                    error_msg = f"❌ Execution Error: {exec_result['error']}"
+                    st.session_state["ra_chat_history"].append({
+                        "role": "assistant",
+                        "content": error_msg,
+                        "code": exec_result["code"]
+                    })
+        st.rerun()
 
 
 if __name__ == "__main__":

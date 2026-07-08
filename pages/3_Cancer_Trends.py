@@ -136,6 +136,18 @@ def render_cancer_trends():
         unsafe_allow_html=True,
     )
 
+    with st.popover("💡 Guide: Analyzing Cancer Trends Playground", use_container_width=True):
+        st.markdown(
+            """
+            **How to use the Cancer Trends Analysis Playground:**
+            - **District Cancer Analysis**: Compare specific cancer incidence rates or overall age-standardised rates across up to 5 districts. Note the 95% Confidence Intervals (CI) plots.
+            - **Cancer Type Analysis**: Compare overall incidence and counts, or view the stacked composition of cancer types (bladder, breast, lung, bowel, etc.) by district.
+            - **Historical Trends**: Plot Crude Rates or Incidence Counts over time (2018–2022) to observe historical progress.
+            - **Age Profiles**: Examine age-band breakdowns (0-24, 25-49, 50-59, 60-69, 70-79, 80+) for targeted healthcare outreach.
+            - **Regional Analysis**: Discover statistical confidence intervals and cross-type correlations at a glance across the East of England.
+            """
+        )
+
     # ── Year Selector ──────────────────────────────────────────────────────────
     years = ["All Years (Average)", "2022", "2021", "2020", "2019", "2018"]
     selected_year_str = st.selectbox(
