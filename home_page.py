@@ -82,18 +82,23 @@ def load_map_data() -> tuple:
         pop_df = load_overlay_dataframe(
             DATA_DIR / "population_detail.csv", index_col="fid"
         )
+        # Drop columns already in gdf (except the join key) to avoid duplicates
+        cols_to_drop = [c for c in pop_df.columns if c in gdf.columns and c != "fid"]
+        pop_df = pop_df.drop(columns=cols_to_drop, errors="ignore")
         gdf = merge_overlay(gdf, pop_df, base_key="fid", overlay_key="fid")
     except Exception as exc:
         st.warning(f"⚠️ Failed to merge population data: {exc}")
 
     try:
         iod_df = load_overlay_dataframe(DATA_DIR / "iod_2025.csv")
-        key_col = "Local Authority District code (2024)"
-        if key_col in iod_df.columns:
-            iod_df[key_col] = iod_df[key_col].astype(str).str.strip()
-            gdf = merge_overlay(gdf, iod_df, base_key="LAD24CD", overlay_key=key_col)
+        if "District Code" in iod_df.columns:
+            iod_df["District Code"] = iod_df["District Code"].astype(str).str.strip()
+            # Drop columns already in gdf (except the join key) to avoid duplicates
+            cols_to_drop = [c for c in iod_df.columns if c in gdf.columns and c != "District Code"]
+            iod_df = iod_df.drop(columns=cols_to_drop, errors="ignore")
+            gdf = merge_overlay(gdf, iod_df, base_key="District Code", overlay_key="District Code")
         else:
-            st.warning(f"⚠️ '{key_col}' not found in iod_2025.csv")
+            st.warning("⚠️ 'District Code' not found in iod_2025.csv")
     except Exception as exc:
         st.warning(f"⚠️ Failed to merge deprivation data: {exc}")
 
@@ -120,7 +125,10 @@ def _load_population_overlay() -> pd.DataFrame:
 
 @st.cache_data
 def _load_districts_overlay() -> pd.DataFrame:
-    return load_overlay_dataframe(DATA_DIR / "local_districts.csv", index_col="fid")
+    """Load base district attributes from the GeoJSON (no geometry)."""
+    import geopandas as gpd
+    gdf = gpd.read_file(str(DATA_DIR / "base_gdf_1.geojson"))
+    return pd.DataFrame(gdf.drop(columns="geometry"))
 
 
 @st.cache_data
@@ -182,7 +190,7 @@ def _panel_overview(active_fid: str | None, id_to_props: dict) -> None:
 
     if active_fid:
         props = id_to_props.get(str(active_fid), {})
-        name = props.get("LAD24NM") or props.get("fid", active_fid)
+        name = props.get("District Name") or props.get("fid", active_fid)
         st.success(f"**Selected District: {name}**")
 
         col1, col2 = st.columns(2)
@@ -211,7 +219,7 @@ def _panel_overview(active_fid: str | None, id_to_props: dict) -> None:
                     badge_text, badge_type = "Low Deprivation", "success"
             render_kpi_card("Deprivation Rank", imd_val, badge_text, badge_type)
 
-            code_val = str(props.get("LAD24CD", "N/A"))
+            code_val = str(props.get("District Code", "N/A"))
             render_kpi_card("District Code", code_val)
     else:
         st.markdown(
@@ -264,23 +272,23 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
 
     if active_fid:
         props = id_to_props.get(str(active_fid), {})
-        name = props.get("LAD24NM") or active_fid
+        name = props.get("District Name") or active_fid
         st.success(f"**Selected District: {name}**")
 
-        col1, col2 = st.columns(2)
+        col1, stat_col2 = st.columns(2)
         with col1:
             pop_val = _get_clean_kpi_value(props, "Total Population")
             render_kpi_card("Total Population", pop_val)
-            white_val = _get_clean_kpi_value(props, "Total - All White Groups")
-            render_kpi_card("White Group", white_val)
-            asian_val = _get_clean_kpi_value(props, "Total - All Asian Groups")
-            render_kpi_card("Asian Group", asian_val)
-        with col2:
-            black_val = _get_clean_kpi_value(props, "Total - All Black Groups")
-            render_kpi_card("Black Group", black_val)
-            mixed_val = _get_clean_kpi_value(props, "Total - All Mixed Groups")
+            white_val = _get_clean_kpi_value(props, "All White Groups (Total)")
+            render_kpi_card("White", white_val)
+            asian_val = _get_clean_kpi_value(props, "All Asians (Total)")
+            render_kpi_card("Asian", asian_val)
+        with stat_col2:
+            black_val = _get_clean_kpi_value(props, "All Balcks (Total)")
+            render_kpi_card("Black", black_val)
+            mixed_val = _get_clean_kpi_value(props, "All Mixed Ethnic Groups (Total)")
             render_kpi_card("Mixed Group", mixed_val)
-            others_val = _get_clean_kpi_value(props, "Total - Other Ethnic Groups")
+            others_val = _get_clean_kpi_value(props, "Other Ethnic Groups (Total)")
             render_kpi_card("Others Group", others_val)
 
         # ── Detailed Subgroup Breakdowns ──────────────────────────────────────
@@ -394,12 +402,12 @@ def _panel_imd(active_fid: str | None, id_to_props: dict) -> None:
 
     if active_fid:
         props = id_to_props.get(str(active_fid), {})
-        name = props.get("LAD24NM") or active_fid
+        name = props.get("District Name") or active_fid
         st.success(f"**Selected District: {name}**")
 
         col1, col2 = st.columns(2)
         with col1:
-            imd_rank = props.get("Index of Multiple Deprivation (IMD) Rank")
+            imd_rank = props.get("Overall IMD Rank")
             imd_val = f"#{int(float(imd_rank))}" if imd_rank is not None else "N/A"
             badge_text, badge_type = None, None
             if imd_rank is not None:
@@ -479,7 +487,7 @@ def _panel_cancer(active_fid: str | None, id_to_props: dict) -> None:
 
     if active_fid:
         props = id_to_props.get(str(active_fid), {})
-        name = props.get("LAD24NM") or props.get("Geography name ", "") or active_fid
+        name = props.get("District Name") or active_fid
         st.success(f"**Selected District: {name}**")
 
         col1, col2 = st.columns(2)
@@ -556,7 +564,7 @@ def _panel_cancer(active_fid: str | None, id_to_props: dict) -> None:
                 default=cancer_types,
                 key="app_cancer_type_filter",
             )
-            area_names = sorted(top5_df["Geography name "].dropna().unique().tolist())
+            area_names = sorted(top5_df["District Name"].dropna().unique().tolist())
             selected_areas = filter_col2.multiselect(
                 "Filter by district:",
                 options=area_names,
@@ -566,7 +574,7 @@ def _panel_cancer(active_fid: str | None, id_to_props: dict) -> None:
             )
             filtered = top5_df[top5_df["Cancer Type"].isin(selected_cancers)]
             if selected_areas:
-                filtered = filtered[filtered["Geography name "].isin(selected_areas)]
+                filtered = filtered[filtered["District Name"].isin(selected_areas)]
             st.write(f"**{len(filtered)} rows**")
             st.dataframe(filtered, width="stretch")
         else:
@@ -721,14 +729,14 @@ with col_map:
                 row = pop_df[pop_df.index.astype(str) == str(active_fid)]
                 if not row.empty:
                     props = id_to_props.get(str(active_fid), {})
-                    name = props.get("LAD24NM") or active_fid
+                    name = props.get("District Name") or active_fid
 
                     target_cols = {
-                        "White": "Total - All White Groups",
-                        "Asian": "Total - All Asian Groups",
-                        "Black": "Total - All Black Groups",
-                        "Mixed": "Total - All Mixed Groups",
-                        "Others": "Total - Other Ethnic Groups",
+                        "White": "All White Groups (Total)",
+                        "Asian": "All Asians (Total)",
+                        "Black": "All Balcks (Total)",
+                        "Mixed": "All Mixed Ethnic Groups (Total)",
+                        "Others": "Other Ethnic Groups (Total)",
                     }
                     labels, values = [], []
                     for label, col in target_cols.items():
@@ -765,7 +773,7 @@ with col_map:
                                 x=0.5,
                             ),
                         )
-                        st.plotly_chart(fig, width="stretch")
+                        st.plotly_chart(fig, use_container_width=True)
         except Exception as exc:
             st.error(f"Could not render population chart: {exc}")
 

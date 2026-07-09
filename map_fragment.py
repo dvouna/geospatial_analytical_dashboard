@@ -34,14 +34,14 @@ MAP_METRICS = {
     },
     "Population": {
         "Total Population": ("Total Population", "YlGn"),
-        "White Groups Total": ("Total - All White Groups", "YlGn"),
-        "Asian Groups Total": ("Total - All Asian Groups", "YlGn"),
-        "Black Groups Total": ("Total - All Black Groups", "YlGn"),
-        "Mixed Groups Total": ("Total - All Mixed Groups", "YlGn"),
-        "Other Ethnic Groups Total": ("Total - Other Ethnic Groups", "YlGn")
+        "White Groups Total": ("All White Groups (Total)", "YlGn"),
+        "Asian Groups Total": ("All Asians (Total)", "YlGn"),
+        "Black Groups Total": ("All Balcks (Total)", "YlGn"),
+        "Mixed Groups Total": ("All Mixed Ethnic Groups (Total)", "YlGn"),
+        "Other Ethnic Groups Total": ("Other Ethnic Groups (Total)", "YlGn")
     },
     "Index of Multiple Deprivation": {
-        "IMD Rank": ("Index of Multiple Deprivation (IMD) Rank", "PuOr"),
+        "IMD Rank": ("Overall IMD Rank", "PuOr"),
         "Income Rank": ("Income Rank", "PuOr"),
         "Employment Rank": ("Employment Rank", "PuOr"),
         "Education & Skills Rank": ("Education Skills and Training Rank", "PuOr"),
@@ -169,7 +169,7 @@ def render_persistent_map(
     features = geojson_payload.get("features", [])
     if features:
         prop_keys = list(features[0].get("properties", {}).keys())
-        tooltip_fields = [f for f in ["fid", "LAD24NM"] if f in prop_keys] or prop_keys[:2]
+        tooltip_fields = [f for f in ["fid", "District Name"] if f in prop_keys] or prop_keys[:2]
     else:
         tooltip_fields = []
 

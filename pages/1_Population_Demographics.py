@@ -12,48 +12,49 @@ from visualizer import (
     FLC26_QUALITATIVE,
     PLOTLY_LIGHT_LAYOUT,
 )
+from gemini_queries import render_ai_insights
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 # ── Column definitions ─────────────────────────────────────────────────────────
 
 ETHNIC_SUMS = {
-    "White": "Total - All White Groups",
-    "Asian": "Total - All Asian Groups",
-    "Black": "Total - All Black Groups",
-    "Mixed": "Total - All Mixed Groups",
-    "Others": "Total - Other Ethnic Groups",
+    "White": "All White Groups (Total)",
+    "Asian": "All Asians (Total)",
+    "Black": "All Balcks (Total)",
+    "Mixed": "All Mixed Ethnic Groups (Total)",
+    "Others": "Other Ethnic Groups (Total)",
 }
 
 SUBGROUP_MAP = {
     "Asian": [
-        "Asian, Asian British or Asian Welsh: Bangladeshi\n(number)",
-        "Asian, Asian British or Asian Welsh: Chinese\n(number)",
-        "Asian, Asian British or Asian Welsh: Indian\n(number)",
-        "Asian, Asian British or Asian Welsh: Pakistani\n(number)",
-        "Asian, Asian British or Asian Welsh: Other Asian\n(number)",
+        "Asian: Bangladeshi",
+        "Asian: Chinese",
+        "Asian: Indian",
+        "Asian: Pakistani",
+        "Asian: Others",
     ],
     "Black": [
-        "Black, Black British, Black Welsh, Caribbean or African: African\n(number)",
-        "Black, Black British, Black Welsh, Caribbean or African: Caribbean\n(number)",
-        "Black, Black British, Black Welsh, Caribbean or African: Other Black\n(number)",
+        "Black: African",
+        "Black: Caribbean",
+        "Black: Others",
     ],
     "Mixed": [
-        "Mixed or Multiple ethnic groups: White and Asian\n(number)",
-        "Mixed or Multiple ethnic groups: White and Black African\n(number)",
-        "Mixed or Multiple ethnic groups: White and Black Caribbean\n(number)",
-        "Mixed or Multiple ethnic groups: Other Mixed or Multiple ethnic groups\n(number)",
+        "Mixed Ethnic Group: White and Asian",
+        "Mixed Ethnic Group: White and Black African",
+        "Mixed Ethnic Group: White and Black Caribbean",
+        "Mixed Ethnic Group: Others",
     ],
     "White": [
-        "White: English, Welsh, Scottish, Northern Irish or British\n(number)",
-        "White: Irish\n(number)",
-        "White: Gypsy or Irish Traveller\n(number)",
-        "White: Roma\n(number)",
-        "White: Other White\n(number)",
+        "White: English, Welsh, Scottish, Northern Irish or British",
+        "White: Irish",
+        "White: Gypsy or Irish Traveller",
+        "White: Roma",
+        "White: Other Whites",
     ],
     "Others": [
-        "Other ethnic group: Arab\n(number)",
-        "Other ethnic group: Any other ethnic group\n(number)",
+        "Other Ethnic Groups: Arab",
+        "Other Ethnic Groups: Any other",
     ],
 }
 
@@ -176,7 +177,6 @@ def render_population_playground():
         df = load_overlay_dataframe(DATA_DIR / "population_detail.csv", index_col="fid")
         # Normalize column names by replacing CRLF with LF and map total column name
         df.columns = [c.replace("\r\n", "\n").replace("\r", "\n") for c in df.columns]
-        df = df.rename(columns={"Total Population": "Total Sum"})
     except FileNotFoundError:
         st.error("❌ `population_detail.csv` not found in the data directory.")
         return
@@ -197,7 +197,7 @@ def render_population_playground():
         name_col = next(
             (
                 c
-                for c in ["LAD24NM", "Geography name ", "Geography name"]
+                for c in ["District Name"]
                 if c in df.columns
             ),
             None,
@@ -206,18 +206,19 @@ def render_population_playground():
         all_num_cols = sum_cols + [
             col for cols in SUBGROUP_MAP.values() for col in cols if col in df.columns
         ]
-        if "Total Sum" in df.columns:
-            all_num_cols.append("Total Sum")
+        if "Total Population" in df.columns:
+            all_num_cols.append("Total Population")
         df = _clean_numeric(df, all_num_cols)
 
         # ── Tabs ───────────────────────────────────────────────────────────────────
-        tab_dist_pop, tab_ethnic_groups, tab_subgroup, tab_regional_pop, tab_data = (
+        tab_dist_pop, tab_ethnic_analysis, tab_regional_pop, tab_pop_cancer, tab_pop_dep, tab_data = (
             st.tabs(
                 [
                     "District Population Analysis",
-                    "Ethnic Groups",
-                    "Sub Group Breakdown",
+                    "Ethnic Groups Analysis",
                     "Regional Population Analysis",
+                    "Population-Cancer",
+                    "Population-Deprivation",
                     "Data Table",
                 ]
             )
@@ -232,7 +233,7 @@ def render_population_playground():
             )
 
             # Controls
-            col_sel1, col_sel2, col_sel3 = st.columns([2, 1, 1])
+            col_sel1, col_sel2 = st.columns([2, 2])
             with col_sel1:
                 selected_districts = st.multiselect(
                     "Select districts (up to 5):",
@@ -241,16 +242,15 @@ def render_population_playground():
                     max_selections=5,
                     key="pop_t5_comp_districts",
                 )
-            with col_sel2:
                 view_mode = st.radio(
                     "Compare by:",
                     ["Proportional (%)", "Absolute (count)"],
                     horizontal=True,
                     key="pop_t5_comp_mode",
                 )
-            with col_sel3:
+            with col_sel2:
                 broad_group_filter = st.selectbox(
-                    "Filter subgroups:",
+                    "Filter ethnic subgroups:",
                     options=["All Groups"] + sorted(list(SUBGROUP_MAP.keys())),
                     key="pop_t5_comp_filter",
                 )
@@ -277,12 +277,12 @@ def render_population_playground():
 
                 # Melt to long format for Plotly
                 melt_cols = [name_col] + subgroup_cols
-                if "Total Sum" in comp_df.columns:
-                    melt_cols.append("Total Sum")
+                if "Total Population" in comp_df.columns:
+                    melt_cols.append("Total Population")
 
                 long_df = comp_df[melt_cols].melt(
-                    id_vars=[name_col, "Total Sum"]
-                    if "Total Sum" in comp_df.columns
+                    id_vars=[name_col, "Total Population"]
+                    if "Total Population" in comp_df.columns
                     else [name_col],
                     value_vars=subgroup_cols,
                     var_name="Subgroup_Raw",
@@ -299,8 +299,8 @@ def render_population_playground():
                     long_df = long_df[long_df["Parent Group"] == broad_group_filter]
 
                 # Compute metric value based on mode
-                if view_mode == "Proportional (%)" and "Total Sum" in long_df.columns:
-                    long_df["Value"] = (long_df["Count"] / long_df["Total Sum"]) * 100
+                if view_mode == "Proportional (%)" and "Total Population" in long_df.columns:
+                    long_df["Value"] = (long_df["Count"] / long_df["Total Population"]) * 100
                     y_axis_title = "Proportion of District Population (%)"
                 else:
                     long_df["Value"] = long_df["Count"]
@@ -332,7 +332,7 @@ def render_population_playground():
                         yaxis={"categoryorder": "total ascending"},
                         hovermode="y unified",
                     )
-                    st.plotly_chart(fig, width="stretch")
+                    st.plotly_chart(fig, use_container_width=True)
                 else:
                     # Multi-district grouped bar chart
                     fig = px.bar(
@@ -353,7 +353,7 @@ def render_population_playground():
                     fig.update_layout(
                         height=550, xaxis_tickangle=-45, hovermode="x unified"
                     )
-                    st.plotly_chart(fig, width="stretch")
+                    st.plotly_chart(fig, use_container_width=True)
 
                 # Comparison Table
                 st.write("Comparison Data Table")
@@ -365,8 +365,15 @@ def render_population_playground():
                 else:
                     st.dataframe(pivot_df.style.format("{:,.0f}"), width="stretch")
 
-        # ── Tab 2: Ethnic Groups ──────────────────────────────────────────────────
-        with tab_ethnic_groups:
+                # Generate AI Insights
+                render_ai_insights(
+                    pivot_df,
+                    f"Comparing ethnic subgroups for selected districts: {', '.join(selected_districts)} (Mode: {view_mode}, Filter: {broad_group_filter})",
+                    "tab_dist_pop"
+                )
+
+        # ── Tab 2: Ethnic Groups Analysis ─────────────────────────────────────────
+        with tab_ethnic_analysis:
             st.subheader("Explore a Single Ethnic Group Metric")
             c1, c2, c3 = st.columns([1, 1, 1])
             with c1:
@@ -410,22 +417,29 @@ def render_population_playground():
                     y_col=metric_col,
                     title=f"Top {num_districts} districts — {metric_col}",
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
             elif chart_type == "Histogram":
                 fig = create_histogram(
                     plot_df,
                     col=metric_col,
                     title=f"Distribution of {metric_col} across all districts",
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
             elif chart_type == "Box Plot":
                 fig = create_box_plot(
                     plot_df, y_col=metric_col, title=f"Box Plot: {metric_col} Spread"
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
 
-        # ── Tab 3: Sub Group Breakdown ────────────────────────────────────────────
-        with tab_subgroup:
+            # Generate AI Insights
+            render_ai_insights(
+                plot_df[[name_col, metric_col]].head(30) if name_col in plot_df.columns else plot_df[[metric_col]].head(30),
+                f"Analyzing single ethnic group metric: {selected_metric} ({metric_col}) using chart type {chart_type}",
+                "tab_ethnic_single"
+            )
+
+            st.divider()
+
             st.subheader("Sub-Group Breakdown Within an Ethnic Group")
             st.info(
                 "Select a broad ethnic group to see how its sub-categories vary across districts. "
@@ -479,7 +493,369 @@ def render_population_playground():
                     xaxis_tickangle=-45,
                     height=520,
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
+
+                # Generate AI Insights
+                render_ai_insights(
+                    sub_df,
+                    f"Sub-group breakdown for broad ethnic group: {selected_group} across top {num_top} districts sorted by parent group sum.",
+                    "tab_ethnic_subgroup"
+                )
+
+        # ── Tab: Population-Cancer ────────────────────────────────────────────────
+        with tab_pop_cancer:
+            st.subheader("Population-Cancer Cross Analysis")
+            st.info(
+                "Explore relationships between district-level demographics (ethnic group proportions) "
+                "and cancer incidence rates per 100,000 population."
+            )
+
+            import numpy as np
+            from utils.data_loader_cancer import get_cancer_overall_df
+            try:
+                cancer_df = get_cancer_overall_df(year_filter="all")
+            except Exception as e:
+                st.error(f"❌ Error loading cancer data: {e}")
+                cancer_df = pd.DataFrame()
+
+            if cancer_df.empty:
+                st.warning("⚠️ Cancer dataset is empty or could not be loaded.")
+            else:
+                pop_cancer_df = pd.merge(
+                    df,
+                    cancer_df,
+                    on="District Code",
+                    suffixes=("_pop", "_cancer")
+                )
+
+                if pop_cancer_df.empty:
+                    st.warning("⚠️ No matching districts found between population and cancer datasets.")
+                else:
+                    pop_cancer_df["% White"] = (pop_cancer_df["All White Groups (Total)"] / pop_cancer_df["Total Population"]) * 100
+                    pop_cancer_df["% Asian"] = (pop_cancer_df["All Asians (Total)"] / pop_cancer_df["Total Population"]) * 100
+                    pop_cancer_df["% Black"] = (pop_cancer_df["All Balcks (Total)"] / pop_cancer_df["Total Population"]) * 100
+                    pop_cancer_df["% Mixed"] = (pop_cancer_df["All Mixed Ethnic Groups (Total)"] / pop_cancer_df["Total Population"]) * 100
+                    pop_cancer_df["% Others"] = (pop_cancer_df["Other Ethnic Groups (Total)"] / pop_cancer_df["Total Population"]) * 100
+
+                    broad_pct_cols = {
+                        "% White": "% White",
+                        "% Asian": "% Asian",
+                        "% Black": "% Black",
+                        "% Mixed": "% Mixed",
+                        "% Others": "% Others"
+                    }
+
+                    pct_cols = [c for c in df.columns if "(percent)" in c]
+                    demog_options = list(broad_pct_cols.keys()) + sorted(pct_cols)
+
+                    cancer_types_rates = {
+                        "Overall Cancer Rate": "Rate",
+                        "Total Incidence Count": "Total_incidence",
+                        "Bladder Cancer Rate": "bladder",
+                        "Blood Cancer Rate": "blood cancer",
+                        "Bowel Cancer Rate": "bowel",
+                        "Brain Cancer Rate": "brain",
+                        "Breast Cancer Rate": "breast",
+                        "Head & Neck Cancer Rate": "head and neck",
+                        "Kidney Cancer Rate": "kidney",
+                        "Liver & Biliary Cancer Rate": "liver and biliary tract",
+                        "Lung Cancer Rate": "lung",
+                        "Ovarian Cancer Rate": "ovary",
+                        "Pancreatic Cancer Rate": "pancreas",
+                        "Prostate Cancer Rate": "prostate",
+                        "Skin Cancer Rate": "skin",
+                        "Uterine Cancer Rate": "uterus",
+                    }
+
+                    col_c1, col_c2 = st.columns(2)
+                    with col_c1:
+                        sel_demog = st.selectbox(
+                            "Select Demographic Metric (X-Axis):",
+                            options=demog_options,
+                            key="pop_cancer_x_var"
+                        )
+                    with col_c2:
+                        sel_cancer_label = st.selectbox(
+                            "Select Cancer Metric (Y-Axis):",
+                            options=sorted(list(cancer_types_rates.keys())),
+                            key="pop_cancer_y_var"
+                        )
+                        sel_cancer = cancer_types_rates[sel_cancer_label]
+
+                    x_data = pd.to_numeric(pop_cancer_df[sel_demog], errors="coerce")
+                    y_data = pd.to_numeric(pop_cancer_df[sel_cancer], errors="coerce")
+                    district_names = pop_cancer_df["District Name_pop"] if "District Name_pop" in pop_cancer_df.columns else pop_cancer_df["District Name"]
+
+                    plot_data = pd.DataFrame({
+                        "Demographic": x_data,
+                        "CancerMetric": y_data,
+                        "District": district_names
+                    }).dropna()
+
+                    if plot_data.empty:
+                        st.warning("⚠️ No valid data points found for this selection.")
+                    else:
+                        r_coef = np.corrcoef(plot_data["Demographic"], plot_data["CancerMetric"])[0, 1]
+
+                        st.write("### 🔍 Correlation Analysis")
+                        st.metric(
+                            label=f"Pearson Correlation Coefficient (r) between {sel_demog} and {sel_cancer_label}",
+                            value=f"{r_coef:.3f}",
+                            help="r values close to 1 or -1 indicate strong positive or negative relationships. Close to 0 indicates no linear correlation."
+                        )
+
+                        fig = px.scatter(
+                            plot_data,
+                            x="Demographic",
+                            y="CancerMetric",
+                            hover_name="District",
+                            title=f"Correlation: {sel_demog} vs {sel_cancer_label}",
+                            labels={
+                                "Demographic": sel_demog,
+                                "CancerMetric": sel_cancer_label
+                            },
+                            color_discrete_sequence=PALETTE
+                        )
+
+                        if len(plot_data) > 1:
+                            try:
+                                slope, intercept = np.polyfit(plot_data["Demographic"], plot_data["CancerMetric"], 1)
+                                x_min, x_max = plot_data["Demographic"].min(), plot_data["Demographic"].max()
+                                x_line = np.array([x_min, x_max])
+                                y_line = slope * x_line + intercept
+                                fig.add_trace(go.Scatter(
+                                    x=x_line,
+                                    y=y_line,
+                                    mode="lines",
+                                    name=f"Trendline (y = {slope:.2f}x + {intercept:.2f})",
+                                    line=dict(dash="dash", color="#E63946", width=2)
+                                ))
+                            except Exception:
+                                pass
+
+                        fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
+                        st.plotly_chart(fig, use_container_width=True)
+
+                        # Generate AI Insights
+                        render_ai_insights(
+                            plot_data,
+                            f"Correlation analysis between demographic metric '{sel_demog}' and cancer metric '{sel_cancer_label}' across East of England districts (Pearson r = {r_coef:.3f}).",
+                            "tab_pop_cancer"
+                        )
+
+                        st.divider()
+
+                        st.write("### ⚔️ District Demographics vs Cancer Rate Side-by-Side")
+                        selected_dists = st.multiselect(
+                            "Select districts for direct comparison:",
+                            options=sorted(plot_data["District"].unique()),
+                            default=sorted(plot_data["District"].unique())[:3],
+                            max_selections=5,
+                            key="pop_cancer_dists_sel"
+                        )
+
+                        if selected_dists:
+                            comp_subset = plot_data[plot_data["District"].isin(selected_dists)]
+                            col_sub1, col_sub2 = st.columns(2)
+                            with col_sub1:
+                                fig_dem = px.bar(
+                                    comp_subset,
+                                    x="District",
+                                    y="Demographic",
+                                    title=f"{sel_demog} by District",
+                                    labels={"Demographic": sel_demog},
+                                    color_discrete_sequence=[PALETTE[0]]
+                                )
+                                fig_dem.update_layout(**PLOTLY_LIGHT_LAYOUT)
+                                st.plotly_chart(fig_dem, use_container_width=True)
+                            with col_sub2:
+                                fig_can = px.bar(
+                                    comp_subset,
+                                    x="District",
+                                    y="CancerMetric",
+                                    title=f"{sel_cancer_label} by District",
+                                    labels={"CancerMetric": sel_cancer_label},
+                                    color_discrete_sequence=[PALETTE[1]]
+                                )
+                                fig_can.update_layout(**PLOTLY_LIGHT_LAYOUT)
+                                st.plotly_chart(fig_can, use_container_width=True)
+
+        # ── Tab: Population-Deprivation ───────────────────────────────────────────
+        with tab_pop_dep:
+            st.subheader("Population-Deprivation Cross Analysis")
+            st.info(
+                "Explore relationships between district-level demographics (ethnic group proportions) "
+                "and Indices of Deprivation 2025 Ranks. Lower rank number represents higher deprivation (Rank 1 is the most deprived)."
+            )
+
+            import numpy as np
+            try:
+                dep_df = load_overlay_dataframe(DATA_DIR / "iod_2025.csv")
+            except Exception as e:
+                st.error(f"❌ Error loading deprivation data: {e}")
+                dep_df = pd.DataFrame()
+
+            if dep_df.empty:
+                st.warning("⚠️ Deprivation dataset is empty or could not be loaded.")
+            else:
+                pop_dep_df = pd.merge(
+                    df,
+                    dep_df,
+                    on="District Code",
+                    suffixes=("_pop", "_dep")
+                )
+
+                if pop_dep_df.empty:
+                    st.warning("⚠️ No matching districts found between population and deprivation datasets.")
+                else:
+                    pop_dep_df["% White"] = (pop_dep_df["All White Groups (Total)"] / pop_dep_df["Total Population"]) * 100
+                    pop_dep_df["% Asian"] = (pop_dep_df["All Asians (Total)"] / pop_dep_df["Total Population"]) * 100
+                    pop_dep_df["% Black"] = (pop_dep_df["All Balcks (Total)"] / pop_dep_df["Total Population"]) * 100
+                    pop_dep_df["% Mixed"] = (pop_dep_df["All Mixed Ethnic Groups (Total)"] / pop_dep_df["Total Population"]) * 100
+                    pop_dep_df["% Others"] = (pop_dep_df["Other Ethnic Groups (Total)"] / pop_dep_df["Total Population"]) * 100
+
+                    broad_pct_cols = {
+                        "% White": "% White",
+                        "% Asian": "% Asian",
+                        "% Black": "% Black",
+                        "% Mixed": "% Mixed",
+                        "% Others": "% Others"
+                    }
+
+                    pct_cols = [c for c in df.columns if "(percent)" in c]
+                    demog_options = list(broad_pct_cols.keys()) + sorted(pct_cols)
+
+                    dep_domains = {
+                        "Overall IMD Rank": "Overall IMD Rank",
+                        "Income Rank": "Income Rank",
+                        "Employment Rank": "Employment Rank",
+                        "Education Skills and Training Rank": "Education Skills and Training Rank",
+                        "Health Deprivation and Disability Rank": "Health Deprivation and Disability Rank",
+                        "Crime Rank": "Crime Rank",
+                        "Barriers to Housing and Services Rank": "Barriers to Housing and Services Rank",
+                        "Living Environment Rank": "Living Environment Rank",
+                        "Income Deprivation Affecting Children Index (IDACI) Rank": "Income Deprivation Affecting Children Index (IDACI) Rank",
+                        "Income Deprivation Affecting Older People (IDAOPI) Rank": "Income Deprivation Affecting Older People (IDAOPI) Rank",
+                    }
+
+                    col_d1, col_d2 = st.columns(2)
+                    with col_d1:
+                        sel_demog_dep = st.selectbox(
+                            "Select Demographic Metric (X-Axis):",
+                            options=demog_options,
+                            key="pop_dep_x_var"
+                        )
+                    with col_d2:
+                        sel_dep_label = st.selectbox(
+                            "Select Deprivation Domain (Y-Axis):",
+                            options=sorted(list(dep_domains.keys())),
+                            key="pop_dep_y_var"
+                        )
+                        sel_dep = dep_domains[sel_dep_label]
+
+                    x_data = pd.to_numeric(pop_dep_df[sel_demog_dep], errors="coerce")
+                    y_data = pd.to_numeric(pop_dep_df[sel_dep], errors="coerce")
+                    district_names = pop_dep_df["District Name_pop"] if "District Name_pop" in pop_dep_df.columns else pop_dep_df["District Name"]
+
+                    plot_data_dep = pd.DataFrame({
+                        "Demographic": x_data,
+                        "DeprivationMetric": y_data,
+                        "District": district_names
+                    }).dropna()
+
+                    if plot_data_dep.empty:
+                        st.warning("⚠️ No valid data points found for this selection.")
+                    else:
+                        r_coef = np.corrcoef(plot_data_dep["Demographic"], plot_data_dep["DeprivationMetric"])[0, 1]
+
+                        st.write("### 🔍 Correlation Analysis")
+                        st.metric(
+                            label=f"Pearson Correlation Coefficient (r) between {sel_demog_dep} and {sel_dep_label}",
+                            value=f"{r_coef:.3f}",
+                            help="r values close to 1 or -1 indicate strong positive or negative relationships."
+                        )
+
+                        fig = px.scatter(
+                            plot_data_dep,
+                            x="Demographic",
+                            y="DeprivationMetric",
+                            hover_name="District",
+                            title=f"Correlation: {sel_demog_dep} vs {sel_dep_label}",
+                            labels={
+                                "Demographic": sel_demog_dep,
+                                "DeprivationMetric": sel_dep_label
+                            },
+                            color_discrete_sequence=PALETTE
+                        )
+
+                        fig.update_layout(yaxis=dict(autorange="reversed"))
+
+                        if len(plot_data_dep) > 1:
+                            try:
+                                slope, intercept = np.polyfit(plot_data_dep["Demographic"], plot_data_dep["DeprivationMetric"], 1)
+                                x_min, x_max = plot_data_dep["Demographic"].min(), plot_data_dep["Demographic"].max()
+                                x_line = np.array([x_min, x_max])
+                                y_line = slope * x_line + intercept
+                                fig.add_trace(go.Scatter(
+                                    x=x_line,
+                                    y=y_line,
+                                    mode="lines",
+                                    name=f"Trendline (y = {slope:.2f}x + {intercept:.2f})",
+                                    line=dict(dash="dash", color="#E63946", width=2)
+                                ))
+                            except Exception:
+                                pass
+
+                        fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
+                        st.plotly_chart(fig, use_container_width=True)
+
+                        # Generate AI Insights
+                        render_ai_insights(
+                            plot_data_dep,
+                            f"Correlation analysis between demographic metric '{sel_demog_dep}' and deprivation domain rank '{sel_dep_label}' across East of England districts (Pearson r = {r_coef:.3f}). Note: y-axis is inverted (lower ranks indicating higher deprivation plot at the top).",
+                            "tab_pop_dep"
+                        )
+
+                        st.divider()
+
+                        st.write("### 📊 Demographics in Extreme Deprivation Profiles")
+                        st.info(
+                            "This chart contrasts the demographic breakdown of the 10 most deprived "
+                            "districts with the 10 least deprived districts in the region for the selected domain."
+                        )
+
+                        sorted_by_dep = pop_dep_df.sort_values(by=sel_dep)
+
+                        most_deprived = sorted_by_dep.head(10).copy()
+                        least_deprived = sorted_by_dep.tail(10).copy()
+
+                        most_deprived["Group"] = "10 Most Deprived Districts"
+                        least_deprived["Group"] = "10 Least Deprived Districts"
+
+                        extremes_df = pd.concat([most_deprived, least_deprived])
+
+                        group_means = extremes_df.groupby("Group")[
+                            ["% White", "% Asian", "% Black", "% Mixed", "% Others"]
+                        ].mean().reset_index()
+
+                        group_means_long = group_means.melt(
+                            id_vars=["Group"],
+                            value_vars=["% White", "% Asian", "% Black", "% Mixed", "% Others"],
+                            var_name="Ethnic Group",
+                            value_name="Percentage Share (%)"
+                        )
+
+                        fig_groups = px.bar(
+                            group_means_long,
+                            x="Group",
+                            y="Percentage Share (%)",
+                            color="Ethnic Group",
+                            barmode="group",
+                            title=f"Average Demographics: 10 Most vs 10 Least Deprived Districts ({sel_dep_label})",
+                            color_discrete_sequence=PALETTE
+                        )
+                        fig_groups.update_layout(**PLOTLY_LIGHT_LAYOUT)
+                        st.plotly_chart(fig_groups, use_container_width=True)
 
         # ── Tab 4: Regional Population Analysis ──────────────────────────────────
         with tab_regional_pop:
@@ -506,13 +882,13 @@ def render_population_playground():
                 if name_col
                 else df[sum_cols].dropna().copy()
             )
-            if "Total Sum" in df.columns:
-                comp_df["Total Sum"] = df.loc[comp_df.index, "Total Sum"]
+            if "Total Population" in df.columns:
+                comp_df["Total Population"] = df.loc[comp_df.index, "Total Population"]
 
             sort_col = (
-                ETHNIC_SUMS.get(sort_by, "Total Sum")
+                ETHNIC_SUMS.get(sort_by, "Total Population")
                 if sort_by != "Total Population"
-                else "Total Sum"
+                else "Total Population"
             )
             if sort_col in comp_df.columns:
                 comp_df = comp_df.sort_values(sort_col, ascending=False)
@@ -548,7 +924,14 @@ def render_population_playground():
                 xaxis_tickangle=-45,
                 height=520,
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Generate AI Insights
+            render_ai_insights(
+                comp_df.head(30),
+                f"Analyzing overall ethnic group composition by district sorted by {sort_by} (Mode: {view_mode}).",
+                "tab_regional_composition"
+            )
 
             st.divider()
 
@@ -593,7 +976,14 @@ def render_population_playground():
                 )
                 fig.update_layout(height=620, **PLOTLY_LIGHT_LAYOUT)
                 fig.update_traces(textinfo="label+percent parent")
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
+
+                # Generate AI Insights
+                render_ai_insights(
+                    long_df.head(30),
+                    "Analyzing ethnic group population concentrations using a regional treemap.",
+                    "tab_regional_treemap"
+                )
 
         # ── Tab 5: Data Table ─────────────────────────────────────────────────────
         with tab_data:

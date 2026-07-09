@@ -26,9 +26,9 @@ def generate_district_profiles(
         return "{}"
 
     # 1. Clean Deprivation Data
-    imd_code_col = "Local Authority District code (2024)"
-    imd_name_col = "Local Authority District name (2024)"
-    imd_rank_col = "Index of Multiple Deprivation (IMD) Rank"
+    imd_code_col = "District Code"
+    imd_name_col = "District Name"
+    imd_rank_col = "Overall IMD Rank"
 
     imd_ranks = [
         "Income Rank",
@@ -49,7 +49,7 @@ def generate_district_profiles(
         df_imd_clean[imd_code_col] = df_imd_clean[imd_code_col].astype(str).str.strip()
 
     # 2. Clean Cancer Data
-    cancer_code_col = "Geography code"
+    cancer_code_col = "District Code"
     cancer_rate_col = "Rate"
     cancer_inc_col = "Total_incidence"
     cancer_types = ["breast", "lung", "bowel", "prostate", "skin"]
@@ -117,32 +117,45 @@ def generate_district_profiles(
     if not df_imd_clean.empty:
         merged = df_imd_clean.copy()
         join_col = imd_code_col
+        merged_cancer = False
+        merged_pop = False
     elif not df_cancer_clean.empty:
         merged = df_cancer_clean.copy()
         join_col = cancer_code_col
+        merged_cancer = True
+        merged_pop = False
     elif not df_pop_clean.empty:
         merged = df_pop_clean.copy()
         join_col = pop_code_col
+        merged_cancer = False
+        merged_pop = True
     else:
         return "{}"
 
-    if not df_cancer_clean.empty and join_col != cancer_code_col:
-        merged = pd.merge(
-            merged,
-            df_cancer_clean,
-            left_on=join_col,
-            right_on=cancer_code_col,
-            how="outer",
-        )
-        merged[join_col] = merged[join_col].fillna(merged[cancer_code_col])
-        merged.drop(columns=[cancer_code_col], errors="ignore")
+    if not df_cancer_clean.empty and not merged_cancer:
+        if join_col == cancer_code_col:
+            # Same column name on both sides — use `on=` to avoid _x/_y suffix collision
+            merged = pd.merge(merged, df_cancer_clean, on=cancer_code_col, how="outer")
+        else:
+            merged = pd.merge(
+                merged,
+                df_cancer_clean,
+                left_on=join_col,
+                right_on=cancer_code_col,
+                how="outer",
+            )
+            merged[join_col] = merged[join_col].fillna(merged[cancer_code_col])
+            merged = merged.drop(columns=[cancer_code_col], errors="ignore")
 
-    if not df_pop_clean.empty and join_col != pop_code_col:
-        merged = pd.merge(
-            merged, df_pop_clean, left_on=join_col, right_on=pop_code_col, how="outer"
-        )
-        merged[join_col] = merged[join_col].fillna(merged[pop_code_col])
-        merged.drop(columns=[pop_code_col], errors="ignore")
+    if not df_pop_clean.empty and not merged_pop:
+        if join_col == pop_code_col:
+            merged = pd.merge(merged, df_pop_clean, on=pop_code_col, how="outer")
+        else:
+            merged = pd.merge(
+                merged, df_pop_clean, left_on=join_col, right_on=pop_code_col, how="outer"
+            )
+            merged[join_col] = merged[join_col].fillna(merged[pop_code_col])
+            merged = merged.drop(columns=[pop_code_col], errors="ignore")
 
     # Clean name reference
     name_col = next(

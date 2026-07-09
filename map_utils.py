@@ -10,6 +10,7 @@ from streamlit_folium import st_folium
 
 DEFAULT_ID_CANDIDATES = [
     "fid",
+    "District Code",
     "LAD24CD",
     "LAD13CD",
     "LAD19CD",
@@ -61,7 +62,7 @@ def build_authority_options(
     # Try to find a sensible name field
     first_props = features[0].get("properties", {}) if features else {}
     name_field = next(
-        (c for c in ["LAD24NM", "name", "NAME", "LA_Name"] if c in first_props), None
+        (c for c in ["District Name", "LAD24NM", "name", "NAME", "LA_Name"] if c in first_props), None
     )
 
     for feat in features:
@@ -95,7 +96,7 @@ def extract_clicked_fid(
         
         # Fallback to check properties inside drawing
         props = active_drawing.get("properties", {})
-        for key in ["fid", "id", "LAD24CD"]:
+        for key in ["fid", "id", "District Code", "LAD24CD"]:
             val = props.get(key)
             if val is not None and str(val) in id_to_props:
                 return str(val)
@@ -208,7 +209,7 @@ def load_overlay_dataframe(
     """Load a tabular overlay (CSV/TSV) to be joined to the base GeoDataFrame.
 
     - `path`: file path to the CSV (or other file readable by pandas).
-    - `index_col`: optional column name to normalize (e.g., 'LAD24CD').
+    - `index_col`: optional column name to normalize (e.g., 'District Code').
     - `dtype`: optional dtypes mapping passed to `pd.read_csv`.
 
     Returns a pandas DataFrame. Raises FileNotFoundError if missing.

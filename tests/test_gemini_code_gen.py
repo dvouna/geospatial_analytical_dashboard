@@ -82,17 +82,16 @@ def test_semantic_cache_add_and_get(tmp_path):
 def test_profile_generator_merging():
     """Verify profile generator successfully merges datasets on code columns."""
     df_cancer = pd.DataFrame({
-        "Geography code": ["E07000001", "E07000002"],
-        "Geography name ": ["District Alpha", "District Beta"],
+        "District Code": ["E07000001", "E07000002"],
         "Rate": [450.5, 520.1],
         "Total_incidence": [1200, 1500],
         "lung": [45.1, 52.3]
     })
     
     df_imd = pd.DataFrame({
-        "Local Authority District code (2024)": ["E07000001", "E07000002"],
-        "Local Authority District name (2024)": ["District Alpha", "District Beta"],
-        "Index of Multiple Deprivation (IMD) Rank": [120, 85],
+        "District Code": ["E07000001", "E07000002"],
+        "District Name": ["District Alpha", "District Beta"],
+        "Overall IMD Rank": [120, 85],
         "Income Rank": [115, 90]
     })
     

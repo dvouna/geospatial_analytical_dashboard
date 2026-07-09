@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
+import geopandas as gpd
 import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 
-from map_utils import load_overlay_dataframe
 from visualizer import (
     create_bar_chart,
     create_scatter_chart,
@@ -16,6 +16,7 @@ from utils.data_loader_cancer import (
     get_cancer_top5_df,
     load_cancer_raw_data,
 )
+from gemini_queries import render_ai_insights
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -200,11 +201,7 @@ def render_cancer_trends():
 
     with col_main:
         name_col = next(
-            (
-                c
-                for c in ["Geography name ", "Geography name"]
-                if c in overall_df.columns
-            ),
+            (c for c in ["District Name"] if c in overall_df.columns),
             None,
         )
 
@@ -311,7 +308,7 @@ def render_cancer_trends():
                                 yaxis={"categoryorder": "total ascending"},
                                 hovermode="y unified",
                             )
-                            st.plotly_chart(fig, width="stretch")
+                            st.plotly_chart(fig, use_container_width=True)
                         else:
                             # Multi-district grouped vertical bar chart
                             fig = px.bar(
@@ -329,7 +326,14 @@ def render_cancer_trends():
                             )
                             fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                             fig.update_layout(height=500, hovermode="x unified")
-                            st.plotly_chart(fig, width="stretch")
+                            st.plotly_chart(fig, use_container_width=True)
+
+                        # Generate AI Insights
+                        render_ai_insights(
+                            long_df,
+                            f"Comparing specific cancer incidence rates across selected districts: {', '.join(selected_districts)}",
+                            "tab_cancer_comp_rate",
+                        )
 
                         # Comparison Data Table
                         st.write("#### 📋 Comparison Data Table")
@@ -388,7 +392,14 @@ def render_cancer_trends():
                                 height=500,
                                 hovermode="x unified",
                             )
-                            st.plotly_chart(fig, width="stretch")
+                            st.plotly_chart(fig, use_container_width=True)
+
+                            # Generate AI Insights
+                            render_ai_insights(
+                                comp_df,
+                                f"Comparing overall standardised cancer rates with 95% CI across selected districts: {', '.join(selected_districts)}",
+                                "tab_cancer_comp_ci",
+                            )
 
                             # Comparison Data Table
                             st.write("### 📋 Comparison Data Table")
@@ -452,7 +463,14 @@ def render_cancer_trends():
                 y_col=metric_field,
                 title=f"{selected_label} — Top {limit} Districts",
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Generate AI Insights
+            render_ai_insights(
+                show_df[[name_col, metric_field]],
+                f"Analyzing {selected_label} for top {limit} districts sorted by {sort_order}",
+                "tab_cancer_type_single",
+            )
 
             st.divider()
 
@@ -521,7 +539,7 @@ def render_cancer_trends():
                 xaxis_tickangle=-45,
                 height=520,
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
 
         # ── Tab 3: Historical Trends ──────────────────────────────────────────────
         with tab_trends:
@@ -534,8 +552,19 @@ def render_cancer_trends():
             if raw_cancer_df.empty:
                 st.warning("Historical data is unavailable.")
             else:
+                icbs_available = ["All ICBs"] + sorted(
+                    raw_cancer_df["ICB"].dropna().unique().tolist()
+                )
+                sel_icb = st.selectbox(
+                    "Filter Districts by ICB:",
+                    options=icbs_available,
+                    key="cancer_trend_icb_select",
+                )
+                if sel_icb != "All ICBs":
+                    raw_cancer_df = raw_cancer_df[raw_cancer_df["ICB"] == sel_icb]
+
                 districts_available = sorted(
-                    raw_cancer_df["Geography name"].dropna().unique().tolist()
+                    raw_cancer_df["Geography Name"].dropna().unique().tolist()
                 )
                 sel_trend_districts = st.multiselect(
                     "Select Districts for Trend:",
@@ -563,23 +592,23 @@ def render_cancer_trends():
                     st.warning("⚠️ Please select at least one district to view trends.")
                 else:
                     trend_df = raw_cancer_df[
-                        raw_cancer_df["Geography name"].isin(sel_trend_districts)
+                        raw_cancer_df["Geography Name"].isin(sel_trend_districts)
                     ].copy()
                     if sel_trend_cancer != "All Cancers":
                         trend_df = trend_df[trend_df["Cancer Type"] == sel_trend_cancer]
 
                     grouped_trend = (
-                        trend_df.groupby(["Year", "Geography name", "fid"])[
+                        trend_df.groupby(["Year", "Geography Name", "fid"])[
                             "Total Incidence"
                         ]
                         .sum()
                         .reset_index()
                     )
                     try:
-                        df_dist = load_overlay_dataframe(
-                            DATA_DIR / "local_districts.csv"
+                        gdf_dist = gpd.read_file(str(DATA_DIR / "base_gdf_1.geojson"))
+                        df_dist_pop = pd.DataFrame(
+                            gdf_dist[["fid", "total_population"]]
                         )
-                        df_dist_pop = df_dist[["fid", "total_population"]].copy()
                         df_dist_pop["fid"] = df_dist_pop["fid"].astype(str).str.strip()
                         grouped_trend["fid"] = (
                             grouped_trend["fid"].astype(str).str.strip()
@@ -604,7 +633,7 @@ def render_cancer_trends():
                         grouped_trend,
                         x="Year",
                         y=y_axis_col,
-                        color="Geography name",
+                        color="Geography Name",
                         title=f"{sel_trend_cancer} — {trend_metric} Trend Over Time",
                         markers=True,
                         color_discrete_sequence=FLC26_QUALITATIVE,
@@ -615,7 +644,14 @@ def render_cancer_trends():
                         hovermode="x unified",
                         height=480,
                     )
-                    st.plotly_chart(fig_trend, width="stretch")
+                    st.plotly_chart(fig_trend, use_container_width=True)
+
+                    # Generate AI Insights
+                    render_ai_insights(
+                        grouped_trend,
+                        f"Analyzing historical trend of {sel_trend_cancer} ({trend_metric}) for selected districts.",
+                        "tab_cancer_historical",
+                    )
 
         # ── Tab 4: Age Profiles ───────────────────────────────────────────────────
         with tab_age:
@@ -628,11 +664,7 @@ def render_cancer_trends():
                 st.warning("⚠️ Age profiles cannot be shown (dataset unavailable).")
             else:
                 age_name_col = next(
-                    (
-                        c
-                        for c in ["Geography name ", "Geography name"]
-                        if c in top5_df.columns
-                    ),
+                    (c for c in ["District Name"] if c in top5_df.columns),
                     None,
                 )
                 cancer_type_col = (
@@ -641,6 +673,18 @@ def render_cancer_trends():
 
                 ca, cb = st.columns(2)
                 with ca:
+                    icb_list = ["All ICBs"] + (
+                        sorted(top5_df["ICB"].dropna().unique().tolist())
+                        if "ICB" in top5_df.columns
+                        else []
+                    )
+                    if len(icb_list) > 1:
+                        sel_icb = st.selectbox(
+                            "Filter by ICB:", options=icb_list, key="c_t3_icb"
+                        )
+                        if sel_icb != "All ICBs":
+                            top5_df = top5_df[top5_df["ICB"] == sel_icb]
+
                     districts_list = (
                         sorted(top5_df[age_name_col].dropna().unique().tolist())
                         if age_name_col
@@ -702,7 +746,16 @@ def render_cancer_trends():
                                 yaxis_title="Number of Diagnoses",
                                 height=440,
                             )
-                            st.plotly_chart(fig, width="stretch")
+                            st.plotly_chart(fig, use_container_width=True)
+
+                            # Generate AI Insights
+                            render_ai_insights(
+                                pd.DataFrame(
+                                    {"Age Band": age_labels, "Diagnoses": age_counts}
+                                ),
+                                f"Analyzing {sel_cancer} diagnoses by age group for district {sel_districts[0]}",
+                                "tab_cancer_age_single",
+                            )
                         else:
                             # Grouped bar chart comparison
                             melted_dist = filt.melt(
@@ -837,7 +890,14 @@ def render_cancer_trends():
                     xaxis_tickangle=-45,
                     height=500,
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
+
+                # Generate AI Insights
+                render_ai_insights(
+                    ci_df,
+                    f"Analyzing overall standardised cancer rates with 95% CI for top {ci_limit} districts",
+                    "tab_cancer_regional_ci",
+                )
 
             st.divider()
 
@@ -870,7 +930,14 @@ def render_cancer_trends():
             fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
             fig.update_layout(height=360, xaxis_tickangle=-45)
             fig.update_traces(colorbar_title_text="Rate (per 100k)")
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Generate AI Insights
+            render_ai_insights(
+                hm_df,
+                f"Analyzing incidence rate heatmap sorted by {sort_hm}",
+                "tab_cancer_regional_hm",
+            )
 
             st.divider()
 
@@ -886,11 +953,12 @@ def render_cancer_trends():
                 key="cancer_ra_scatter_specific",
             )
             compare_df = overall_df.dropna(subset=["Rate", selected_specific]).copy()
+            color_col = "ICB" if "ICB" in compare_df.columns else name_col
             fig = create_scatter_chart(
                 compare_df,
                 x_col="Rate",
                 y_col=selected_specific,
-                color_col=name_col,
+                color_col=color_col,
                 title=f"Overall Rate vs {selected_specific.capitalize()} Rate",
             )
             fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
@@ -898,7 +966,14 @@ def render_cancer_trends():
                 xaxis_title="Overall Cancer Rate (per 100k)",
                 yaxis_title=f"{selected_specific.capitalize()} Rate",
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Generate AI Insights
+            render_ai_insights(
+                compare_df,
+                f"Analyzing scatter relationship between overall rate and {selected_specific} rate",
+                "tab_cancer_regional_scatter",
+            )
 
         # ── Tab 6: Data Table ─────────────────────────────────────────────────────
         with tab_data:

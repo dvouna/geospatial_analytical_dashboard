@@ -37,8 +37,8 @@ def _make_tiny_gdf() -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame(
         {
             "fid": ["A001", "A002"],
-            "LAD24NM": ["Alpha", "Beta"],
-            "LAD24CD": ["E01", "E02"],
+            "District Name": ["Alpha", "Beta"],
+            "District Code": ["E01", "E02"],
         },
         geometry=geoms,
         crs="EPSG:4326",
@@ -258,7 +258,8 @@ def test_get_cancer_overall_df():
     assert "breast" in df.columns
     assert "skin" in df.columns
     assert "95% lower confidence interval" in df.columns
-    assert "Geography name" in df.columns
+    assert "Geography name" not in df.columns or "District Name" in df.columns
+    assert "District Name" in df.columns
 
 
 def test_get_cancer_top5_df():

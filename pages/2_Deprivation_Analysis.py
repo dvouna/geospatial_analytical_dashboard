@@ -1,6 +1,7 @@
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+import geopandas as gpd
 from pathlib import Path
 
 from map_utils import load_overlay_dataframe
@@ -10,11 +11,12 @@ from visualizer import (
     FLC26_QUALITATIVE,
     PLOTLY_LIGHT_LAYOUT,
 )
+from gemini_queries import render_ai_insights
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 DOMAIN_SHORT = {
-    "Index of Multiple Deprivation (IMD) Rank": "Overall IMD",
+    "Overall IMD Rank": "Overall IMD",
     "Income Rank": "Income",
     "Employment Rank": "Employment",
     "Education Skills and Training Rank": "Education",
@@ -130,11 +132,11 @@ def render_deprivation_playground():
         return
 
     try:
-        local_df = load_overlay_dataframe(DATA_DIR / "local_districts.csv")
-        eoe_codes = set(local_df["LAD24CD"].dropna().unique())
-        eoe_df = df[df["Local Authority District code (2024)"].isin(eoe_codes)].copy()
+        gdf_dist = gpd.read_file(str(DATA_DIR / "base_gdf_1.geojson"))
+        eoe_codes = set(gdf_dist["District Code"].dropna().unique())
+        eoe_df = df[df["District Code"].isin(eoe_codes)].copy()
     except Exception as exc:
-        st.warning(f"⚠️ Could not load or filter East of England districts: {exc}")
+        st.warning(f"⚠️ Could not filter East of England districts: {exc}")
         eoe_df = df.copy()
 
     # ── Split page layout ──────────────────────────────────────────────────────
@@ -183,9 +185,9 @@ def render_deprivation_playground():
                     options=sorted_rank_cols,
                     format_func=lambda c: short_rank_cols[c],
                     index=sorted_rank_cols.index(
-                        "Index of Multiple Deprivation (IMD) Rank"
+                        "Overall IMD Rank"
                     )
-                    if "Index of Multiple Deprivation (IMD) Rank" in sorted_rank_cols
+                    if "Overall IMD Rank" in sorted_rank_cols
                     else 0,
                     key="imd_s_x",
                 )
@@ -203,7 +205,7 @@ def render_deprivation_playground():
             color_col = next(
                 (
                     c
-                    for c in ["ICB", "Local Authority District name (2024)"]
+                    for c in ["ICB", "District Name"]
                     if c in df.columns
                 ),
                 None,
@@ -220,7 +222,14 @@ def render_deprivation_playground():
                 xaxis_title=short_rank_cols[x_var],
                 yaxis_title=short_rank_cols[y_var],
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Generate AI Insights
+            render_ai_insights(
+                plot_df,
+                f"Analyzing scatter correlation between {short_rank_cols[x_var]} and {short_rank_cols[y_var]}",
+                "tab_dep_scatter"
+            )
 
         # ── Radar chart ───────────────────────────────────────────────────────────
         with tab_radar:
@@ -231,7 +240,7 @@ def render_deprivation_playground():
                 "Districts plotted further toward the centre are **more deprived** on that domain."
             )
 
-            name_col_imd = "Local Authority District name (2024)"
+            name_col_imd = "District Name"
 
             # Offer only the 8 main sub-domains (not IDACI/IDAOPI to keep readable)
             radar_domains = [
@@ -315,10 +324,17 @@ def render_deprivation_playground():
                     height=520,
                     **PLOTLY_LIGHT_LAYOUT,
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
                 st.caption(
                     "Axes are inverted: rank #1 (most deprived) plots furthest out; "
                     "rank #296 (least deprived) plots at the centre."
+                )
+
+                # Generate AI Insights
+                render_ai_insights(
+                    df[df[name_col_imd].isin(selected_districts)],
+                    f"Analyzing radar chart of deprivation domains for districts: {', '.join(selected_districts)}",
+                    "tab_dep_radar"
                 )
 
         # ── East of England Analysis ──────────────────────────────────────────────
@@ -338,7 +354,7 @@ def render_deprivation_playground():
             para_df_renamed = para_df.rename(columns=short_rank_cols)
             short_labels = list(para_df_renamed.columns)
             imd_col_short = DOMAIN_SHORT.get(
-                "Index of Multiple Deprivation (IMD) Rank", "Overall IMD"
+                "Overall IMD Rank", "Overall IMD"
             )
 
             if para_df_renamed.empty:
@@ -370,7 +386,14 @@ def render_deprivation_playground():
                     height=540,
                     **PLOTLY_LIGHT_LAYOUT,
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
+
+                # Generate AI Insights
+                render_ai_insights(
+                    para_df_renamed,
+                    "Analyzing parallel coordinates of regional deprivation profiles in East of England",
+                    "tab_dep_eoe_parallel"
+                )
 
             st.divider()
 
@@ -407,7 +430,14 @@ def render_deprivation_playground():
                     showlegend=False,
                     height=500,
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
+
+                # Generate AI Insights
+                render_ai_insights(
+                    melted,
+                    "Analyzing rank distribution by deprivation domain across East of England",
+                    "tab_dep_eoe_box"
+                )
 
             st.divider()
 
@@ -424,7 +454,14 @@ def render_deprivation_playground():
                     corr_df,
                     title="Deprivation Sub-Domain Correlation Matrix (East of England)",
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
+
+                # Generate AI Insights
+                render_ai_insights(
+                    corr_df,
+                    "Analyzing deprivation sub-domain correlation matrix in East of England",
+                    "tab_dep_eoe_corr"
+                )
 
         # ── Tab 6: District Comparison ─────────────────────────────────────────────
         with tab_district:
@@ -434,7 +471,7 @@ def render_deprivation_playground():
                 "You can select up to 5 districts for comparison."
             )
 
-            name_col_imd = "Local Authority District name (2024)"
+            name_col_imd = "District Name"
             districts_available = (
                 df[name_col_imd].dropna().sort_values().tolist()
                 if name_col_imd in df.columns
@@ -542,7 +579,14 @@ def render_deprivation_playground():
                             yaxis={"categoryorder": "total ascending"},
                             hovermode="y unified",
                         )
-                        st.plotly_chart(fig, width="stretch")
+                        st.plotly_chart(fig, use_container_width=True)
+
+                        # Generate AI Insights
+                        render_ai_insights(
+                            long_df,
+                            f"Analyzing deprivation domain rankings for {selected_districts[0]}",
+                            "tab_dep_comp_single"
+                        )
                     else:
                         # Multi-district grouped bar chart comparison
                         fig = px.bar(
@@ -567,7 +611,14 @@ def render_deprivation_playground():
                             xaxis_tickangle=-30,
                             hovermode="x unified",
                         )
-                        st.plotly_chart(fig, width="stretch")
+                        st.plotly_chart(fig, use_container_width=True)
+
+                        # Generate AI Insights
+                        render_ai_insights(
+                            long_df,
+                            f"Comparing deprivation rankings across districts: {', '.join(selected_districts)} (Mode: {view_mode})",
+                            "tab_dep_comp_multi"
+                        )
 
                     # Comparison Data Table
                     st.write("### Comparison Data Table")
