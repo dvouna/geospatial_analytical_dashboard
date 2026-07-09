@@ -726,7 +726,7 @@ with col_map:
                                 x=0.5,
                             ),
                         )
-                        st.plotly_chart(fig, width="stretch")
+                        st.plotly_chart(fig, use_container_width=True)
         except Exception as exc:
             st.error(f"Could not render population chart: {exc}")
 

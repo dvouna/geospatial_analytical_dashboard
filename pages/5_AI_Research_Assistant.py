@@ -584,7 +584,7 @@ def _render_deprivation_cancer_scatter(loaded: dict) -> None:
         height=480,
         showlegend=False,
     )
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
     st.caption(
         "Trendline = OLS regression. A negative slope would indicate that more deprived districts "
         "(lower rank number) tend to have higher cancer rates."

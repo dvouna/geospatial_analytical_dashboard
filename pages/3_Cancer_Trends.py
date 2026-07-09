@@ -309,7 +309,7 @@ def render_cancer_trends():
                                 yaxis={"categoryorder": "total ascending"},
                                 hovermode="y unified",
                             )
-                            st.plotly_chart(fig, width="stretch")
+                            st.plotly_chart(fig, use_container_width=True)
                         else:
                             # Multi-district grouped vertical bar chart
                             fig = px.bar(
@@ -327,7 +327,7 @@ def render_cancer_trends():
                             )
                             fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                             fig.update_layout(height=500, hovermode="x unified")
-                            st.plotly_chart(fig, width="stretch")
+                            st.plotly_chart(fig, use_container_width=True)
 
                         # Comparison Data Table
                         st.write("#### 📋 Comparison Data Table")
@@ -386,7 +386,7 @@ def render_cancer_trends():
                                 height=500,
                                 hovermode="x unified",
                             )
-                            st.plotly_chart(fig, width="stretch")
+                            st.plotly_chart(fig, use_container_width=True)
 
                             # Comparison Data Table
                             st.write("### 📋 Comparison Data Table")
@@ -450,7 +450,7 @@ def render_cancer_trends():
                 y_col=metric_field,
                 title=f"{selected_label} — Top {limit} Districts",
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
 
             st.divider()
 
@@ -519,7 +519,7 @@ def render_cancer_trends():
                 xaxis_tickangle=-45,
                 height=520,
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
 
         # ── Tab 3: Historical Trends ──────────────────────────────────────────────
         with tab_trends:
@@ -613,7 +613,7 @@ def render_cancer_trends():
                         hovermode="x unified",
                         height=480,
                     )
-                    st.plotly_chart(fig_trend, width="stretch")
+                    st.plotly_chart(fig_trend, use_container_width=True)
 
         # ── Tab 4: Age Profiles ───────────────────────────────────────────────────
         with tab_age:
@@ -700,7 +700,7 @@ def render_cancer_trends():
                                 yaxis_title="Number of Diagnoses",
                                 height=440,
                             )
-                            st.plotly_chart(fig, width="stretch")
+                            st.plotly_chart(fig, use_container_width=True)
                         else:
                             # Grouped bar chart comparison
                             melted_dist = filt.melt(
@@ -730,7 +730,7 @@ def render_cancer_trends():
                             fig.update_layout(
                                 height=440, hovermode="x unified"
                             )
-                            st.plotly_chart(fig, width="stretch")
+                            st.plotly_chart(fig, use_container_width=True)
 
                         # Show all districts for the selected cancer type (second viz)
                         st.subheader(f"All Districts — {sel_cancer} by Age Band")
@@ -769,7 +769,7 @@ def render_cancer_trends():
                             fig2.update_layout(
                                 xaxis_tickangle=-45, height=500
                             )
-                            st.plotly_chart(fig2, width="stretch")
+                            st.plotly_chart(fig2, use_container_width=True)
 
         # ── Tab 5: Regional Analysis ──────────────────────────────────────────────
         with tab_regional:
@@ -839,7 +839,7 @@ def render_cancer_trends():
                     xaxis_tickangle=-45,
                     height=500,
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
 
             st.divider()
 
@@ -872,7 +872,7 @@ def render_cancer_trends():
             fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
             fig.update_layout(height=360, xaxis_tickangle=-45)
             fig.update_traces(colorbar_title_text="Rate (per 100k)")
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
 
             st.divider()
 
@@ -900,7 +900,7 @@ def render_cancer_trends():
                 xaxis_title="Overall Cancer Rate (per 100k)",
                 yaxis_title=f"{selected_specific.capitalize()} Rate",
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
 
         # ── Tab 6: Data Table ─────────────────────────────────────────────────────
         with tab_data:

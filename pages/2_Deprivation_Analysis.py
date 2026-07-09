@@ -220,7 +220,7 @@ def render_deprivation_playground():
                 xaxis_title=short_rank_cols[x_var],
                 yaxis_title=short_rank_cols[y_var],
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
 
         # ── Radar chart ───────────────────────────────────────────────────────────
         with tab_radar:
@@ -315,7 +315,7 @@ def render_deprivation_playground():
                     height=520,
                     **PLOTLY_LIGHT_LAYOUT,
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
                 st.caption(
                     "Axes are inverted: rank #1 (most deprived) plots furthest out; "
                     "rank #296 (least deprived) plots at the centre."
@@ -370,7 +370,7 @@ def render_deprivation_playground():
                     height=540,
                     **PLOTLY_LIGHT_LAYOUT,
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
 
             st.divider()
 
@@ -409,7 +409,7 @@ def render_deprivation_playground():
                     showlegend=False,
                     height=500,
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
 
             st.divider()
 
@@ -426,7 +426,7 @@ def render_deprivation_playground():
                     corr_df,
                     title="Deprivation Sub-Domain Correlation Matrix (East of England)",
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
 
         # ── Tab 6: District Comparison ─────────────────────────────────────────────
         with tab_comp:
@@ -544,7 +544,7 @@ def render_deprivation_playground():
                             yaxis={"categoryorder": "total ascending"},
                             hovermode="y unified",
                         )
-                        st.plotly_chart(fig, width="stretch")
+                        st.plotly_chart(fig, use_container_width=True)
                     else:
                         # Multi-district grouped bar chart comparison
                         fig = px.bar(
@@ -569,7 +569,7 @@ def render_deprivation_playground():
                             xaxis_tickangle=-30,
                             hovermode="x unified",
                         )
-                        st.plotly_chart(fig, width="stretch")
+                        st.plotly_chart(fig, use_container_width=True)
 
                     # Comparison Data Table
                     st.write("### 📋 Comparison Data Table")
