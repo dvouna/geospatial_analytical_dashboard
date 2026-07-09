@@ -269,20 +269,20 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
         name = props.get("District Name") or active_fid
         st.success(f"**Selected District: {name}**")
 
-        col1, col2 = st.columns(2)
+        col1, stat_col2 = st.columns(2)
         with col1:
             pop_val = _get_clean_kpi_value(props, "Total Population")
             render_kpi_card("Total Population", pop_val)
-            white_val = _get_clean_kpi_value(props, "Total - All White Groups")
-            render_kpi_card("White Group", white_val)
-            asian_val = _get_clean_kpi_value(props, "Total - All Asian Groups")
-            render_kpi_card("Asian Group", asian_val)
-        with col2:
-            black_val = _get_clean_kpi_value(props, "Total - All Black Groups")
-            render_kpi_card("Black Group", black_val)
-            mixed_val = _get_clean_kpi_value(props, "Total - All Mixed Groups")
+            white_val = _get_clean_kpi_value(props, "All White Groups (Total)")
+            render_kpi_card("White", white_val)
+            asian_val = _get_clean_kpi_value(props, "All Asians (Total)")
+            render_kpi_card("Asian", asian_val)
+        with stat_col2:
+            black_val = _get_clean_kpi_value(props, "All Balcks (Total)")
+            render_kpi_card("Black", black_val)
+            mixed_val = _get_clean_kpi_value(props, "All Mixed Ethnic Groups (Total)")
             render_kpi_card("Mixed Group", mixed_val)
-            others_val = _get_clean_kpi_value(props, "Total - Other Ethnic Groups")
+            others_val = _get_clean_kpi_value(props, "Other Ethnic Groups (Total)")
             render_kpi_card("Others Group", others_val)
 
         # ── Detailed Subgroup Breakdowns ──────────────────────────────────────
@@ -362,7 +362,7 @@ def _panel_imd(active_fid: str | None, id_to_props: dict) -> None:
 
         col1, col2 = st.columns(2)
         with col1:
-            imd_rank = props.get("Index of Multiple Deprivation (IMD) Rank")
+            imd_rank = props.get("Overall IMD Rank")
             imd_val = f"#{int(float(imd_rank))}" if imd_rank is not None else "N/A"
             badge_text, badge_type = None, None
             if imd_rank is not None:
@@ -687,11 +687,11 @@ with col_map:
                     name = props.get("District Name") or active_fid
 
                     target_cols = {
-                        "White": "Total - All White Groups",
-                        "Asian": "Total - All Asian Groups",
-                        "Black": "Total - All Black Groups",
-                        "Mixed": "Total - All Mixed Groups",
-                        "Others": "Total - Other Ethnic Groups",
+                        "White": "All White Groups (Total)",
+                        "Asian": "All Asians (Total)",
+                        "Black": "All Balcks (Total)",
+                        "Mixed": "All Mixed Ethnic Groups (Total)",
+                        "Others": "Other Ethnic Groups (Total)",
                     }
                     labels, values = [], []
                     for label, col in target_cols.items():

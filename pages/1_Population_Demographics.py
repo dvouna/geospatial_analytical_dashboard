@@ -19,42 +19,42 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 # ── Column definitions ─────────────────────────────────────────────────────────
 
 ETHNIC_SUMS = {
-    "White": "Total - All White Groups",
-    "Asian": "Total - All Asian Groups",
-    "Black": "Total - All Black Groups",
-    "Mixed": "Total - All Mixed Groups",
-    "Others": "Total - Other Ethnic Groups",
+    "White": "All White Groups (Total)",
+    "Asian": "All Asians (Total)",
+    "Black": "All Balcks (Total)",
+    "Mixed": "All Mixed Ethnic Groups (Total)",
+    "Others": "Other Ethnic Groups (Total)",
 }
 
 SUBGROUP_MAP = {
     "Asian": [
-        "Asian, Asian British or Asian Welsh: Bangladeshi\n(number)",
-        "Asian, Asian British or Asian Welsh: Chinese\n(number)",
-        "Asian, Asian British or Asian Welsh: Indian\n(number)",
-        "Asian, Asian British or Asian Welsh: Pakistani\n(number)",
-        "Asian, Asian British or Asian Welsh: Other Asian\n(number)",
+        "Asian: Bangladeshi",
+        "Asian: Chinese",
+        "Asian: Indian",
+        "Asian: Pakistani",
+        "Asian: Others",
     ],
     "Black": [
-        "Black, Black British, Black Welsh, Caribbean or African: African\n(number)",
-        "Black, Black British, Black Welsh, Caribbean or African: Caribbean\n(number)",
-        "Black, Black British, Black Welsh, Caribbean or African: Other Black\n(number)",
+        "Black: African",
+        "Black: Caribbean",
+        "Black: Others",
     ],
     "Mixed": [
-        "Mixed or Multiple ethnic groups: White and Asian\n(number)",
-        "Mixed or Multiple ethnic groups: White and Black African\n(number)",
-        "Mixed or Multiple ethnic groups: White and Black Caribbean\n(number)",
-        "Mixed or Multiple ethnic groups: Other Mixed or Multiple ethnic groups\n(number)",
+        "Mixed Ethnic Group: White and Asian",
+        "Mixed Ethnic Group: White and Black African",
+        "Mixed Ethnic Group: White and Black Caribbean",
+        "Mixed Ethnic Group: Others",
     ],
     "White": [
-        "White: English, Welsh, Scottish, Northern Irish or British\n(number)",
-        "White: Irish\n(number)",
-        "White: Gypsy or Irish Traveller\n(number)",
-        "White: Roma\n(number)",
-        "White: Other White\n(number)",
+        "White: English, Welsh, Scottish, Northern Irish or British",
+        "White: Irish",
+        "White: Gypsy or Irish Traveller",
+        "White: Roma",
+        "White: Other Whites",
     ],
     "Others": [
-        "Other ethnic group: Arab\n(number)",
-        "Other ethnic group: Any other ethnic group\n(number)",
+        "Other Ethnic Groups: Arab",
+        "Other Ethnic Groups: Any other",
     ],
 }
 
@@ -177,7 +177,6 @@ def render_population_playground():
         df = load_overlay_dataframe(DATA_DIR / "population_detail.csv", index_col="fid")
         # Normalize column names by replacing CRLF with LF and map total column name
         df.columns = [c.replace("\r\n", "\n").replace("\r", "\n") for c in df.columns]
-        df = df.rename(columns={"Total Population": "Total Sum"})
     except FileNotFoundError:
         st.error("❌ `population_detail.csv` not found in the data directory.")
         return
@@ -207,8 +206,8 @@ def render_population_playground():
         all_num_cols = sum_cols + [
             col for cols in SUBGROUP_MAP.values() for col in cols if col in df.columns
         ]
-        if "Total Sum" in df.columns:
-            all_num_cols.append("Total Sum")
+        if "Total Population" in df.columns:
+            all_num_cols.append("Total Population")
         df = _clean_numeric(df, all_num_cols)
 
         # ── Tabs ───────────────────────────────────────────────────────────────────
@@ -278,12 +277,12 @@ def render_population_playground():
 
                 # Melt to long format for Plotly
                 melt_cols = [name_col] + subgroup_cols
-                if "Total Sum" in comp_df.columns:
-                    melt_cols.append("Total Sum")
+                if "Total Population" in comp_df.columns:
+                    melt_cols.append("Total Population")
 
                 long_df = comp_df[melt_cols].melt(
-                    id_vars=[name_col, "Total Sum"]
-                    if "Total Sum" in comp_df.columns
+                    id_vars=[name_col, "Total Population"]
+                    if "Total Population" in comp_df.columns
                     else [name_col],
                     value_vars=subgroup_cols,
                     var_name="Subgroup_Raw",
@@ -300,8 +299,8 @@ def render_population_playground():
                     long_df = long_df[long_df["Parent Group"] == broad_group_filter]
 
                 # Compute metric value based on mode
-                if view_mode == "Proportional (%)" and "Total Sum" in long_df.columns:
-                    long_df["Value"] = (long_df["Count"] / long_df["Total Sum"]) * 100
+                if view_mode == "Proportional (%)" and "Total Population" in long_df.columns:
+                    long_df["Value"] = (long_df["Count"] / long_df["Total Population"]) * 100
                     y_axis_title = "Proportion of District Population (%)"
                 else:
                     long_df["Value"] = long_df["Count"]
@@ -532,11 +531,11 @@ def render_population_playground():
                 if pop_cancer_df.empty:
                     st.warning("⚠️ No matching districts found between population and cancer datasets.")
                 else:
-                    pop_cancer_df["% White"] = (pop_cancer_df["Total - All White Groups"] / pop_cancer_df["Total Sum"]) * 100
-                    pop_cancer_df["% Asian"] = (pop_cancer_df["Total - All Asian Groups"] / pop_cancer_df["Total Sum"]) * 100
-                    pop_cancer_df["% Black"] = (pop_cancer_df["Total - All Black Groups"] / pop_cancer_df["Total Sum"]) * 100
-                    pop_cancer_df["% Mixed"] = (pop_cancer_df["Total - All Mixed Groups"] / pop_cancer_df["Total Sum"]) * 100
-                    pop_cancer_df["% Others"] = (pop_cancer_df["Total - Other Ethnic Groups"] / pop_cancer_df["Total Sum"]) * 100
+                    pop_cancer_df["% White"] = (pop_cancer_df["All White Groups (Total)"] / pop_cancer_df["Total Population"]) * 100
+                    pop_cancer_df["% Asian"] = (pop_cancer_df["All Asians (Total)"] / pop_cancer_df["Total Population"]) * 100
+                    pop_cancer_df["% Black"] = (pop_cancer_df["All Balcks (Total)"] / pop_cancer_df["Total Population"]) * 100
+                    pop_cancer_df["% Mixed"] = (pop_cancer_df["All Mixed Ethnic Groups (Total)"] / pop_cancer_df["Total Population"]) * 100
+                    pop_cancer_df["% Others"] = (pop_cancer_df["Other Ethnic Groups (Total)"] / pop_cancer_df["Total Population"]) * 100
 
                     broad_pct_cols = {
                         "% White": "% White",
@@ -709,11 +708,11 @@ def render_population_playground():
                 if pop_dep_df.empty:
                     st.warning("⚠️ No matching districts found between population and deprivation datasets.")
                 else:
-                    pop_dep_df["% White"] = (pop_dep_df["Total - All White Groups"] / pop_dep_df["Total Sum"]) * 100
-                    pop_dep_df["% Asian"] = (pop_dep_df["Total - All Asian Groups"] / pop_dep_df["Total Sum"]) * 100
-                    pop_dep_df["% Black"] = (pop_dep_df["Total - All Black Groups"] / pop_dep_df["Total Sum"]) * 100
-                    pop_dep_df["% Mixed"] = (pop_dep_df["Total - All Mixed Groups"] / pop_dep_df["Total Sum"]) * 100
-                    pop_dep_df["% Others"] = (pop_dep_df["Total - Other Ethnic Groups"] / pop_dep_df["Total Sum"]) * 100
+                    pop_dep_df["% White"] = (pop_dep_df["All White Groups (Total)"] / pop_dep_df["Total Population"]) * 100
+                    pop_dep_df["% Asian"] = (pop_dep_df["All Asians (Total)"] / pop_dep_df["Total Population"]) * 100
+                    pop_dep_df["% Black"] = (pop_dep_df["All Balcks (Total)"] / pop_dep_df["Total Population"]) * 100
+                    pop_dep_df["% Mixed"] = (pop_dep_df["All Mixed Ethnic Groups (Total)"] / pop_dep_df["Total Population"]) * 100
+                    pop_dep_df["% Others"] = (pop_dep_df["Other Ethnic Groups (Total)"] / pop_dep_df["Total Population"]) * 100
 
                     broad_pct_cols = {
                         "% White": "% White",
@@ -727,7 +726,7 @@ def render_population_playground():
                     demog_options = list(broad_pct_cols.keys()) + sorted(pct_cols)
 
                     dep_domains = {
-                        "Index of Multiple Deprivation (IMD) Rank": "Index of Multiple Deprivation (IMD) Rank",
+                        "Overall IMD Rank": "Overall IMD Rank",
                         "Income Rank": "Income Rank",
                         "Employment Rank": "Employment Rank",
                         "Education Skills and Training Rank": "Education Skills and Training Rank",
@@ -883,13 +882,13 @@ def render_population_playground():
                 if name_col
                 else df[sum_cols].dropna().copy()
             )
-            if "Total Sum" in df.columns:
-                comp_df["Total Sum"] = df.loc[comp_df.index, "Total Sum"]
+            if "Total Population" in df.columns:
+                comp_df["Total Population"] = df.loc[comp_df.index, "Total Population"]
 
             sort_col = (
-                ETHNIC_SUMS.get(sort_by, "Total Sum")
+                ETHNIC_SUMS.get(sort_by, "Total Population")
                 if sort_by != "Total Population"
-                else "Total Sum"
+                else "Total Population"
             )
             if sort_col in comp_df.columns:
                 comp_df = comp_df.sort_values(sort_col, ascending=False)

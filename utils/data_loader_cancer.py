@@ -26,7 +26,7 @@ REVERSE_CANCER_MAPPING = {
 @st.cache_data
 def load_cancer_raw_data() -> pd.DataFrame:
     """Load the raw cancer_2018_2022.csv dataset."""
-    csv_path = DATA_DIR / "cancer_2018_2022.csv"
+    csv_path = DATA_DIR.joinpath("cancer_2018_2022.csv")
     if not csv_path.exists():
         return pd.DataFrame()
     return pd.read_csv(csv_path)
@@ -77,7 +77,7 @@ def get_cancer_overall_df(year_filter: str or int = "all") -> pd.DataFrame:
         total_incidence = raw_total_count.copy()
         
     # Join with district info (population, names)
-    df_dist_key = df_dist[["fid", "District Code", "District Name", "total_population"]].set_index("fid")
+    df_dist_key = df_dist[["fid", "District Code", "District Name", "total_population", "ICB"]].set_index("fid")
     result_df = counts_df.join(df_dist_key, how="inner")
     
     # Calculate rates (per 100k) and keep counts in separate columns
@@ -133,8 +133,12 @@ def get_cancer_top5_df(year_filter: str or int = "all") -> pd.DataFrame:
         "Total Incidence"
     ]
     
-    # Group by district and cancer type
-    grouped = df_filtered.groupby(["fid", "Geography Name", "Cancer Type"])[age_cols].sum().reset_index()
+    # Filter for top 5 cancers
+    top5_cancers = ["Breast", "Skin cancer", "Lung", "Prostate", "Bowel"]
+    df_filtered = df_filtered[df_filtered["Cancer Type"].isin(top5_cancers)]
+    
+    # Group by district, ICB and cancer type
+    grouped = df_filtered.groupby(["fid", "Geography Name", "ICB", "Cancer Type"])[age_cols].sum().reset_index()
     
     # Average counts if aggregated
     if num_years > 1:

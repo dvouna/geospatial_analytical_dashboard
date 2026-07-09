@@ -650,10 +650,10 @@ def _render_vulnerability_table(loaded: dict) -> None:
                 "Black Sum",
                 "Mixed Sum",
                 "Others Sum",
-                "Total - All Asian Groups",
-                "Total - All Black Groups",
-                "Total - All Mixed Groups",
-                "Total - Other Ethnic Groups",
+                "All Asians (Total)",
+                "All Balcks (Total)",
+                "All Mixed Ethnic Groups (Total)",
+                "Other Ethnic Groups (Total)",
             ]
             if c in pop_df_clean.columns
         ]

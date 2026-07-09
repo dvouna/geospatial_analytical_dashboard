@@ -94,7 +94,7 @@ def test_profile_generator_merging():
     df_imd = pd.DataFrame({
         "Local Authority District code (2024)": ["E07000001", "E07000002"],
         "Local Authority District name (2024)": ["District Alpha", "District Beta"],
-        "Index of Multiple Deprivation (IMD) Rank": [120, 85],
+        "Overall IMD Rank": [120, 85],
         "Income Rank": [115, 90]
     })
     
