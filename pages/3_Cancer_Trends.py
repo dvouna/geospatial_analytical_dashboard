@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import geopandas as gpd
 import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
@@ -200,7 +201,7 @@ def render_cancer_trends():
         name_col = next(
             (
                 c
-                for c in ["Geography name ", "Geography name"]
+                for c in ["District Name"]
                 if c in overall_df.columns
             ),
             None,
@@ -533,7 +534,7 @@ def render_cancer_trends():
                 st.warning("Historical data is unavailable.")
             else:
                 districts_available = sorted(
-                    raw_cancer_df["Geography name"].dropna().unique().tolist()
+                    raw_cancer_df["Geography Name"].dropna().unique().tolist()
                 )
                 sel_trend_districts = st.multiselect(
                     "Select Districts for Trend:",
@@ -561,23 +562,21 @@ def render_cancer_trends():
                     st.warning("⚠️ Please select at least one district to view trends.")
                 else:
                     trend_df = raw_cancer_df[
-                        raw_cancer_df["Geography name"].isin(sel_trend_districts)
+                        raw_cancer_df["Geography Name"].isin(sel_trend_districts)
                     ].copy()
                     if sel_trend_cancer != "All Cancers":
                         trend_df = trend_df[trend_df["Cancer Type"] == sel_trend_cancer]
 
                     grouped_trend = (
-                        trend_df.groupby(["Year", "Geography name", "fid"])[
+                        trend_df.groupby(["Year", "Geography Name", "fid"])[
                             "Total Incidence"
                         ]
                         .sum()
                         .reset_index()
                     )
                     try:
-                        df_dist = load_overlay_dataframe(
-                            DATA_DIR / "local_districts.csv"
-                        )
-                        df_dist_pop = df_dist[["fid", "total_population"]].copy()
+                        gdf_dist = gpd.read_file(str(DATA_DIR / "base_gdf_1.geojson"))
+                        df_dist_pop = pd.DataFrame(gdf_dist[["fid", "total_population"]])
                         df_dist_pop["fid"] = df_dist_pop["fid"].astype(str).str.strip()
                         grouped_trend["fid"] = (
                             grouped_trend["fid"].astype(str).str.strip()
@@ -602,7 +601,7 @@ def render_cancer_trends():
                         grouped_trend,
                         x="Year",
                         y=y_axis_col,
-                        color="Geography name",
+                        color="Geography Name",
                         title=f"{sel_trend_cancer} — {trend_metric} Trend Over Time",
                         markers=True,
                         color_discrete_sequence=FLC26_QUALITATIVE,
@@ -628,7 +627,7 @@ def render_cancer_trends():
                 age_name_col = next(
                     (
                         c
-                        for c in ["Geography name ", "Geography name"]
+                        for c in ["District Name"]
                         if c in top5_df.columns
                     ),
                     None,

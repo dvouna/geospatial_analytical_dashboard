@@ -15,7 +15,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
-from gemini_queries import GeminiQueryEngine
+from gemini_queries import GeminiQueryEngine, get_gemini_engine
 from visualizer import get_numeric_columns, PLOTLY_LIGHT_LAYOUT
 from utils.data_loader_cancer import get_cancer_overall_df, get_cancer_top5_df
 from utils.code_cache import SemanticCodeCache
@@ -114,8 +114,7 @@ def _build_context(*dataframes: pd.DataFrame, names: tuple[str, ...] = ()) -> st
 
         # Top 5 and bottom 5 for the first key numeric metric
         name_col = next(
-            (c for c in ["LAD24NM", "Geography name ", "Geography name",
-                         "Local Authority District name (2024)"]
+            (c for c in ["District Name", "District Code"]
              if c in df.columns),
             None,
         )
@@ -262,7 +261,9 @@ def render_research_assistant_page():
     st.divider()
 
     # ── Gemini engine ──────────────────────────────────────────────────────────
-    engine = GeminiQueryEngine()
+    # Use the session-cached engine singleton to avoid re-initialising
+    # the GenerativeModel on every Streamlit rerun.
+    engine = get_gemini_engine()
 
     if not engine.is_available():
         st.warning(
@@ -508,11 +509,11 @@ def _render_deprivation_cancer_scatter(loaded: dict) -> None:
         st.info("Both deprivation and cancer datasets are required for this chart.")
         return
 
-    imd_code_col = "Local Authority District code (2024)"
-    imd_name_col = "Local Authority District name (2024)"
-    imd_rank_col = "Index of Multiple Deprivation (IMD) Rank"
-    cancer_code_col = "Geography code"
-    cancer_name_col = "Geography name "
+    imd_code_col = "District Code"
+    imd_name_col = "District Name"
+    imd_rank_col = "Overall IMD Rank"
+    cancer_code_col = "District Code"
+    cancer_name_col = "District Name"
     cancer_rate_col = "Rate"
 
     # Clean and merge on district code
@@ -603,11 +604,11 @@ def _render_vulnerability_table(loaded: dict) -> None:
         )
         return
 
-    imd_code_col = "Local Authority District code (2024)"
-    imd_name_col = "Local Authority District name (2024)"
-    imd_rank_col = "Index of Multiple Deprivation (IMD) Rank"
-    cancer_code_col = "Geography code"
-    cancer_name_col = "Geography name "
+    imd_code_col = "District Code"
+    imd_name_col = "District Name"
+    imd_rank_col = "Overall IMD Rank"
+    cancer_code_col = "District Code"
+    cancer_name_col = "District Name"
     cancer_rate_col = "Rate"
 
     imd_clean = imd_df[[imd_code_col, imd_name_col, imd_rank_col]].dropna().copy()
@@ -637,7 +638,7 @@ def _render_vulnerability_table(loaded: dict) -> None:
     # Add minority proportion if population data available
     has_pop = False
     if not pop_df.empty:
-        pop_code_col = "LAD24CD"
+        pop_code_col = "District Code"
         pop_df_clean = pop_df.copy()
         pop_df_clean.columns = [
             c.replace("\r\n", "\n").replace("\r", "\n") for c in pop_df_clean.columns
@@ -750,7 +751,7 @@ def render_research_assistant_widget(key_suffix: str = ""):
         st.error("No datasets could be loaded.")
         return
 
-    engine = GeminiQueryEngine()
+    engine = get_gemini_engine()
     if not engine.is_available():
         st.warning(
             "⚠️ Gemini API key is not configured. "

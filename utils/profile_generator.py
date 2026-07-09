@@ -27,9 +27,9 @@ def generate_district_profiles(
         return "{}"
 
     # 1. Clean Deprivation Data
-    imd_code_col = "Local Authority District code (2024)"
-    imd_name_col = "Local Authority District name (2024)"
-    imd_rank_col = "Index of Multiple Deprivation (IMD) Rank"
+    imd_code_col = "District Code"
+    imd_name_col = "District Name"
+    imd_rank_col = "Overall IMD Rank"
 
     imd_ranks = [
         "Income Rank",
@@ -48,7 +48,7 @@ def generate_district_profiles(
         df_imd_clean[imd_code_col] = df_imd_clean[imd_code_col].astype(str).str.strip()
 
     # 2. Clean Cancer Data
-    cancer_code_col = "Geography code"
+    cancer_code_col = "District Code"
     cancer_rate_col = "Rate"
     cancer_inc_col = "Total_incidence"
     cancer_types = ["breast", "lung", "bowel", "prostate", "skin"]
@@ -68,7 +68,7 @@ def generate_district_profiles(
                 )
 
     # 3. Clean Population Data
-    pop_code_col = "LAD24CD"
+    pop_code_col = "District Code"
     pop_total_col = next((c for c in ["Total Population", "Total Sum", "total_population"] if c in df_pop.columns), None)
     pop_ethnicities = {
         "White": "White Sum",
@@ -113,15 +113,15 @@ def generate_district_profiles(
     if not df_cancer_clean.empty and join_col != cancer_code_col:
         merged = pd.merge(merged, df_cancer_clean, left_on=join_col, right_on=cancer_code_col, how="outer")
         merged[join_col] = merged[join_col].fillna(merged[cancer_code_col])
-        merged.drop(columns=[cancer_code_col], errors="ignore")
+        merged = merged.drop(columns=[cancer_code_col], errors="ignore")
 
     if not df_pop_clean.empty and join_col != pop_code_col:
         merged = pd.merge(merged, df_pop_clean, left_on=join_col, right_on=pop_code_col, how="outer")
         merged[join_col] = merged[join_col].fillna(merged[pop_code_col])
-        merged.drop(columns=[pop_code_col], errors="ignore")
+        merged = merged.drop(columns=[pop_code_col], errors="ignore")
 
     # Clean name reference
-    name_col = next((c for c in [imd_name_col, "Geography name ", "Geography name"] if c in merged.columns), None)
+    name_col = next((c for c in [imd_name_col, "District Name"] if c in merged.columns), None)
 
     # 5. Build structured profiles dictionary
     profiles: dict[str, dict[str, Any]] = {}

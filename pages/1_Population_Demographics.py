@@ -12,6 +12,7 @@ from visualizer import (
     FLC26_QUALITATIVE,
     PLOTLY_LIGHT_LAYOUT,
 )
+from gemini_queries import render_ai_insights
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -197,7 +198,7 @@ def render_population_playground():
         name_col = next(
             (
                 c
-                for c in ["LAD24NM", "Geography name ", "Geography name"]
+                for c in ["District Name"]
                 if c in df.columns
             ),
             None,
@@ -365,6 +366,13 @@ def render_population_playground():
                 else:
                     st.dataframe(pivot_df.style.format("{:,.0f}"), width="stretch")
 
+                # Generate AI Insights
+                render_ai_insights(
+                    pivot_df,
+                    f"Comparing ethnic subgroups for selected districts: {', '.join(selected_districts)} (Mode: {view_mode}, Filter: {broad_group_filter})",
+                    "tab_dist_pop"
+                )
+
         # ── Tab 2: Ethnic Groups Analysis ─────────────────────────────────────────
         with tab_ethnic_analysis:
             st.subheader("Explore a Single Ethnic Group Metric")
@@ -424,6 +432,13 @@ def render_population_playground():
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
+            # Generate AI Insights
+            render_ai_insights(
+                plot_df[[name_col, metric_col]].head(30) if name_col in plot_df.columns else plot_df[[metric_col]].head(30),
+                f"Analyzing single ethnic group metric: {selected_metric} ({metric_col}) using chart type {chart_type}",
+                "tab_ethnic_single"
+            )
+
             st.divider()
 
             st.subheader("Sub-Group Breakdown Within an Ethnic Group")
@@ -481,6 +496,13 @@ def render_population_playground():
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
+                # Generate AI Insights
+                render_ai_insights(
+                    sub_df,
+                    f"Sub-group breakdown for broad ethnic group: {selected_group} across top {num_top} districts sorted by parent group sum.",
+                    "tab_ethnic_subgroup"
+                )
+
         # ── Tab: Population-Cancer ────────────────────────────────────────────────
         with tab_pop_cancer:
             st.subheader("Population-Cancer Cross Analysis")
@@ -503,7 +525,7 @@ def render_population_playground():
                 pop_cancer_df = pd.merge(
                     df,
                     cancer_df,
-                    on="LAD24CD",
+                    on="District Code",
                     suffixes=("_pop", "_cancer")
                 )
 
@@ -563,7 +585,7 @@ def render_population_playground():
 
                     x_data = pd.to_numeric(pop_cancer_df[sel_demog], errors="coerce")
                     y_data = pd.to_numeric(pop_cancer_df[sel_cancer], errors="coerce")
-                    district_names = pop_cancer_df["LAD24NM_pop"] if "LAD24NM_pop" in pop_cancer_df.columns else pop_cancer_df["LAD24NM"]
+                    district_names = pop_cancer_df["District Name_pop"] if "District Name_pop" in pop_cancer_df.columns else pop_cancer_df["District Name"]
 
                     plot_data = pd.DataFrame({
                         "Demographic": x_data,
@@ -614,6 +636,13 @@ def render_population_playground():
 
                         fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                         st.plotly_chart(fig, use_container_width=True)
+
+                        # Generate AI Insights
+                        render_ai_insights(
+                            plot_data,
+                            f"Correlation analysis between demographic metric '{sel_demog}' and cancer metric '{sel_cancer_label}' across East of England districts (Pearson r = {r_coef:.3f}).",
+                            "tab_pop_cancer"
+                        )
 
                         st.divider()
 
@@ -673,8 +702,7 @@ def render_population_playground():
                 pop_dep_df = pd.merge(
                     df,
                     dep_df,
-                    left_on="LAD24CD",
-                    right_on="Local Authority District code (2024)",
+                    on="District Code",
                     suffixes=("_pop", "_dep")
                 )
 
@@ -728,7 +756,7 @@ def render_population_playground():
 
                     x_data = pd.to_numeric(pop_dep_df[sel_demog_dep], errors="coerce")
                     y_data = pd.to_numeric(pop_dep_df[sel_dep], errors="coerce")
-                    district_names = pop_dep_df["LAD24NM_pop"] if "LAD24NM_pop" in pop_dep_df.columns else pop_dep_df["LAD24NM"]
+                    district_names = pop_dep_df["District Name_pop"] if "District Name_pop" in pop_dep_df.columns else pop_dep_df["District Name"]
 
                     plot_data_dep = pd.DataFrame({
                         "Demographic": x_data,
@@ -781,6 +809,13 @@ def render_population_playground():
 
                         fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
                         st.plotly_chart(fig, use_container_width=True)
+
+                        # Generate AI Insights
+                        render_ai_insights(
+                            plot_data_dep,
+                            f"Correlation analysis between demographic metric '{sel_demog_dep}' and deprivation domain rank '{sel_dep_label}' across East of England districts (Pearson r = {r_coef:.3f}). Note: y-axis is inverted (lower ranks indicating higher deprivation plot at the top).",
+                            "tab_pop_dep"
+                        )
 
                         st.divider()
 
@@ -892,6 +927,13 @@ def render_population_playground():
             )
             st.plotly_chart(fig, use_container_width=True)
 
+            # Generate AI Insights
+            render_ai_insights(
+                comp_df.head(30),
+                f"Analyzing overall ethnic group composition by district sorted by {sort_by} (Mode: {view_mode}).",
+                "tab_regional_composition"
+            )
+
             st.divider()
 
             st.subheader("Diversity Treemap — All Districts")
@@ -936,6 +978,13 @@ def render_population_playground():
                 fig.update_layout(height=620, **PLOTLY_LIGHT_LAYOUT)
                 fig.update_traces(textinfo="label+percent parent")
                 st.plotly_chart(fig, use_container_width=True)
+
+                # Generate AI Insights
+                render_ai_insights(
+                    long_df.head(30),
+                    "Analyzing ethnic group population concentrations using a regional treemap.",
+                    "tab_regional_treemap"
+                )
 
         # ── Tab 5: Data Table ─────────────────────────────────────────────────────
         with tab_data:

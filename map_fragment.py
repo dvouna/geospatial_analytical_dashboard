@@ -169,7 +169,7 @@ def render_persistent_map(
     features = geojson_payload.get("features", [])
     if features:
         prop_keys = list(features[0].get("properties", {}).keys())
-        tooltip_fields = [f for f in ["fid", "LAD24NM"] if f in prop_keys] or prop_keys[:2]
+        tooltip_fields = [f for f in ["fid", "District Name"] if f in prop_keys] or prop_keys[:2]
     else:
         tooltip_fields = []
 

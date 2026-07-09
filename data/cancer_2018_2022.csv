@@ -1,4 +1,4 @@
-fid,Year,Geography code,Geography name,Cancer Type,Age 00 to 24,Age 25 to 49,Age 50 to 59,Age 60 to 69,Age 70 to 79,Age 80 and over,Total Incidence,ICB
+fid,Year,Geography Code,Geography Name,Cancer Type,Age 00 to 24,Age 25 to 49,Age 50 to 59,Age 60 to 69,Age 70 to 79,Age 80 and over,Total Incidence,ICB
 29,2018,E06000031,Peterborough,Bladder,0,2,7,10,25,22,132,Central East
 29,2018,E06000031,Peterborough,Blood cancer,6,12,9,26,25,23,202,Central East
 29,2018,E06000031,Peterborough,Bowel,0,7,13,21,35,29,210,Central East

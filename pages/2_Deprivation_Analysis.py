@@ -1,6 +1,7 @@
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+import geopandas as gpd
 from pathlib import Path
 
 from map_utils import load_overlay_dataframe
@@ -130,11 +131,11 @@ def render_deprivation_playground():
         return
 
     try:
-        local_df = load_overlay_dataframe(DATA_DIR / "local_districts.csv")
-        eoe_codes = set(local_df["LAD24CD"].dropna().unique())
-        eoe_df = df[df["Local Authority District code (2024)"].isin(eoe_codes)].copy()
+        gdf_dist = gpd.read_file(str(DATA_DIR / "base_gdf_1.geojson"))
+        eoe_codes = set(gdf_dist["District Code"].dropna().unique())
+        eoe_df = df[df["District Code"].isin(eoe_codes)].copy()
     except Exception as exc:
-        st.warning(f"⚠️ Could not load or filter East of England districts: {exc}")
+        st.warning(f"⚠️ Could not filter East of England districts: {exc}")
         eoe_df = df.copy()
 
     # ── Split page layout ──────────────────────────────────────────────────────
@@ -203,7 +204,7 @@ def render_deprivation_playground():
             color_col = next(
                 (
                     c
-                    for c in ["ICB", "Local Authority District name (2024)"]
+                    for c in ["ICB", "District Name"]
                     if c in df.columns
                 ),
                 None,
@@ -231,7 +232,7 @@ def render_deprivation_playground():
                 "Districts plotted further toward the centre are **more deprived** on that domain."
             )
 
-            name_col_imd = "Local Authority District name (2024)"
+            name_col_imd = "District Name"
 
             # Offer only the 8 main sub-domains (not IDACI/IDAOPI to keep readable)
             radar_domains = [
@@ -436,7 +437,7 @@ def render_deprivation_playground():
                 "You can select up to 5 districts for comparison."
             )
 
-            name_col_imd = "Local Authority District name (2024)"
+            name_col_imd = "District Name"
             districts_available = (
                 df[name_col_imd].dropna().sort_values().tolist()
                 if name_col_imd in df.columns

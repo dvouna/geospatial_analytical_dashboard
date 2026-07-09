@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
+import geopandas as gpd
 from pathlib import Path
 
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -42,10 +43,10 @@ def get_cancer_overall_df(year_filter: str or int = "all") -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame()
         
-    districts_path = DATA_DIR / "local_districts.csv"
-    if not districts_path.exists():
+    gdf_path = DATA_DIR / "base_gdf_1.geojson"
+    if not gdf_path.exists():
         return pd.DataFrame()
-    df_dist = pd.read_csv(districts_path)
+    df_dist = pd.DataFrame(gpd.read_file(str(gdf_path)).drop(columns="geometry"))
     
     # Filter by year if specified
     if year_filter != "all":
@@ -76,7 +77,7 @@ def get_cancer_overall_df(year_filter: str or int = "all") -> pd.DataFrame:
         total_incidence = raw_total_count.copy()
         
     # Join with district info (population, names)
-    df_dist_key = df_dist[["fid", "LAD24CD", "LAD24NM", "total_population"]].set_index("fid")
+    df_dist_key = df_dist[["fid", "District Code", "District Name", "total_population"]].set_index("fid")
     result_df = counts_df.join(df_dist_key, how="inner")
     
     # Calculate rates (per 100k) and keep counts in separate columns
@@ -97,10 +98,9 @@ def get_cancer_overall_df(year_filter: str or int = "all") -> pd.DataFrame:
     result_df["95% lower confidence interval"] = (lci_raw / (num_years * result_df["total_population"])) * 100000
     result_df["95% upper confidence interval"] = (uci_raw / (num_years * result_df["total_population"])) * 100000
     
-    # Re-add name/code columns (for compatibility with other modules)
-    result_df["Geography name"] = result_df["LAD24NM"]
-    result_df["Geography name "] = result_df["LAD24NM"]
-    result_df["Geography code"] = result_df["LAD24CD"]
+    # Re-add harmonised name/code columns
+    result_df["District Name"] = result_df["District Name"]
+    result_df["District Code"] = result_df["District Code"]
     
     result_df = result_df.reset_index()
     result_df["fid"] = result_df["fid"].astype(str).str.strip()
@@ -134,7 +134,7 @@ def get_cancer_top5_df(year_filter: str or int = "all") -> pd.DataFrame:
     ]
     
     # Group by district and cancer type
-    grouped = df_filtered.groupby(["fid", "Geography name", "Cancer Type"])[age_cols].sum().reset_index()
+    grouped = df_filtered.groupby(["fid", "Geography Name", "Cancer Type"])[age_cols].sum().reset_index()
     
     # Average counts if aggregated
     if num_years > 1:
@@ -144,9 +144,8 @@ def get_cancer_top5_df(year_filter: str or int = "all") -> pd.DataFrame:
     # Rename columns for compatibility
     grouped = grouped.rename(columns={
         "Total Incidence": "All ages",
-        "Geography name": "Geography name"
+        "Geography Name": "District Name"
     })
-    grouped["Geography name "] = grouped["Geography name"]
     
     # Normalize fid
     grouped["fid"] = grouped["fid"].astype(str).str.strip()
