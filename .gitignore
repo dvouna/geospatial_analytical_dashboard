@@ -149,3 +149,17 @@ improvement_plan.md
 security_plan.md
 vps_deployment
 east_england_local_authorities_lower_level.geojson
+
+# ── AI cache and generated artefacts (contain user prompts + model code) ─────
+# These files are written at runtime and must not be committed or shipped in
+# Docker images. See also .dockerignore.
+data/approved_insights.jsonl
+data/semantic_cache.json
+
+# ── Deployment configuration ──────────────────────────────────────────────────
+# .env contains real credentials — never commit.
+# .env.production is a secrets-free template and IS tracked in Git.
+/.env
+/.env.local
+# Explicitly un-ignore the template so it stays in the repo:
+!.env.production

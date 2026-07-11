@@ -1,0 +1,80 @@
+# ============================================================================
+# FLC26 Geospatial Analytical Dashboard — Docker Build Context Exclusions
+# ============================================================================
+# Prevents secrets, dev artifacts, large notebooks, generated AI caches, and
+# unnecessary tooling from being copied into the production container image.
+
+# ── Secrets and environment files ────────────────────────────────────────────
+.env
+.env.*
+.streamlit/secrets.toml
+
+# ── Version control metadata ─────────────────────────────────────────────────
+.git
+.github
+.gitignore
+
+# ── Python virtual environments ───────────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Python caches and build artefacts ────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+
+# ── Test infrastructure ───────────────────────────────────────────────────────
+.pytest_cache/
+tests/
+.coverage
+htmlcov/
+nosetests.xml
+coverage.xml
+
+# ── Jupyter notebooks (may contain embedded outputs or credentials) ───────────
+*.ipynb
+.ipynb_checkpoints/
+
+# ── Generated AI caches (user prompts + model-generated code persisted here) ──
+data/approved_insights.jsonl
+data/semantic_cache.json
+
+# ── Large geospatial source files not needed at runtime ───────────────────────
+# (only base_gdf_1.geojson and east_england_local_authorities_lower_level.geojson
+#  are needed at runtime; exclude them here if loading from Cloud Storage instead)
+# data/LA_LT_IMD2025_OSGB1936_6172562419698567779.txt
+
+# ── Development / planning documentation ─────────────────────────────────────
+improvement_plan.md
+security_plan.md
+security_report.md
+column_harmonisation_updates.md
+TESTING_GUIDE.md
+QUICKSTART.md
+START_HERE.md
+VPS_SETUP.md
+vps_deployment
+
+# ── Local tooling and IDE files ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ── Cloud Run deployment identity files ───────────────────────────────────────
+server_user_id.txt
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+pip-log.txt
