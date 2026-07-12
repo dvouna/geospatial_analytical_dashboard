@@ -1,5 +1,5 @@
 # ============================================================================
-# FLC26 Geospatial Analytical Dashboard — Dockerfile
+# Cancer Health Dashboard  — Dockerfile
 # Target: VPS deployment via Docker Compose + Nginx reverse proxy
 # Registry: ghcr.io/dvouna/geospatial_analytical_dashboard
 # ============================================================================

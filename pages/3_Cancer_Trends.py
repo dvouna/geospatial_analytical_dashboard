@@ -3,7 +3,10 @@ import pandas as pd
 import geopandas as gpd
 import plotly.express as px
 import plotly.graph_objects as go
+import sys
 from pathlib import Path
+
+from config import Config
 
 from visualizer import (
     create_bar_chart,
@@ -100,6 +103,12 @@ def render_cancer_trends():
             font-size: 16px !important;
             font-weight: 600 !important;
         }
+
+        /* Sidebar separator: left border + padding on the research assistant column */
+        div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:last-child {
+            border-left: 2px solid var(--color-border, #E2E8F0) !important;
+            padding-left: 1.5rem !important;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -166,13 +175,23 @@ def render_cancer_trends():
     try:
         overall_df = get_cancer_overall_df(year_filter=year_val)
     except Exception as exc:
-        st.error(f"❌ Error loading overall cancer data: {exc}")
+        print(f"[cancer] Error loading overall cancer data: {exc}", file=sys.stderr)
+        st.error(
+            "❌ Error loading overall cancer data. Please contact the administrator."
+            if not Config.DEBUG
+            else f"❌ Error loading overall cancer data: {exc}"
+        )
         overall_df = pd.DataFrame()
 
     try:
         top5_df = get_cancer_top5_df(year_filter=year_val)
     except Exception as exc:
-        st.error(f"❌ Error loading top-5 cancers data: {exc}")
+        print(f"[cancer] Error loading top-5 cancers data: {exc}", file=sys.stderr)
+        st.error(
+            "❌ Error loading top-5 cancers data. Please contact the administrator."
+            if not Config.DEBUG
+            else f"❌ Error loading top-5 cancers data: {exc}"
+        )
         top5_df = pd.DataFrame()
 
     if overall_df.empty:
@@ -215,11 +234,11 @@ def render_cancer_trends():
             tab_data,
         ) = st.tabs(
             [
-                "District Cancer Analysis",
-                "Cancer Type Analysis",
-                "Historical Trends",
+                "District Level Analysis",
+                "Cancer Type Comparison",
+                "Temporal Trends",
                 "Age Profiles",
-                "Regional Analysis",
+                "Regional Comparison",
                 "Data Table",
             ]
         )
@@ -621,7 +640,15 @@ def render_cancer_trends():
                             / grouped_trend["total_population"]
                         ) * 100000
                     except Exception as e:
-                        st.error(f"Error merging population data: {e}")
+                        print(
+                            f"[cancer] Error merging population data: {e}",
+                            file=sys.stderr,
+                        )
+                        st.error(
+                            "❌ Error merging population data. Please contact the administrator."
+                            if not Config.DEBUG
+                            else f"Error merging population data: {e}"
+                        )
                         grouped_trend["Crude Rate (per 100k)"] = 0
 
                     grouped_trend = grouped_trend.rename(

@@ -12,15 +12,98 @@ Datasets loaded at startup:
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.graph_objects as go
+import sys
 from pathlib import Path
-from gemini_queries import get_gemini_engine
+
+from config import Config
+from gemini_queries import GeminiQueryEngine, get_gemini_engine, render_ai_insights
 from visualizer import get_numeric_columns, PLOTLY_LIGHT_LAYOUT
 from utils.data_loader_cancer import get_cancer_overall_df, get_cancer_top5_df
 from utils.code_cache import SemanticCodeCache
 from utils.profile_generator import generate_district_profiles
 
 DATA_DIR = Path(__file__).parent.parent / "data"
+
+# ---------------------------------------------------------------------------
+# Security constants
+# ---------------------------------------------------------------------------
+
+# Maximum permitted length (characters) for a user-submitted query. Queries
+# beyond this limit are rejected before reaching the Gemini API to prevent
+# token-cost abuse and to limit prompt-injection surface area.
+MAX_QUERY_LEN = 2000
+
+# Maximum length (characters) preserved from each individual conversation
+# turn when building the history context injected into Gemini prompts.
+# This limits the amount of injected content a user can embed in history.
+_MAX_TURN_LEN = 500
+
+
+def _build_safe_history_context(history: list[dict], n_turns: int = 6) -> str:
+    """
+    Build a sanitised conversation-history string for injection into Gemini
+    prompts.
+
+    Security measures applied:
+    - Each turn is truncated to ``_MAX_TURN_LEN`` characters so a user cannot
+      plant large instruction blocks via their own messages.
+    - Common prompt-injection trigger phrases are stripped from user turns
+      (e.g. lines beginning with "Ignore", "Forget", "System:").
+    - The resulting block is wrapped in XML-like delimiters so that the model
+      can distinguish conversation history from the live instruction text.
+
+    Parameters
+    ----------
+    history:
+        The current ``ra_chat_history`` session-state list (excluding the
+        current user message — pass the slice ``[:-1]``).
+    n_turns:
+        Maximum number of individual role turns to include (default 6 = 3
+        full user/assistant rounds).
+    """
+    # Injection-trigger prefixes to strip from user content (case-insensitive).
+    _INJECTION_PREFIXES = (
+        "ignore ",
+        "forget ",
+        "disregard ",
+        "override ",
+        "system:",
+        "[system]",
+        "<system>",
+        "assistant:",
+        "[assistant]",
+        "new instruction",
+        "act as",
+        "you are now",
+    )
+
+    safe_turns: list[str] = []
+    for turn in history[-n_turns:]:
+        role_label = "User" if turn.get("role") == "user" else "Assistant"
+        raw_content = str(turn.get("content", ""))
+
+        # Strip injection-trigger lines from user turns only.
+        if role_label == "User":
+            filtered_lines = [
+                line
+                for line in raw_content.splitlines()
+                if not line.strip().lower().startswith(_INJECTION_PREFIXES)
+            ]
+            raw_content = " ".join(filtered_lines)
+
+        # Truncate each turn to limit planted-instruction size.
+        truncated = raw_content[:_MAX_TURN_LEN]
+        if len(raw_content) > _MAX_TURN_LEN:
+            truncated += " [truncated]"
+
+        safe_turns.append(f"{role_label}: {truncated}")
+
+    if not safe_turns:
+        return ""
+
+    body = "\n".join(safe_turns)
+    return f"<conversation_history>\n{body}\n</conversation_history>"
+
 
 # ---------------------------------------------------------------------------
 # Data loading helpers
@@ -233,17 +316,6 @@ def render_research_assistant_page():
         unsafe_allow_html=True,
     )
 
-    with st.popover("💡 Guide: Conversational AI Analysis", use_container_width=True):
-        st.markdown(
-            """
-            **How to use the AI Research Assistant:**
-            - **Conversational Queries**: Type natural language questions in the query box (e.g., *"Which districts in the East of England have high deprivation and also high breast cancer rates?"*).
-            - **Integrated Context**: Gemini automatically receives contextual dataset summaries of population demographics, deprivation subdomains, and cancer incidence.
-            - **Interactive Visualizations**: Review the correlation scatter plot of deprivation vs overall cancer rate, complete with OLS trendlines.
-            - **Composite Vulnerability Priority**: Read the composite vulnerability table combining deprivation, cancer rates, and minority population shares to rank priority areas.
-            """
-        )
-
     # ── Load data at startup ──────────────────────────────────────────────────
     with st.spinner("Loading datasets…"):
         datasets = load_all_datasets()
@@ -257,17 +329,6 @@ def render_research_assistant_page():
     if not loaded:
         st.error("❌ No datasets could be loaded. Please check the `data/` directory.")
         return
-
-    # ── Dataset status pills ──────────────────────────────────────────────────
-    st.markdown("**Datasets available:**")
-    cols = st.columns(len(datasets))
-    for col, (name, df) in zip(cols, datasets.items()):
-        if df.empty:
-            col.error(f"✗ {name.split('(')[0].strip()}")
-        else:
-            col.success(f"✓ {name.split('(')[0].strip()} ({len(df):,} rows)")
-
-    st.divider()
 
     # ── Gemini engine ──────────────────────────────────────────────────────────
     # Use the session-cached engine singleton to avoid re-initialising
@@ -283,19 +344,11 @@ def render_research_assistant_page():
     # Initialize Semantic Cache
     cache_manager = SemanticCodeCache()
 
-    # Sidebar settings
-    with st.sidebar:
-        st.markdown("### ⚙️ AI Settings")
-        if st.button("🧹 Clear Chat History", use_container_width=True):
-            st.session_state["ra_chat_history"] = []
-            st.rerun()
-
     # ── Ask a Question ────────────────────────────────────────────────────────
-    st.subheader("Conversational Research Assistant")
+    st.subheader("Example questions for the research assistant")
 
-    with st.expander("💡 View Example Questions"):
-        for q in EXAMPLE_QUERIES:
-            st.write(f"• {q}")
+    for q in EXAMPLE_QUERIES:
+        st.markdown(f"- {q}")
 
     # Render previous conversation history
     for chat in st.session_state["ra_chat_history"]:
@@ -310,6 +363,15 @@ def render_research_assistant_page():
     user_query = st.chat_input("Ask about East of England public health...")
 
     if user_query:
+        # Reject oversized inputs before any API call to prevent token-cost
+        # abuse and to reduce the prompt-injection surface area.
+        if len(user_query) > MAX_QUERY_LEN:
+            st.warning(
+                f"⚠️ Query too long ({len(user_query):,} chars). "
+                f"Please limit to {MAX_QUERY_LEN:,} characters."
+            )
+            st.stop()
+
         # 1. Display user query instantly and append to history
         with st.chat_message("user"):
             st.markdown(user_query)
@@ -325,14 +387,14 @@ def render_research_assistant_page():
                 {"role": "assistant", "content": err_msg}
             )
         else:
-            # Format last 3 conversation turns as history context
-            turns = []
-            for t in st.session_state["ra_chat_history"][
-                :-1
-            ]:  # Exclude the current user question
-                role_label = "User" if t["role"] == "user" else "Assistant"
-                turns.append(f"{role_label}: {t['content']}")
-            history_context = "\n".join(turns[-6:])  # Up to 3 full turns
+            # Build a sanitised history context to limit prompt-injection risk.
+            # _build_safe_history_context() truncates, strips injection phrases,
+            # and wraps the block in clear delimiters.
+            history_context = _build_safe_history_context(
+                st.session_state["ra_chat_history"][
+                    :-1
+                ]  # Exclude current user question
+            )
 
             context = _get_context(loaded)
 
@@ -451,48 +513,6 @@ def render_research_assistant_page():
 
     st.divider()
 
-    # ── Automatic Insights ────────────────────────────────────────────────────
-    st.subheader("📊 Automatic Cross-Dataset Insights")
-    if st.button("Generate Insights", key="ra_insights"):
-        if not engine.is_available():
-            st.warning("Please configure the Gemini API key first.")
-        else:
-            context = _get_context(loaded)  # cached — no rebuild on each click
-            prompt = (
-                f"{context}\n\n"
-                "Generate 5 key insights about public health, deprivation, and cancer incidence "
-                "in the East of England. Reference specific districts and statistics. "
-                "Focus on patterns, inequalities, and notable outliers."
-            )
-            with st.spinner("🤔 Generating insights…"):
-                try:
-                    response = engine.model.generate_content(prompt)
-                    st.markdown(response.text)
-                except Exception as exc:
-                    st.error(f"❌ Gemini error: {exc}")
-
-    st.divider()
-
-    # ── Deprivation × Cancer Scatter ──────────────────────────────────────────
-    st.subheader("🔗 Deprivation vs Cancer Incidence")
-    st.write(
-        "The core analytical question: is there a relationship between deprivation rank "
-        "and overall cancer incidence in the East of England? Each point = one district."
-    )
-    _render_deprivation_cancer_scatter(loaded)
-
-    st.divider()
-
-    # ── Composite Vulnerability League Table ──────────────────────────────────
-    st.subheader("🏆 Priority for Intervention — Composite Vulnerability Score")
-    st.write(
-        "Districts ranked by a composite score that combines IMD rank, overall cancer rate, "
-        "and non-White population proportion. Higher score = greater need for targeted early-detection efforts."
-    )
-    _render_vulnerability_table(loaded)
-
-    st.divider()
-
     # ── Data Overview ─────────────────────────────────────────────────────────
     st.subheader("🔍 Data Overview")
     selected_name = st.selectbox(
@@ -533,248 +553,9 @@ def render_research_assistant_page():
 # ---------------------------------------------------------------------------
 
 
-def _render_deprivation_cancer_scatter(loaded: dict) -> None:
-    """Scatter: IMD Overall Rank vs Overall Cancer Rate, one point per district."""
-    imd_df = loaded.get("Index of Multiple Deprivation 2025", pd.DataFrame())
-    cancer_df = loaded.get("Cancer Incidence (Overall)", pd.DataFrame())
-
-    if imd_df.empty or cancer_df.empty:
-        st.info("Both deprivation and cancer datasets are required for this chart.")
-        return
-
-    imd_code_col = "District Code"
-    imd_name_col = "District Name"
-    imd_rank_col = "Overall IMD Rank"
-    cancer_code_col = "District Code"
-    cancer_name_col = "District Name"
-    cancer_rate_col = "Rate"
-
-    # Clean and merge on district code
-    imd_clean = imd_df[[imd_code_col, imd_name_col, imd_rank_col]].dropna()
-    cancer_clean = cancer_df[[cancer_code_col, cancer_name_col, cancer_rate_col]].copy()
-    cancer_clean[cancer_rate_col] = pd.to_numeric(
-        cancer_clean[cancer_rate_col].astype(str).str.replace(",", ""), errors="coerce"
-    )
-    cancer_clean = cancer_clean.dropna(subset=[cancer_rate_col])
-
-    merged = pd.merge(
-        imd_clean,
-        cancer_clean,
-        left_on=imd_code_col,
-        right_on=cancer_code_col,
-        how="inner",
-    )
-
-    if merged.empty:
-        st.warning("No matching districts found between IMD and cancer datasets.")
-        return
-
-    fig = go.Figure()
-
-    # 1. Add Scatter trace for districts
-    fig.add_trace(
-        go.Scatter(
-            x=merged[imd_rank_col].tolist(),
-            y=merged[cancer_rate_col].tolist(),
-            mode="markers",
-            name="Districts",
-            text=merged[imd_name_col].tolist(),
-            hovertemplate="<b>%{text}</b><br>IMD Rank: %{x}<br>Cancer Rate: %{y:.1f}<extra></extra>",
-            marker=dict(
-                size=9,
-                color="#E63946",
-                opacity=0.8,
-                line=dict(width=1, color="DarkSlateGrey"),
-            ),
-        )
-    )
-
-    # 2. Add OLS regression line trace using numpy
-    try:
-        x_vals = merged[imd_rank_col].dropna().values
-        y_vals = merged[cancer_rate_col].dropna().values
-        if len(x_vals) > 1:
-            slope, intercept = np.polyfit(x_vals, y_vals, 1)
-            x_line = np.array([x_vals.min(), x_vals.max()])
-            y_line = slope * x_line + intercept
-            fig.add_trace(
-                go.Scatter(
-                    x=x_line.tolist(),
-                    y=y_line.tolist(),
-                    mode="lines",
-                    name="OLS Trendline",
-                    line=dict(color="#2A9D8F", width=2, dash="dash"),
-                    hovertemplate="Trendline<extra></extra>",
-                )
-            )
-    except Exception:
-        pass
-
-    fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
-    fig.update_layout(
-        title="Deprivation Rank vs Cancer Incidence Rate — East of England Districts",
-        xaxis_title="IMD Overall Rank (lower = more deprived)",
-        yaxis_title="Overall Cancer Rate (per 100,000)",
-        height=480,
-        showlegend=False,
-    )
-    st.plotly_chart(fig, use_container_width=True)
-    st.caption(
-        "Trendline = OLS regression. A negative slope would indicate that more deprived districts "
-        "(lower rank number) tend to have higher cancer rates."
-    )
-
-
-def _render_vulnerability_table(loaded: dict) -> None:
-    """Composite vulnerability score: normalise IMD rank + cancer rate + minority population."""
-    imd_df = loaded.get("Index of Multiple Deprivation 2025", pd.DataFrame())
-    cancer_df = loaded.get("Cancer Incidence (Overall)", pd.DataFrame())
-    pop_df = loaded.get("Population by Ethnicity", pd.DataFrame())
-
-    if imd_df.empty or cancer_df.empty:
-        st.info(
-            "Deprivation and cancer datasets are required for the vulnerability table."
-        )
-        return
-
-    imd_code_col = "District Code"
-    imd_name_col = "District Name"
-    imd_rank_col = "Overall IMD Rank"
-    cancer_code_col = "District Code"
-    cancer_name_col = "District Name"
-    cancer_rate_col = "Rate"
-
-    imd_clean = imd_df[[imd_code_col, imd_name_col, imd_rank_col]].dropna().copy()
-    cancer_clean = cancer_df[[cancer_code_col, cancer_name_col, cancer_rate_col]].copy()
-    cancer_clean[cancer_rate_col] = pd.to_numeric(
-        cancer_clean[cancer_rate_col].astype(str).str.replace(",", ""), errors="coerce"
-    )
-    cancer_clean = cancer_clean.dropna(subset=[cancer_rate_col])
-
-    merged = pd.merge(
-        imd_clean,
-        cancer_clean,
-        left_on=imd_code_col,
-        right_on=cancer_code_col,
-        how="inner",
-    )
-
-    # Normalise each component 0→1
-    max_rank = merged[imd_rank_col].max()
-    # More deprived = lower rank → invert so higher score = worse deprivation
-    merged["dep_score"] = 1 - (merged[imd_rank_col] - 1) / (max_rank - 1 + 1e-9)
-
-    r_min = merged[cancer_rate_col].min()
-    r_max = merged[cancer_rate_col].max()
-    merged["cancer_score"] = (merged[cancer_rate_col] - r_min) / (r_max - r_min + 1e-9)
-
-    # Add minority proportion if population data available
-    has_pop = False
-    if not pop_df.empty:
-        pop_code_col = "District Code"
-        pop_df_clean = pop_df.copy()
-        pop_df_clean.columns = [
-            c.replace("\r\n", "\n").replace("\r", "\n") for c in pop_df_clean.columns
-        ]
-        sum_cols = [
-            c
-            for c in [
-                "Asian Sum",
-                "Black Sum",
-                "Mixed Sum",
-                "Others Sum",
-                "All Asians (Total)",
-                "All Balcks (Total)",
-                "All Mixed Ethnic Groups (Total)",
-                "Other Ethnic Groups (Total)",
-            ]
-            if c in pop_df_clean.columns
-        ]
-        tot_col = next(
-            (c for c in ["Total Population", "Total Sum"] if c in pop_df_clean.columns),
-            None,
-        )
-        if pop_code_col in pop_df_clean.columns and sum_cols and tot_col:
-            pop_clean = pop_df_clean[[pop_code_col] + sum_cols + [tot_col]].copy()
-            for c in sum_cols + [tot_col]:
-                pop_clean[c] = pd.to_numeric(
-                    pop_clean[c].astype(str).str.replace(",", ""), errors="coerce"
-                )
-            pop_clean["minority_pct"] = (
-                pop_clean[sum_cols].sum(axis=1)
-                / pop_clean[tot_col].replace(0, np.nan)
-                * 100
-            )
-            merged = pd.merge(
-                merged,
-                pop_clean[[pop_code_col, "minority_pct"]],
-                left_on=imd_code_col,
-                right_on=pop_code_col,
-                how="left",
-            )
-            mp_min = merged["minority_pct"].min()
-            mp_max = merged["minority_pct"].max()
-            merged["pop_score"] = (merged["minority_pct"] - mp_min) / (
-                mp_max - mp_min + 1e-9
-            )
-            merged["Composite Score"] = (
-                merged["dep_score"] + merged["cancer_score"] + merged["pop_score"]
-            ) / 3
-            has_pop = True
-
-    if not has_pop:
-        merged["Composite Score"] = (merged["dep_score"] + merged["cancer_score"]) / 2
-        merged["minority_pct"] = np.nan
-
-    merged["Composite Score"] = (merged["Composite Score"] * 100).round(1)
-    merged = merged.sort_values("Composite Score", ascending=False).reset_index(
-        drop=True
-    )
-    merged.index += 1  # 1-based rank
-
-    display_cols = {
-        imd_name_col: "District",
-        imd_rank_col: "IMD Rank",
-        cancer_rate_col: "Cancer Rate (per 100k)",
-    }
-    if has_pop:
-        display_cols["minority_pct"] = "Minority Pop. (%)"
-    display_cols["Composite Score"] = "Vulnerability Score"
-
-    table = merged[[c for c in display_cols if c in merged.columns]].rename(
-        columns=display_cols
-    )
-    table.index.name = "Priority Rank"
-
-    # Style the score column
-    styled = table.style.background_gradient(
-        subset=["Vulnerability Score"], cmap="YlOrRd"
-    ).format(
-        {
-            "IMD Rank": "{:.0f}",
-            "Cancer Rate (per 100k)": "{:.1f}",
-            "Minority Pop. (%)": "{:.1f}",
-            "Vulnerability Score": "{:.1f}",
-        }
-    )
-
-    st.dataframe(styled, width="stretch", height=480)
-
-    if has_pop:
-        st.caption(
-            "Score = average of normalised IMD deprivation, cancer rate, and minority population proportion. "
-            "Higher score = greater priority for early cancer detection outreach."
-        )
-    else:
-        st.caption(
-            "Score = average of normalised IMD deprivation and cancer rate "
-            "(population data not available for minority proportion)."
-        )
-
-
 def render_research_assistant_widget(key_suffix: str = ""):
     """Render a compact, conversational version of the AI Research Assistant for a sidebar/column panel."""
-    st.subheader("🔬 AI Research Assistant")
+    st.subheader("🔬 Research Assistant")
     st.session_state.setdefault("ra_chat_history", [])
 
     # Load datasets
@@ -822,20 +603,33 @@ def render_research_assistant_widget(key_suffix: str = ""):
                     st.metric("Result", chat["metric"])
 
     # Sticky chat input for this widget
-    widget_query = st.chat_input("Ask Gemini...", key=f"ra_widget_input_{key_suffix}")
+    widget_query = st.chat_input(
+        "Ask Research Assistant...", key=f"ra_widget_input_{key_suffix}"
+    )
 
     if widget_query:
+        # Reject oversized inputs before any API call.
+        if len(widget_query) > MAX_QUERY_LEN:
+            st.session_state["ra_chat_history"].append(
+                {
+                    "role": "assistant",
+                    "content": (
+                        f"⚠️ Query too long ({len(widget_query):,} chars). "
+                        f"Please limit to {MAX_QUERY_LEN:,} characters."
+                    ),
+                }
+            )
+            st.rerun()
+
         # Append user query
         st.session_state["ra_chat_history"].append(
             {"role": "user", "content": widget_query}
         )
 
-        # Build history context
-        turns = []
-        for t in st.session_state["ra_chat_history"][:-1]:
-            role_label = "User" if t["role"] == "user" else "Assistant"
-            turns.append(f"{role_label}: {t['content']}")
-        history_context = "\n".join(turns[-6:])  # Up to 3 turns
+        # Build a sanitised history context to limit prompt-injection risk.
+        history_context = _build_safe_history_context(
+            st.session_state["ra_chat_history"][:-1]  # Exclude current user message
+        )
 
         if not engine.is_query_in_scope(widget_query, history_context):
             warning_msg = "⚠️ Question out of scope for the East of England."

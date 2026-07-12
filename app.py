@@ -1,4 +1,4 @@
-﻿"""
+"""
 Cancer Health Dashboard - East of England
 -------------------------------------------
 Single entrypoint / router.
@@ -254,6 +254,7 @@ pg = st.navigation(
             "pages/2_Deprivation_Analysis.py", title="Deprivation Analysis", icon="📊"
         ),
         st.Page("pages/3_Cancer_Trends.py", title="Cancer Trends", icon="🎗️"),
+        st.Page("pages/4_General_Insights.py", title="General Insights", icon="💡"),
         st.Page(
             "pages/5_AI_Research_Assistant.py", title="Research Assistant", icon="🤖"
         ),

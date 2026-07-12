@@ -6,11 +6,19 @@ Handles natural language queries and code generation via Google Gemini API
 from __future__ import annotations
 
 import hashlib
+import html
+import sys
 import streamlit as st
 import pandas as pd
 import numpy as np
 import re
 from typing import Optional, Any
+
+try:
+    from config import Config as _Config
+    _DEBUG = _Config.DEBUG
+except Exception:
+    _DEBUG = False
 
 try:
     import google.generativeai as genai
@@ -94,7 +102,8 @@ class GeminiQueryEngine:
                     self.model = genai.GenerativeModel(model_name=self.model_name)
                     self.system_instruction_fallback = True
             except Exception as e:
-                st.error(f"Failed to initialize Gemini: {str(e)}")
+                print(f"[gemini] Failed to initialize Gemini: {e}", file=sys.stderr)
+                st.error("Failed to initialize Gemini AI. Please check your API key." if not _DEBUG else f"Failed to initialize Gemini: {str(e)}")
     
     def is_available(self) -> bool:
         """Check if Gemini API is properly configured"""
@@ -135,7 +144,11 @@ class GeminiQueryEngine:
             )
             return result.get("embedding", [])
         except Exception as e:
-            st.error(f"Error generating embedding: {e}")
+            print(f"[gemini] Error generating embedding: {e}", file=sys.stderr)
+            if not _DEBUG:
+                st.error("Error generating query embedding.")
+            else:
+                st.error(f"Error generating embedding: {e}")
             return []
 
     def is_query_in_scope(self, query: str, history_context: str = "") -> bool:
@@ -284,7 +297,11 @@ class GeminiQueryEngine:
         # Set up execution sandbox — deep-copy each DataFrame so that any
         # in-place mutations by LLM-generated code cannot escape the sandbox
         # and corrupt the caller's cached DataFrames.
+        # __builtins__ is explicitly set to an empty dict to prevent generated
+        # code from accessing Python's full builtin namespace (open, __import__,
+        # compile, breakpoint, etc.).  Only pd and np are exposed.
         sandbox_globals = {
+            "__builtins__": {},
             "pd": pd,
             "np": np,
             "df_cancer": context_dfs.get("Cancer Incidence (Overall)", pd.DataFrame()).copy(),
@@ -441,10 +458,14 @@ def render_ai_insights(df_summary: pd.DataFrame, context_description: str, key_s
                 )
                 st.session_state[state_key] = insight
             except Exception as e:
-                st.error(f"Failed to generate insight: {e}")
+                print(f"[gemini] Failed to generate insight: {e}", file=sys.stderr)
+                st.error("Failed to generate insight. Please try again." if not _DEBUG else f"Failed to generate insight: {e}")
                 
     # Display the insight if it exists in session state for the current data slice
     if state_key in st.session_state:
+        # Escape AI-generated text before injecting into the raw HTML block to
+        # prevent CSS/HTML injection from unexpected model output.
+        safe_insight = html.escape(st.session_state[state_key])
         st.markdown(
             f"""
             <div style="
@@ -458,7 +479,7 @@ def render_ai_insights(df_summary: pd.DataFrame, context_description: str, key_s
                 margin-bottom: 5px;
             ">
                 <strong>Gemini Analyst Insight:</strong><br>
-                {st.session_state[state_key]}
+                {safe_insight}
             </div>
             """,
             unsafe_allow_html=True

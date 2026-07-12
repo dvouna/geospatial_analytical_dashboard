@@ -8,11 +8,14 @@ Global setup (CSS, dark mode) is already applied by the router.
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+
+from config import Config
 
 from map_fragment import render_persistent_map
 from map_utils import (
@@ -582,7 +585,7 @@ def _panel_cancer(active_fid: str | None, id_to_props: dict) -> None:
 
 
 def _panel_research() -> None:
-    """Research assistant panel — delegates to the existing page renderer."""
+    """Research assistant panel — delegates to the compact widget renderer."""
     import importlib
 
     with st.popover("💡 Guide: Conversational AI Analysis", use_container_width=True):
@@ -590,13 +593,12 @@ def _panel_research() -> None:
             """
             **How to use the AI Assistant:**
             1. Ask questions in plain English in the query input (e.g., *"Which districts have high deprivation and high bowel cancer rates?"*).
-            2. Click **Ask Gemini** to get data-backed insights combining population, deprivation, and cancer datasets.
-            3. Pro tip: Use the automatic insights generator and scatter plots below to explore cross-dataset relationships.
+            2. Submit your question to **Ask Research Assistant** to get data-backed insights combining population, deprivation, and cancer datasets.
             """
         )
 
     module = importlib.import_module("pages.5_AI_Research_Assistant")
-    module.render_research_assistant_page()
+    module.render_research_assistant_widget(key_suffix="home_panel")
 
 
 # ── Session state defaults ────────────────────────────────────────────────────
@@ -690,7 +692,8 @@ try:
         center,
     ) = load_map_data()
 except Exception as exc:
-    st.error(f"❌ Failed to load base map data: {exc}")
+    print(f"[home] Failed to load base map data: {exc}", file=sys.stderr)
+    st.error("❌ Failed to load base map data. Please contact the administrator." if not Config.DEBUG else f"❌ Failed to load base map data: {exc}")
     st.stop()
 
 # ── Resolve map tiles ─────────────────────────────────────────────────────────
@@ -702,6 +705,19 @@ tiles, attr = get_map_tile_config(map_type_val)
 
 active_fid = st.session_state.get("active_fid")
 active_topic = st.session_state["active_topic"]
+
+st.markdown(
+    """
+    <style>
+    /* Sidebar separator: left border + padding on the right panel column */
+    div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:last-child {
+        border-left: 2px solid var(--color-border, #E2E8F0) !important;
+        padding-left: 1.5rem !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 col_map, col_panel = st.columns([6, 4], gap="medium")
 
@@ -775,7 +791,8 @@ with col_map:
                         )
                         st.plotly_chart(fig, use_container_width=True)
         except Exception as exc:
-            st.error(f"Could not render population chart: {exc}")
+            print(f"[home] Could not render population chart: {exc}", file=sys.stderr)
+            st.error("❌ Could not render population chart. Please contact the administrator." if not Config.DEBUG else f"Could not render population chart: {exc}")
 
 # ── Right panel: dispatch to the active topic ─────────────────────────────────
 

@@ -1,9 +1,13 @@
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import geopandas as gpd
+import sys
+import numpy as np
 from pathlib import Path
 
+from config import Config
 from map_utils import load_overlay_dataframe
 from visualizer import (
     create_scatter_chart,
@@ -12,6 +16,7 @@ from visualizer import (
     PLOTLY_LIGHT_LAYOUT,
 )
 from gemini_queries import render_ai_insights
+from utils.data_loader_cancer import get_cancer_overall_df
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -55,6 +60,12 @@ def render_deprivation_playground():
             font-family: 'Inter', sans-serif !important;
             font-size: 16px !important;
             font-weight: 600 !important;
+        }
+
+        /* Sidebar separator: left border + padding on the research assistant column */
+        div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:last-child {
+            border-left: 2px solid var(--color-border, #E2E8F0) !important;
+            padding-left: 1.5rem !important;
         }
         </style>
         """,
@@ -128,7 +139,12 @@ def render_deprivation_playground():
         st.error("❌ `iod_2025.csv` not found in the data directory.")
         return
     except Exception as exc:
-        st.error(f"❌ Error loading deprivation data: {exc}")
+        print(f"[deprivation] Error loading deprivation data: {exc}", file=sys.stderr)
+        st.error(
+            "❌ Error loading deprivation data. Please contact the administrator."
+            if not Config.DEBUG
+            else f"❌ Error loading deprivation data: {exc}"
+        )
         return
 
     try:
@@ -160,14 +176,14 @@ def render_deprivation_playground():
             tab_district,
             tab_region,
             tab_scatter,
-            tab_radar,
+            tab_dep_cancer,
             tab_table,
         ) = st.tabs(
             [
-                "District Comparison",
+                "District-Level Analysis",
                 "Regional Analysis",
-                "Scatter plot",
-                "District Radar",
+                "Deprivation Subdomains",
+                "Deprivation vs Cancer",
                 "Data Table",
             ]
         )
@@ -184,9 +200,7 @@ def render_deprivation_playground():
                     "X-Axis:",
                     options=sorted_rank_cols,
                     format_func=lambda c: short_rank_cols[c],
-                    index=sorted_rank_cols.index(
-                        "Overall IMD Rank"
-                    )
+                    index=sorted_rank_cols.index("Overall IMD Rank")
                     if "Overall IMD Rank" in sorted_rank_cols
                     else 0,
                     key="imd_s_x",
@@ -203,11 +217,7 @@ def render_deprivation_playground():
                 )
             plot_df = df.dropna(subset=[x_var, y_var]).copy()
             color_col = next(
-                (
-                    c
-                    for c in ["ICB", "District Name"]
-                    if c in df.columns
-                ),
+                (c for c in ["ICB", "District Name"] if c in df.columns),
                 None,
             )
             fig = create_scatter_chart(
@@ -228,114 +238,8 @@ def render_deprivation_playground():
             render_ai_insights(
                 plot_df,
                 f"Analyzing scatter correlation between {short_rank_cols[x_var]} and {short_rank_cols[y_var]}",
-                "tab_dep_scatter"
+                "tab_dep_scatter",
             )
-
-        # ── Radar chart ───────────────────────────────────────────────────────────
-        with tab_radar:
-            st.subheader("District Deprivation Radar — vs England Average")
-            st.info(
-                "Displays a district's rank across all domains on a radar chart. "
-                "Compare against the England median (rank ≈ 148 of 296). "
-                "Districts plotted further toward the centre are **more deprived** on that domain."
-            )
-
-            name_col_imd = "District Name"
-
-            # Offer only the 8 main sub-domains (not IDACI/IDAOPI to keep readable)
-            radar_domains = [
-                c
-                for c in rank_cols
-                if c
-                not in (
-                    "Income Deprivation Affecting Children Index (IDACI) Rank",
-                    "Income Deprivation Affecting Older People (IDAOPI) Rank",
-                )
-            ]
-            radar_labels = [DOMAIN_SHORT.get(c, c) for c in radar_domains]
-
-            districts_available = (
-                df[name_col_imd].dropna().sort_values().tolist()
-                if name_col_imd in df.columns
-                else []
-            )
-
-            if not districts_available:
-                st.warning("District name column not found.")
-            else:
-                selected_districts = st.multiselect(
-                    "Select up to 3 districts to compare:",
-                    options=districts_available,
-                    default=districts_available[:1],
-                    max_selections=3,
-                    key="imd_radar_districts",
-                )
-
-                max_rank = df[radar_domains].max().max()
-                # England average = median rank ≈ halfway
-                eng_avg = df[radar_domains].median().tolist()
-
-                # Invert so that MORE deprived = larger on chart (more visible)
-                def invert(vals):
-                    return [max_rank - v + 1 for v in vals]
-
-                fig = go.Figure()
-                # England average baseline
-                avg_vals = invert(eng_avg) + [invert(eng_avg)[0]]
-                theta = radar_labels + [radar_labels[0]]
-                fig.add_trace(
-                    go.Scatterpolar(
-                        r=avg_vals,
-                        theta=theta,
-                        fill="toself",
-                        name="England Average",
-                        line_color="rgba(150,150,150,0.6)",
-                        fillcolor="rgba(200,200,200,0.2)",
-                    )
-                )
-
-                colors = ["#E63946", "#2A9D8F", "#E9C46A"]
-                fill_colors = [
-                    "rgba(230, 57, 70, 0.15)",
-                    "rgba(42, 157, 143, 0.15)",
-                    "rgba(233, 196, 106, 0.15)",
-                ]
-                for i, district in enumerate(selected_districts):
-                    row = df[df[name_col_imd] == district]
-                    if row.empty:
-                        continue
-                    vals = row[radar_domains].iloc[0].tolist()
-                    inv_vals = invert(vals) + [invert(vals)[0]]
-                    fig.add_trace(
-                        go.Scatterpolar(
-                            r=inv_vals,
-                            theta=theta,
-                            fill="toself",
-                            name=district,
-                            line_color=colors[i % len(colors)],
-                            fillcolor=fill_colors[i % len(colors)],
-                        )
-                    )
-
-                fig.update_layout(
-                    polar=dict(radialaxis=dict(visible=True, range=[0, max_rank])),
-                    showlegend=True,
-                    title="Deprivation Profile (larger area = more deprived on that domain)",
-                    height=520,
-                    **PLOTLY_LIGHT_LAYOUT,
-                )
-                st.plotly_chart(fig, use_container_width=True)
-                st.caption(
-                    "Axes are inverted: rank #1 (most deprived) plots furthest out; "
-                    "rank #296 (least deprived) plots at the centre."
-                )
-
-                # Generate AI Insights
-                render_ai_insights(
-                    df[df[name_col_imd].isin(selected_districts)],
-                    f"Analyzing radar chart of deprivation domains for districts: {', '.join(selected_districts)}",
-                    "tab_dep_radar"
-                )
 
         # ── East of England Analysis ──────────────────────────────────────────────
         with tab_region:
@@ -353,9 +257,7 @@ def render_deprivation_playground():
             para_df = eoe_df[rank_cols].dropna().copy()
             para_df_renamed = para_df.rename(columns=short_rank_cols)
             short_labels = list(para_df_renamed.columns)
-            imd_col_short = DOMAIN_SHORT.get(
-                "Overall IMD Rank", "Overall IMD"
-            )
+            imd_col_short = DOMAIN_SHORT.get("Overall IMD Rank", "Overall IMD")
 
             if para_df_renamed.empty:
                 st.warning("No data available for Parallel Coordinates.")
@@ -392,7 +294,7 @@ def render_deprivation_playground():
                 render_ai_insights(
                     para_df_renamed,
                     "Analyzing parallel coordinates of regional deprivation profiles in East of England",
-                    "tab_dep_eoe_parallel"
+                    "tab_dep_eoe_parallel",
                 )
 
             st.divider()
@@ -436,7 +338,7 @@ def render_deprivation_playground():
                 render_ai_insights(
                     melted,
                     "Analyzing rank distribution by deprivation domain across East of England",
-                    "tab_dep_eoe_box"
+                    "tab_dep_eoe_box",
                 )
 
             st.divider()
@@ -460,7 +362,7 @@ def render_deprivation_playground():
                 render_ai_insights(
                     corr_df,
                     "Analyzing deprivation sub-domain correlation matrix in East of England",
-                    "tab_dep_eoe_corr"
+                    "tab_dep_eoe_corr",
                 )
 
         # ── Tab 6: District Comparison ─────────────────────────────────────────────
@@ -585,7 +487,7 @@ def render_deprivation_playground():
                         render_ai_insights(
                             long_df,
                             f"Analyzing deprivation domain rankings for {selected_districts[0]}",
-                            "tab_dep_comp_single"
+                            "tab_dep_comp_single",
                         )
                     else:
                         # Multi-district grouped bar chart comparison
@@ -617,7 +519,7 @@ def render_deprivation_playground():
                         render_ai_insights(
                             long_df,
                             f"Comparing deprivation rankings across districts: {', '.join(selected_districts)} (Mode: {view_mode})",
-                            "tab_dep_comp_multi"
+                            "tab_dep_comp_multi",
                         )
 
                     # Comparison Data Table
@@ -633,10 +535,215 @@ def render_deprivation_playground():
                         width="stretch",
                     )
 
+                    st.divider()
+
+                    # ── Radar chart comparison ─────────────────────────────────────────
+                    st.subheader("District Deprivation Radar — vs England Average")
+                    st.info(
+                        "Displays a district's rank across all domains on a radar chart. "
+                        "Compare against the England median (rank ≈ 148 of 296). "
+                        "Districts plotted further toward the centre are **more deprived** on that domain."
+                    )
+
+                    # Offer only the 8 main sub-domains (not IDACI/IDAOPI to keep readable)
+                    radar_domains = [
+                        c
+                        for c in rank_cols
+                        if c
+                        not in (
+                            "Income Deprivation Affecting Children Index (IDACI) Rank",
+                            "Income Deprivation Affecting Older People (IDAOPI) Rank",
+                        )
+                    ]
+                    radar_labels = [DOMAIN_SHORT.get(c, c) for c in radar_domains]
+
+                    # Filter comparison districts specifically for radar (limit to 3 for readability)
+                    radar_selected = selected_districts[:3]
+                    if len(selected_districts) > 3:
+                        st.warning(
+                            "⚠️ Radar chart comparison is limited to the first 3 selected districts for readability."
+                        )
+
+                    max_radar_rank = df[radar_domains].max().max()
+                    eng_avg = df[radar_domains].median().tolist()
+
+                    def invert(vals):
+                        return [max_radar_rank - v + 1 for v in vals]
+
+                    fig_radar = go.Figure()
+                    # England average baseline
+                    avg_vals = invert(eng_avg) + [invert(eng_avg)[0]]
+                    theta = radar_labels + [radar_labels[0]]
+                    fig_radar.add_trace(
+                        go.Scatterpolar(
+                            r=avg_vals,
+                            theta=theta,
+                            fill="toself",
+                            name="England Average",
+                            line_color="rgba(150,150,150,0.6)",
+                            fillcolor="rgba(200,200,200,0.2)",
+                        )
+                    )
+
+                    colors = ["#E63946", "#2A9D8F", "#E9C46A"]
+                    fill_colors = [
+                        "rgba(230, 57, 70, 0.15)",
+                        "rgba(42, 157, 143, 0.15)",
+                        "rgba(233, 196, 106, 0.15)",
+                    ]
+                    for i, district in enumerate(radar_selected):
+                        row = df[df[name_col_imd] == district]
+                        if row.empty:
+                            continue
+                        vals = row[radar_domains].iloc[0].tolist()
+                        inv_vals = invert(vals) + [invert(vals)[0]]
+                        fig_radar.add_trace(
+                            go.Scatterpolar(
+                                r=inv_vals,
+                                theta=theta,
+                                fill="toself",
+                                name=district,
+                                line_color=colors[i % len(colors)],
+                                fillcolor=fill_colors[i % len(colors)],
+                            )
+                        )
+
+                    fig_radar.update_layout(
+                        polar=dict(
+                            radialaxis=dict(visible=True, range=[0, max_radar_rank])
+                        ),
+                        showlegend=True,
+                        title="Deprivation Profile (larger area = more deprived on that domain)",
+                        height=520,
+                        **PLOTLY_LIGHT_LAYOUT,
+                    )
+                    st.plotly_chart(fig_radar, use_container_width=True)
+                    st.caption(
+                        "Axes are inverted: rank #1 (most deprived) plots furthest out; "
+                        "rank #296 (least deprived) plots at the centre."
+                    )
+
+                    # Generate AI Insights for Radar
+                    render_ai_insights(
+                        df[df[name_col_imd].isin(radar_selected)],
+                        f"Analyzing radar chart of deprivation domains for districts: {', '.join(radar_selected)}",
+                        "tab_dep_radar",
+                    )
+
+        # ── Deprivation-Cancer Correlation ────────────────────────────────────────
+        with tab_dep_cancer:
+            st.subheader("🔗 Deprivation vs Cancer Incidence")
+            st.write(
+                "The core analytical question: is there a relationship between deprivation rank "
+                "and overall cancer incidence in the East of England? Each point = one district."
+            )
+            _render_deprivation_cancer_scatter(df)
+
         # ── Data table ────────────────────────────────────────────────────────────
         with tab_table:
             st.subheader("Dataset Preview")
             st.dataframe(df, width="stretch")
+
+
+def _render_deprivation_cancer_scatter(imd_df: pd.DataFrame) -> None:
+    """Scatter: IMD Overall Rank vs Overall Cancer Rate, one point per district."""
+    try:
+        cancer_df = get_cancer_overall_df(year_filter="all")
+    except Exception:
+        cancer_df = pd.DataFrame()
+
+    if imd_df.empty or cancer_df.empty:
+        st.info("Both deprivation and cancer datasets are required for this chart.")
+        return
+
+    imd_code_col = "District Code"
+    imd_name_col = "District Name"
+    imd_rank_col = "Overall IMD Rank"
+    cancer_code_col = "District Code"
+    cancer_name_col = "District Name"
+    cancer_rate_col = "Rate"
+
+    # Clean and merge on district code
+    imd_clean = imd_df[[imd_code_col, imd_name_col, imd_rank_col]].dropna()
+    cancer_clean = cancer_df[[cancer_code_col, cancer_name_col, cancer_rate_col]].copy()
+    cancer_clean[cancer_rate_col] = pd.to_numeric(
+        cancer_clean[cancer_rate_col].astype(str).str.replace(",", ""), errors="coerce"
+    )
+    cancer_clean = cancer_clean.dropna(subset=[cancer_rate_col])
+
+    merged = pd.merge(
+        imd_clean,
+        cancer_clean,
+        left_on=imd_code_col,
+        right_on=cancer_code_col,
+        how="inner",
+        suffixes=("", "_cancer"),
+    )
+
+    if merged.empty:
+        st.warning("No matching districts found between IMD and cancer datasets.")
+        return
+
+    fig = go.Figure()
+
+    # 1. Add Scatter trace for districts
+    fig.add_trace(
+        go.Scatter(
+            x=merged[imd_rank_col].tolist(),
+            y=merged[cancer_rate_col].tolist(),
+            mode="markers",
+            name="Districts",
+            text=merged[imd_name_col].tolist(),
+            hovertemplate="<b>%{text}</b><br>IMD Rank: %{x}<br>Cancer Rate: %{y:.1f}<extra></extra>",
+            marker=dict(
+                size=9,
+                color="#E63946",
+                opacity=0.8,
+                line=dict(width=1, color="DarkSlateGrey"),
+            ),
+        )
+    )
+
+    # 2. Add OLS regression line trace using numpy
+    try:
+        x_vals = merged[imd_rank_col].dropna().values
+        y_vals = merged[cancer_rate_col].dropna().values
+        if len(x_vals) > 1:
+            slope, intercept = np.polyfit(x_vals, y_vals, 1)
+            x_line = np.array([x_vals.min(), x_vals.max()])
+            y_line = slope * x_line + intercept
+            fig.add_trace(
+                go.Scatter(
+                    x=x_line.tolist(),
+                    y=y_line.tolist(),
+                    mode="lines",
+                    name="OLS Trendline",
+                    line=dict(color="#2A9D8F", width=2, dash="dash"),
+                    hovertemplate="Trendline<extra></extra>",
+                )
+            )
+    except Exception:
+        pass
+
+    fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
+    fig.update_layout(
+        title="Deprivation Rank vs Cancer Incidence Rate — East of England Districts",
+        xaxis_title="IMD Overall Rank (lower = more deprived)",
+        yaxis_title="Overall Cancer Rate (per 100,000)",
+        height=480,
+        showlegend=False,
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    st.caption(
+        "Trendline = OLS regression. A negative slope would indicate that more deprived districts "
+        "(lower rank number) tend to have higher cancer rates."
+    )
+    # Generate AI Insights
+    render_ai_insights(
+        merged,
+        "Analyzing scatter correlation between IMD Overall Rank and Cancer Incidence Rate",
+        "tab_dep_cancer_scatter",
+    )
 
 
 if __name__ == "__main__":
