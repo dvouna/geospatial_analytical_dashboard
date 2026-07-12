@@ -11,7 +11,6 @@ import sys
 import numpy as np
 from pathlib import Path
 
-from config import Config
 from gemini_queries import get_gemini_engine
 from utils.data_loader_cancer import get_cancer_overall_df, get_cancer_top5_df
 

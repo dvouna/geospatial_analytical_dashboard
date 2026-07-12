@@ -12,12 +12,10 @@ Datasets loaded at startup:
 import streamlit as st
 import pandas as pd
 import numpy as np
-import sys
 from pathlib import Path
 
-from config import Config
-from gemini_queries import GeminiQueryEngine, get_gemini_engine, render_ai_insights
-from visualizer import get_numeric_columns, PLOTLY_LIGHT_LAYOUT
+from gemini_queries import get_gemini_engine
+from visualizer import get_numeric_columns
 from utils.data_loader_cancer import get_cancer_overall_df, get_cancer_top5_df
 from utils.code_cache import SemanticCodeCache
 from utils.profile_generator import generate_district_profiles
