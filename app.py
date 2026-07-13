@@ -95,7 +95,7 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 .block-container {
     padding-left: 10rem !important;
-    padding-right: 15rem !important;
+    padding-right: 10rem !important;
 }
 h1, h2, h3, h4 {
     font-family: 'Inter', sans-serif;
@@ -159,7 +159,7 @@ code, pre, .monospace { font-family: 'JetBrains Mono', monospace; }
     font-family: 'Inter', sans-serif;
     font-size: 1.6rem;
     color: var(--color-text-heading);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.2;
     letter-spacing: -0.02em;
 }

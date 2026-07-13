@@ -190,10 +190,11 @@ def render_deprivation_playground():
 
         # ── Scatter ────────────────────────────────────────────────────────────────
         with tab_scatter:
-            st.subheader("Correlation Between Deprivation Domains")
-            st.info(
-                "💡 Lower rank = higher deprivation in the UK (rank #1 = most deprived)."
+            st.write(
+                "This tab has 1 visualization. Use it to analyze the correlation between deprivation domains. A lower rank indicates higher deprivation."
             )
+
+            st.markdown("#### 1. Correlation Between Deprivation Domains")
             col_x, col_y = st.columns(2)
             with col_x:
                 x_var = st.selectbox(
@@ -243,15 +244,13 @@ def render_deprivation_playground():
 
         # ── East of England Analysis ──────────────────────────────────────────────
         with tab_region:
-            st.subheader("East of England Regional Analysis")
-            st.info(
-                "This section analyzes deprivation ranks and correlations specifically for the "
-                "45 local authority districts in the East of England region."
+            st.write(
+                "This tab has 3 visualizations. Use them to analyze deprivation ranks for districts in the East of England. Hover on the charts to see the district names. A lower deprivation rank indicates higher deprivation."
             )
 
             # 1. Parallel coordinates
-            st.write("### 〰️ Parallel Coordinates — Regional Deprivation Profiles")
-            st.write(
+            st.write("#### 1. Parallel Coordinates - Regional Profile")
+            st.markdown(
                 "Each line represents an East of England district. Lines crossing similarly indicate shared typological patterns."
             )
             para_df = eoe_df[rank_cols].dropna().copy()
@@ -300,9 +299,9 @@ def render_deprivation_playground():
             st.divider()
 
             # 2. Box plots by domain
-            st.write("### Rank Distribution per Deprivation Domain (East of England)")
-            st.write(
-                "Distribution of deprivation ranks within the region. Narrow boxes = more uniform; wide boxes = higher regional disparity."
+            st.write("#### 2. Box Plots - Rank Distribution per Deprivation Domain")
+            st.markdown(
+                "Distribution of deprivation ranks within the region. Narrow boxes indicate more uniform deprivation; wide boxes indicate higher regional disparity."
             )
             if eoe_df.empty:
                 st.warning("No data available for Box Plots.")
@@ -344,9 +343,9 @@ def render_deprivation_playground():
             st.divider()
 
             # 3. Correlation heatmap
-            st.write("### Correlation Heatmap — Regional Deprivation Domains")
-            st.write(
-                "Strength of linear relationship between deprivation domains across East of England districts."
+            st.write("#### 3. Correlation Heatmap - Regional Deprivation Domains")
+            st.markdown(
+                "Heatmap showing the linear relationships between deprivation domains for East of England districts."
             )
             if eoe_df.empty:
                 st.warning("No data available for Heatmap.")
@@ -367,12 +366,14 @@ def render_deprivation_playground():
 
         # ── Tab 6: District Comparison ─────────────────────────────────────────────
         with tab_district:
-            st.subheader("District Comparison")
-            st.info(
-                "Select and compare deprivation domain rankings across districts. "
-                "You can select up to 5 districts for comparison."
+            st.write(
+                "This tab has 2 visualizations. Use them to analyze deprivation ranks for districts in the East of England."
             )
 
+            st.write("#### 1. District Comparison")
+            st.markdown(
+                "Compare deprivation ranks for districts in the East of England."
+            )
             name_col_imd = "District Name"
             districts_available = (
                 df[name_col_imd].dropna().sort_values().tolist()
@@ -538,11 +539,11 @@ def render_deprivation_playground():
                     st.divider()
 
                     # ── Radar chart comparison ─────────────────────────────────────────
-                    st.subheader("District Deprivation Radar — vs England Average")
-                    st.info(
-                        "Displays a district's rank across all domains on a radar chart. "
-                        "Compare against the England median (rank ≈ 148 of 296). "
-                        "Districts plotted further toward the centre are **more deprived** on that domain."
+                    st.write("#### 2. District Deprivation Radar — vs England Average")
+                    st.markdown(
+                        "The radar chart below displays ranks across all 8 IMD domains. Use it to compare ranks "
+                        "between the selected districts, or against the England median (rank ≈ 148 of 296)."
+                        "For each domain, a lower rank indicates a higher level of deprivation."
                     )
 
                     # Offer only the 8 main sub-domains (not IDACI/IDAOPI to keep readable)
@@ -632,10 +633,10 @@ def render_deprivation_playground():
 
         # ── Deprivation-Cancer Correlation ────────────────────────────────────────
         with tab_dep_cancer:
-            st.subheader("🔗 Deprivation vs Cancer Incidence")
-            st.write(
-                "The core analytical question: is there a relationship between deprivation rank "
-                "and overall cancer incidence in the East of England? Each point = one district."
+            st.write("#### 1. Deprivation vs Cancer Incidence")
+            st.markdown(
+                "Use the chart below to explore the relationships between deprivation ranks "
+                "and overall cancer incidence rates across the East of England. Each point represents one district. Hover over the points in the chart to view the district name, overall deprivation rank and overall cancer rate."
             )
             _render_deprivation_cancer_scatter(df)
 

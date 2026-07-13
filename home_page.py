@@ -97,9 +97,13 @@ def load_map_data() -> tuple:
         if "District Code" in iod_df.columns:
             iod_df["District Code"] = iod_df["District Code"].astype(str).str.strip()
             # Drop columns already in gdf (except the join key) to avoid duplicates
-            cols_to_drop = [c for c in iod_df.columns if c in gdf.columns and c != "District Code"]
+            cols_to_drop = [
+                c for c in iod_df.columns if c in gdf.columns and c != "District Code"
+            ]
             iod_df = iod_df.drop(columns=cols_to_drop, errors="ignore")
-            gdf = merge_overlay(gdf, iod_df, base_key="District Code", overlay_key="District Code")
+            gdf = merge_overlay(
+                gdf, iod_df, base_key="District Code", overlay_key="District Code"
+            )
         else:
             st.warning("⚠️ 'District Code' not found in iod_2025.csv")
     except Exception as exc:
@@ -130,6 +134,7 @@ def _load_population_overlay() -> pd.DataFrame:
 def _load_districts_overlay() -> pd.DataFrame:
     """Load base district attributes from the GeoJSON (no geometry)."""
     import geopandas as gpd
+
     gdf = gpd.read_file(str(DATA_DIR / "base_gdf_1.geojson"))
     return pd.DataFrame(gdf.drop(columns="geometry"))
 
@@ -180,16 +185,6 @@ def _get_clean_kpi_value(props: dict, key: str) -> str:
 
 
 def _panel_overview(active_fid: str | None, id_to_props: dict) -> None:
-    """Overview panel: authority summary, mission statement, and quick start."""
-    with st.popover("💡 Guide: Using the Home Page", use_container_width=True):
-        st.markdown(
-            """
-            **How to Explore the Dashboard:**
-            - **Select a Topic**: Use the radio buttons above (e.g., *Population*, *Cancer Incidence*) to explore different domains.
-            - **Select a District**: Click any region on the map or select one from the dropdown to display its metrics.
-            - **Visual Highlights**: The selected district is highlighted by a thick boundary on the map, and its details display in the right-hand panel.
-            """
-        )
 
     if active_fid:
         props = id_to_props.get(str(active_fid), {})
@@ -254,18 +249,7 @@ def _panel_overview(active_fid: str | None, id_to_props: dict) -> None:
 
 def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
     """Population panel: demographic breakdown for the selected authority."""
-    st.markdown("### District Population Profile")
-    with st.popover("💡 Guide: Analyzing Demographics", use_container_width=True):
-        st.markdown(
-            """
-            **How to Analyze Population Data:**
-            1. Select the **Population** tab using the radio buttons above.
-            2. Choose a district on the map or search using the dropdown.
-            3. Choose which ethnic group to color the map by in the **Color map by metric** dropdown (under the map).
-            4. The map will display a spectrum: **the darker the shade, the higher the count/value of the metric**.
-            5. The selected district stands out with a thick bold boundary, and its ethnic proportion pie chart appears below the map settings.
-            """
-        )
+    st.markdown("#### District Population Profile")
 
     try:
         overlay_df = _load_population_overlay()
@@ -385,17 +369,7 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
 
 def _panel_imd(active_fid: str | None, id_to_props: dict) -> None:
     """IMD panel: deprivation data for the selected authority."""
-    st.markdown("### Index of Multiple Deprivation")
-    with st.popover("💡 Guide: Deprivation Ranks", use_container_width=True):
-        st.markdown(
-            """
-            **How to Analyze Deprivation Data:**
-            1. Select the **Index of Multiple Deprivation** tab above.
-            2. Choose a district to view its rankings across the 8 subdomains (Income, Employment, Education, etc.) in the cards below.
-            3. Use the **Color map by metric** dropdown under the map to color by overall IMD Rank or subdomains.
-            4. **Remember**: Ranks range from 1 (most deprived) to 296 (least deprived). Lower rank numbers represent higher deprivation.
-            """
-        )
+    st.markdown("#### Index of Multiple Deprivation")
 
     try:
         overlay_df = _load_iod_overlay()
@@ -473,17 +447,7 @@ def _panel_imd(active_fid: str | None, id_to_props: dict) -> None:
 
 def _panel_cancer(active_fid: str | None, id_to_props: dict) -> None:
     """Cancer incidence panel for the selected authority."""
-    st.markdown("### Cancer Incidence")
-    with st.popover("💡 Guide: Cancer Incidence Rates", use_container_width=True):
-        st.markdown(
-            """
-            **How to Explore Cancer Rates:**
-            1. Select the **Cancer Incidence** tab above.
-            2. Select a district to display its age-standardised rate (per 100k) and total diagnosed cases.
-            3. Choose a specific cancer type or overall rate in the **Color map by metric** dropdown under the map to dynamically color the tiles.
-            4. Darker shades indicate higher incidence rates.
-            """
-        )
+    st.markdown("#### Cancer Incidence Profile")
 
     overall_df = _load_cancer_overlay()
     top5_df = _load_top5_overlay()
@@ -588,15 +552,6 @@ def _panel_research() -> None:
     """Research assistant panel — delegates to the compact widget renderer."""
     import importlib
 
-    with st.popover("💡 Guide: Conversational AI Analysis", use_container_width=True):
-        st.markdown(
-            """
-            **How to use the AI Assistant:**
-            1. Ask questions in plain English in the query input (e.g., *"Which districts have high deprivation and high bowel cancer rates?"*).
-            2. Submit your question to **Ask Research Assistant** to get data-backed insights combining population, deprivation, and cancer datasets.
-            """
-        )
-
     module = importlib.import_module("pages.5_AI_Research_Assistant")
     module.render_research_assistant_widget(key_suffix="home_panel")
 
@@ -650,22 +605,12 @@ st.markdown(
 )
 st.markdown(
     """
-    <div style="
-        font-family: 'Inter', sans-serif;
-        font-size: 1rem;
-        color: var(--color-text-muted, #64748B);
-        font-weight: 400;
-        margin-bottom: 15px;
-        margin-top: 2px;
-    ">How to use this page
-    - Use the radio buttons below to navigate between the different topics.
-    - Use the select district dropdown to filter the data to a specific district.
-    - Use color map by metric dropdown to color by a selected feature
-    - The map will display a spectrum: the darker the shade, the higher the count/value of the metric.
-    - The selected district stands out with a thick bold boundary.
-    </div>.
-    """,
-    unsafe_allow_html=True,
+    **How to Explore this page:**
+    - **Select a Topic**: Use the radio buttons below (e.g., *Population*, *Cancer Incidence*) to explore different domains.
+    - **Select a District**: Click any region on the map or select one from the dropdown below to display its metrics.
+    - **Visual Highlights**: A clored map will display showing overall counts. 
+    - **Note**: The darker the color the higher the count. Hover over the map to see the different names of districts and their values. 
+    """
 )
 
 active_topic = st.radio(
@@ -693,7 +638,11 @@ try:
     ) = load_map_data()
 except Exception as exc:
     print(f"[home] Failed to load base map data: {exc}", file=sys.stderr)
-    st.error("❌ Failed to load base map data. Please contact the administrator." if not Config.DEBUG else f"❌ Failed to load base map data: {exc}")
+    st.error(
+        "❌ Failed to load base map data. Please contact the administrator."
+        if not Config.DEBUG
+        else f"❌ Failed to load base map data: {exc}"
+    )
     st.stop()
 
 # ── Resolve map tiles ─────────────────────────────────────────────────────────
@@ -792,7 +741,11 @@ with col_map:
                         st.plotly_chart(fig, use_container_width=True)
         except Exception as exc:
             print(f"[home] Could not render population chart: {exc}", file=sys.stderr)
-            st.error("❌ Could not render population chart. Please contact the administrator." if not Config.DEBUG else f"Could not render population chart: {exc}")
+            st.error(
+                "❌ Could not render population chart. Please contact the administrator."
+                if not Config.DEBUG
+                else f"Could not render population chart: {exc}"
+            )
 
 # ── Right panel: dispatch to the active topic ─────────────────────────────────
 

@@ -146,11 +146,8 @@ def render_cancer_trends():
         unsafe_allow_html=True,
     )
 
-    with st.popover(
-        "💡 Guide: Analyzing Cancer Trends Playground", use_container_width=True
-    ):
-        st.markdown(
-            """
+    st.markdown(
+        """
             **How to use the Cancer Trends Analysis Playground:**
             - **District Cancer Analysis**: Compare specific cancer incidence rates or overall age-standardised rates across up to 5 districts. Note the 95% Confidence Intervals (CI) plots.
             - **Cancer Type Analysis**: Compare overall incidence and counts, or view the stacked composition of cancer types (bladder, breast, lung, bowel, etc.) by district.
@@ -158,7 +155,7 @@ def render_cancer_trends():
             - **Age Profiles**: Examine age-band breakdowns (0-24, 25-49, 50-59, 60-69, 70-79, 80+) for targeted healthcare outreach.
             - **Regional Analysis**: Discover statistical confidence intervals and cross-type correlations at a glance across the East of England.
             """
-        )
+    )
 
     # ── Year Selector ──────────────────────────────────────────────────────────
     years = ["All Years (Average)", "2022", "2021", "2020", "2019", "2018"]
@@ -245,10 +242,13 @@ def render_cancer_trends():
 
         # ── Tab 1: District Cancer Analysis ───────────────────────────────────────
         with tab_comp:
-            st.subheader("District Cancer Analysis")
-            st.info(
-                "Select and compare cancer incidence rates and confidence intervals across districts. "
-                "You can select up to 5 districts for comparison."
+            st.markdown(
+                "This tab has 1 visualization. Use it to analyze the distribution of cancer incidence rates across selected districts."
+            )
+
+            st.write("#### 1. District Cancer Analysis")
+            st.markdown(
+                "Use the chart below to explore the relationships between cancer types, age profiles, and district-level data. Hover over the points in the chart to view the exact values for each district."
             )
 
             districts_available = (
@@ -434,7 +434,15 @@ def render_cancer_trends():
 
         # ── Tab 2: Cancer Type Analysis ──────────────────────────────────────────
         with tab_type_analysis:
-            st.subheader("Compare Cancer Incidence Rates by District")
+            st.markdown(
+                "This tab has 2 visualizations. Use them to compare cancer incidence rates and cancer type composition across districts."
+            )
+
+            st.write("#### 1. Cancer Incidence Rates by District")
+            st.markdown(
+                "Compare cancer incidence rates across districts. Hover over the chart to see the exact values for each district."
+            )
+
             rate_cols = {
                 "Overall Rate": "Rate",
                 "Total Incidence Count": "Total_incidence",
@@ -493,10 +501,11 @@ def render_cancer_trends():
 
             st.divider()
 
-            st.subheader("Cancer Type Composition by District")
-            st.info(
-                "Stacked bars show how each district's total incidence is composed "
-                "across the cancer types. Toggle between proportional (%) and absolute counts."
+            st.write("#### 2. Cancer Type Composition by District")
+            st.markdown(
+                "The stacked bar chart shows how each district's total cancer incidence is composed "
+                "across the different cancer types. Toggle between proportional (%) and absolute counts."
+                "Hover over the chart to see the exact values for each district and cancer type. Click on the cancer type in the legend to hide or show it."
             )
             avail_cancers = [c for c in CANCER_TYPES if c in overall_df.columns]
             view_mode = st.radio(
@@ -562,11 +571,16 @@ def render_cancer_trends():
 
         # ── Tab 3: Historical Trends ──────────────────────────────────────────────
         with tab_trends:
-            st.subheader("Historical Cancer Trends (2018–2022)")
-            st.info(
-                "Track how cancer rates and counts have changed over the 5-year period. "
-                "Select one or more districts and a cancer type to see the trend."
+            st.markdown(
+                "This tab has 1 visualization. Use it to track how cancer rates and counts have changed over the 5-year period."
             )
+
+            st.write("#### 1. Historical Cancer Trends (2018–2022)")
+            st.markdown(
+                "Use this line chart to track how cancer rates and counts have changed over the 5-year period. "
+                "Select one or more districts and a cancer type to see the trend. Hover over the line chart to see the exact values for each district and cancer type. Click on the district in the legend to hide or show it."
+            )
+
             raw_cancer_df = load_cancer_raw_data()
             if raw_cancer_df.empty:
                 st.warning("Historical data is unavailable.")
@@ -682,11 +696,16 @@ def render_cancer_trends():
 
         # ── Tab 4: Age Profiles ───────────────────────────────────────────────────
         with tab_age:
-            st.subheader("Age-Band Diagnosis Profiles")
-            st.info(
-                "Breakdown of cancer diagnoses across 6 age bands for selected districts (up to 5) and a cancer type. "
-                "Useful for targeting age-specific early-detection campaigns."
+            st.markdown(
+                "This tab has 1 visualization. Use it to explore the age structure of cancer diagnoses in different districts and compare with the regional profile."
             )
+
+            st.write("#### 1A. Age-Band Diagnosis Distribution")
+            st.markdown(
+                "This chart shows the age-band distribution of cancer diagnoses for selected districts (up to 5) and a cancer type. "
+                "The data can be used to identify age-specific cancer risks and tailor prevention strategies."
+            )
+
             if top5_df.empty:
                 st.warning("⚠️ Age profiles cannot be shown (dataset unavailable).")
             else:
@@ -813,7 +832,13 @@ def render_cancer_trends():
                             st.plotly_chart(fig, width="stretch")
 
                         # Show all districts for the selected cancer type (second viz)
-                        st.subheader(f"All Districts — {sel_cancer} by Age Band")
+                        st.write(f"#### 1B.All Districts — {sel_cancer} by Age Band")
+                        st.markdown(
+                            "This chart shows the age-band distribution of cancer diagnoses for all districts in the selected region. "
+                            "Click on an age band in the legend to hide it from the chart. "
+                            "Double-click on an age band in the legend to show only that age band. "
+                            "Hover over the bars to see the number of cases for each age band."
+                        )
                         all_cancer = (
                             top5_df[top5_df[cancer_type_col] == sel_cancer].copy()
                             if cancer_type_col
@@ -851,14 +876,12 @@ def render_cancer_trends():
 
         # ── Tab 5: Regional Analysis ──────────────────────────────────────────────
         with tab_regional:
-            st.subheader("Regional Cancer Analysis")
-            st.info(
-                "This tab combines region-wide visualizations to reveal high-level distribution, "
-                "statistical significance, and cross-type correlations across the East of England."
+            st.markdown(
+                "This tab has 3 visualizations that combine region-wide data to reveal high-level distribution, statistical significance, and cross-type correlations across the East of England."
             )
 
             # 1. Confidence Intervals
-            st.write("### 📉 Cancer Rates with 95% Confidence Intervals")
+            st.write("#### 1. Cancer Rates with 95% Confidence Intervals")
             st.write(
                 "Error bars show the 95% confidence interval (CI) for each district's overall standardised rate."
             )
@@ -929,9 +952,9 @@ def render_cancer_trends():
             st.divider()
 
             # 2. Cross-Type Heatmap
-            st.write("### 🌡️ Cancer Type × District Heatmap")
-            st.write(
-                "Reveals geographic clusters where multiple cancer types have high age-standardised incidence rates."
+            st.write("#### 2. Cancer Type × District Heatmap")
+            st.markdown(
+                "This heatmap reveals geographic clusters where multiple cancers have high age-standardised incidence rates."
             )
             avail_cancers = [c for c in CANCER_TYPES if c in overall_df.columns]
             hm_df = (
@@ -969,9 +992,9 @@ def render_cancer_trends():
             st.divider()
 
             # 3. Scatter Relationships
-            st.write("### 🎯 Specific Cancer vs Overall Rate")
-            st.write(
-                "Scatter relationship showing how strongly a specific cancer type tracks with a district's overall oncology rate."
+            st.write("#### 3. Specific Cancer vs Overall Rate")
+            st.markdown(
+                "This scatter plot shows how strongly a specific cancer type tracks with a district's overall oncology rate."
             )
             avail_cancers = [c for c in CANCER_TYPES if c in overall_df.columns]
             selected_specific = st.selectbox(

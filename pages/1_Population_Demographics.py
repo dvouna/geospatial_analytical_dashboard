@@ -228,8 +228,8 @@ def render_population_playground():
         with tab_dist_pop:
             st.subheader("District-Level Population Breakdown")
             st.info(
-                "Select and compare ethnic-subgroup distributions across districts. "
-                "You can select up to 5 districts for comparison."
+                "Use this tab to select and compare ethnic-subgroup distributions across districts. "
+                "Select up to 5 districts for comparison."
             )
 
             # Controls
@@ -379,7 +379,7 @@ def render_population_playground():
 
         # ── Tab: Population-Cancer ────────────────────────────────────────────────
         with tab_pop_cancer:
-            st.subheader("Population-Cancer Cross Analysis")
+            st.write("#### Population & Cancer Cross Analysis")
             st.info(
                 "Explore relationships between district-level demographics (ethnic group proportions) "
                 "and cancer incidence rates per 100,000 population."
@@ -500,7 +500,7 @@ def render_population_playground():
                             plot_data["Demographic"], plot_data["CancerMetric"]
                         )[0, 1]
 
-                        st.write("### 🔍 Correlation Analysis")
+                        st.write("#### Correlation Analysis")
                         st.metric(
                             label=f"Pearson Correlation Coefficient (r) between {sel_demog} and {sel_cancer_label}",
                             value=f"{r_coef:.3f}",
@@ -560,7 +560,7 @@ def render_population_playground():
                         st.divider()
 
                         st.write(
-                            "### ⚔️ District Demographics vs Cancer Rate Side-by-Side"
+                            "#### District Demographics vs Cancer Rate Side-by-Side"
                         )
                         selected_dists = st.multiselect(
                             "Select districts for direct comparison:",
@@ -600,7 +600,7 @@ def render_population_playground():
 
         # ── Tab: Population-Deprivation ───────────────────────────────────────────
         with tab_pop_dep:
-            st.subheader("Population-Deprivation Cross Analysis")
+            st.write("#### Population & Deprivation Cross Analysis")
             st.info(
                 "Explore relationships between district-level demographics (ethnic group proportions) "
                 "and Indices of Deprivation 2025 Ranks. Lower rank number represents higher deprivation (Rank 1 is the most deprived)."
@@ -717,7 +717,7 @@ def render_population_playground():
                             plot_data_dep["DeprivationMetric"],
                         )[0, 1]
 
-                        st.write("### 🔍 Correlation Analysis")
+                        st.write("#### Correlation Analysis")
                         st.metric(
                             label=f"Pearson Correlation Coefficient (r) between {sel_demog_dep} and {sel_dep_label}",
                             value=f"{r_coef:.3f}",
@@ -778,7 +778,7 @@ def render_population_playground():
 
                         st.divider()
 
-                        st.write("### 📊 Demographics in Extreme Deprivation Profiles")
+                        st.write("#### Demographics in Extreme Deprivation Profiles")
                         st.info(
                             "This chart contrasts the demographic breakdown of the 10 most deprived "
                             "districts with the 10 least deprived districts in the region for the selected domain."
@@ -829,7 +829,7 @@ def render_population_playground():
 
         # ── Tab 4: Regional Population Analysis ──────────────────────────────────
         with tab_regional_pop:
-            st.subheader("Explore a Single Ethnic Group Metric")
+            st.write("#### Explore a Single Ethnic Group Metric")
             c1, c2 = st.columns([1, 1])
             with c1:
                 selected_metric = st.selectbox(
