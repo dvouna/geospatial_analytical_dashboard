@@ -84,7 +84,9 @@ def test_utility_modules_importable(module_path):
         "pages.1_Population_Demographics",
         "pages.2_Deprivation_Analysis",
         "pages.3_Cancer_Trends",
+        "pages.4_General_Insights",
         "pages.5_AI_Research_Assistant",
+        "pages.Districts_Profile",
     ],
 )
 def test_page_modules_importable(module_path):

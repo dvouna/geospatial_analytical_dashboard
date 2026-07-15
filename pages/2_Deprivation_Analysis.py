@@ -63,7 +63,7 @@ def render_deprivation_playground():
         }
 
         /* Sidebar separator: left border + padding on the research assistant column */
-        div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:last-child {
+        div[data-testid="stHorizontalBlock"]:not(:has(.active-nav-btn)) > div[data-testid="stColumn"]:last-child {
             border-left: 2px solid var(--color-border, #E2E8F0) !important;
             padding-left: 1.5rem !important;
         }
