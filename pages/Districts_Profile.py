@@ -527,7 +527,7 @@ def render_districts_profile_page() -> None:
         """
         <style>
         /* Sidebar separator: left border + padding on the right panel column */
-        div[data-testid="stHorizontalBlock"]:not(:has(.active-nav-btn)) > div[data-testid="stColumn"]:last-child {
+        div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div[data-testid="stColumn"]:last-child {
             border-left: 2px solid var(--color-border, #E2E8F0) !important;
             padding-left: 1.5rem !important;
         }
@@ -964,6 +964,7 @@ def render_districts_profile_page() -> None:
     # ── Right panel: dispatch to the active topic ─────────────────────────────────
 
     with col_panel:
+        st.markdown("<div class='sidebar-marker'></div>", unsafe_allow_html=True)
         if active_topic == "East of England":
             _panel_overview(active_fid, id_to_props)
         elif active_topic == "Population":

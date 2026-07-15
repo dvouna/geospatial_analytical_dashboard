@@ -63,7 +63,7 @@ def render_deprivation_playground():
         }
 
         /* Sidebar separator: left border + padding on the research assistant column */
-        div[data-testid="stHorizontalBlock"]:not(:has(.active-nav-btn)) > div[data-testid="stColumn"]:last-child {
+        div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div[data-testid="stColumn"]:last-child {
             border-left: 2px solid var(--color-border, #E2E8F0) !important;
             padding-left: 1.5rem !important;
         }
@@ -159,6 +159,7 @@ def render_deprivation_playground():
     col_main, col_sidebar = st.columns([7, 3])
 
     with col_sidebar:
+        st.markdown("<div class='sidebar-marker'></div>", unsafe_allow_html=True)
         import importlib
 
         ra_module = importlib.import_module("pages.5_AI_Research_Assistant")
