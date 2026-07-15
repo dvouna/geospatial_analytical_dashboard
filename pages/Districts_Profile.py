@@ -249,7 +249,7 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
     st.markdown("#### District Population Profile")
 
     try:
-        overlay_df = _load_population_overlay()
+        _load_population_overlay()
     except FileNotFoundError:
         st.error("❌ `population_detail.csv` not found in the data directory.")
         return
@@ -292,7 +292,7 @@ def _panel_imd(active_fid: str | None, id_to_props: dict) -> None:
     st.markdown("#### Index of Multiple Deprivation")
 
     try:
-        overlay_df = _load_iod_overlay()
+        _load_iod_overlay()
     except FileNotFoundError:
         st.error("❌ `iod_2025.csv` not found in the data directory.")
         return
