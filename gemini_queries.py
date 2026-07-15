@@ -16,6 +16,7 @@ from typing import Optional, Any
 
 try:
     from config import Config as _Config
+
     _DEBUG = _Config.DEBUG
 except Exception:
     _DEBUG = False
@@ -23,6 +24,7 @@ except Exception:
 try:
     import google.generativeai as genai
     from google.generativeai.types import GenerationConfig
+
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
@@ -48,17 +50,57 @@ Strict Boundaries:
 # Used as a fast local pre-filter before spending an API call on scope
 # classification — if ANY keyword is present the query is assumed in-scope
 # and the Gemini call is skipped entirely.
-_SCOPE_KEYWORDS: frozenset = frozenset({
-    "cancer", "incidence", "tumour", "tumor", "oncol",
-    "deprivation", "imd", "depriv", "poverty", "income", "employment",
-    "population", "demographic", "ethnic", "ethnicity", "asian", "black",
-    "white", "mixed", "minority",
-    "district", "authority", "area", "region", "east of england",
-    "norfolk", "suffolk", "essex", "hertfordshire", "cambridgeshire",
-    "bedfordshire", "luton", "peterborough", "ipswich", "colchester",
-    "health", "mortality", "morbidity", "disease", "screening",
-    "lung", "breast", "prostate", "bowel", "skin", "rate", "rank",
-})
+_SCOPE_KEYWORDS: frozenset = frozenset(
+    {
+        "cancer",
+        "incidence",
+        "tumour",
+        "tumor",
+        "oncol",
+        "deprivation",
+        "imd",
+        "depriv",
+        "poverty",
+        "income",
+        "employment",
+        "population",
+        "demographic",
+        "ethnic",
+        "ethnicity",
+        "asian",
+        "black",
+        "white",
+        "mixed",
+        "minority",
+        "district",
+        "authority",
+        "area",
+        "region",
+        "east of england",
+        "norfolk",
+        "suffolk",
+        "essex",
+        "hertfordshire",
+        "cambridgeshire",
+        "bedfordshire",
+        "luton",
+        "peterborough",
+        "ipswich",
+        "colchester",
+        "health",
+        "mortality",
+        "morbidity",
+        "disease",
+        "screening",
+        "lung",
+        "breast",
+        "prostate",
+        "bowel",
+        "skin",
+        "rate",
+        "rank",
+    }
+)
 
 
 @st.cache_resource
@@ -73,11 +115,11 @@ def get_gemini_engine() -> "GeminiQueryEngine":
 
 class GeminiQueryEngine:
     """Interface for querying data using Gemini API"""
-    
+
     def __init__(self, api_key: Optional[str] = None):
         """
         Initialize Gemini API with system instructions
-        
+
         Args:
             api_key: Google Gemini API key (from config if not provided)
         """
@@ -87,7 +129,7 @@ class GeminiQueryEngine:
         self.max_tokens = Config.GEMINI_MAX_TOKENS
         self.temperature = Config.GEMINI_TEMPERATURE
         self.system_instruction_fallback = False
-        
+
         if GEMINI_AVAILABLE and self.api_key:
             try:
                 genai.configure(api_key=self.api_key)
@@ -95,7 +137,7 @@ class GeminiQueryEngine:
                 try:
                     self.model = genai.GenerativeModel(
                         model_name=self.model_name,
-                        system_instruction=SYSTEM_INSTRUCTION
+                        system_instruction=SYSTEM_INSTRUCTION,
                     )
                 except TypeError:
                     # Fallback for older google-generativeai package versions
@@ -103,8 +145,12 @@ class GeminiQueryEngine:
                     self.system_instruction_fallback = True
             except Exception as e:
                 print(f"[gemini] Failed to initialize Gemini: {e}", file=sys.stderr)
-                st.error("Failed to initialize Gemini AI. Please check your API key." if not _DEBUG else f"Failed to initialize Gemini: {str(e)}")
-    
+                st.error(
+                    "Failed to initialize Gemini AI. Please check your API key."
+                    if not _DEBUG
+                    else f"Failed to initialize Gemini: {str(e)}"
+                )
+
     def is_available(self) -> bool:
         """Check if Gemini API is properly configured"""
         return self.model is not None
@@ -140,7 +186,7 @@ class GeminiQueryEngine:
             result = genai.embed_content(
                 model="models/text-embedding-004",
                 content=text,
-                task_type="retrieval_query"
+                task_type="retrieval_query",
             )
             return result.get("embedding", [])
         except Exception as e:
@@ -192,7 +238,9 @@ class GeminiQueryEngine:
         except Exception:
             return True  # Fallback to True in case of API issues
 
-    def answer_lookup_query(self, query: str, district_profiles_json: str, history_context: str = "") -> str:
+    def answer_lookup_query(
+        self, query: str, district_profiles_json: str, history_context: str = ""
+    ) -> str:
         """
         Directly answer a lookup or comparison query using the cached district profiles context.
         """
@@ -226,11 +274,13 @@ class GeminiQueryEngine:
         except Exception as e:
             return f"Error querying Gemini: {e}"
 
-    def generate_pandas_code(self, query: str, schemas: str, history_context: str = "") -> str:
+    def generate_pandas_code(
+        self, query: str, schemas: str, history_context: str = ""
+    ) -> str:
         """Prompt Gemini to generate a single executable Python/Pandas expression."""
         if not self.is_available():
             return ""
-        
+
         prompt = f"""
         You are a python data analyst expert. Write a SINGLE executable block of Python code using Pandas that answers the user's question.
         
@@ -266,34 +316,56 @@ class GeminiQueryEngine:
         except Exception as e:
             return f"Error: {e}"
 
-    def execute_pandas_code(self, code: str, context_dfs: dict[str, pd.DataFrame]) -> dict[str, Any]:
+    def execute_pandas_code(
+        self, code: str, context_dfs: dict[str, pd.DataFrame]
+    ) -> dict[str, Any]:
         """
         Clean, validate, and execute Python/Pandas code in a restricted scope.
         """
         # Clean markdown wrappers
         clean_code = code.replace("```python", "").replace("```", "").strip()
-        
+
         # Clean harmless imports that are commonly generated by the LLM
-        clean_code = re.sub(r'^\s*import\s+pandas(\s+as\s+pd)?\s*$', '', clean_code, flags=re.MULTILINE)
-        clean_code = re.sub(r'^\s*import\s+numpy(\s+as\s+np)?\s*$', '', clean_code, flags=re.MULTILINE)
-        
+        clean_code = re.sub(
+            r"^\s*import\s+pandas(\s+as\s+pd)?\s*$", "", clean_code, flags=re.MULTILINE
+        )
+        clean_code = re.sub(
+            r"^\s*import\s+numpy(\s+as\s+np)?\s*$", "", clean_code, flags=re.MULTILINE
+        )
+
         # Strict validation check for safety keywords
         blocked_words = [
-            "import", "os", "sys", "subprocess", "open", "write", "read",
-            "__import__", "builtins", "shutil", "socket", "urllib", "requests",
-            "getattr", "setattr", "eval", "exec", "globals", "locals"
+            "import",
+            "os",
+            "sys",
+            "subprocess",
+            "open",
+            "write",
+            "read",
+            "__import__",
+            "builtins",
+            "shutil",
+            "socket",
+            "urllib",
+            "requests",
+            "getattr",
+            "setattr",
+            "eval",
+            "exec",
+            "globals",
+            "locals",
         ]
-        
+
         # Check tokens rather than substrings where possible to avoid false positives (like 'read_csv' in comments)
-        tokens = re.findall(r'\b\w+\b', clean_code)
+        tokens = re.findall(r"\b\w+\b", clean_code)
         for token in tokens:
             if token in blocked_words:
                 return {
                     "status": "error",
                     "error": f"Security Violation: Use of forbidden keyword '{token}' is blocked.",
-                    "code": clean_code
+                    "code": clean_code,
                 }
-        
+
         # Set up execution sandbox — deep-copy each DataFrame so that any
         # in-place mutations by LLM-generated code cannot escape the sandbox
         # and corrupt the caller's cached DataFrames.
@@ -304,13 +376,21 @@ class GeminiQueryEngine:
             "__builtins__": {},
             "pd": pd,
             "np": np,
-            "df_cancer": context_dfs.get("Cancer Incidence (Overall)", pd.DataFrame()).copy(),
-            "df_top5": context_dfs.get("Cancer Incidence (Top 5 by Area)", pd.DataFrame()).copy(),
-            "df_population": context_dfs.get("Population by Ethnicity", pd.DataFrame()).copy(),
-            "df_deprivation": context_dfs.get("Index of Multiple Deprivation 2025", pd.DataFrame()).copy(),
+            "df_cancer": context_dfs.get(
+                "Cancer Incidence (Overall)", pd.DataFrame()
+            ).copy(),
+            "df_top5": context_dfs.get(
+                "Cancer Incidence (Top 5 by Area)", pd.DataFrame()
+            ).copy(),
+            "df_population": context_dfs.get(
+                "Population by Ethnicity", pd.DataFrame()
+            ).copy(),
+            "df_deprivation": context_dfs.get(
+                "Index of Multiple Deprivation 2025", pd.DataFrame()
+            ).copy(),
         }
         sandbox_locals = {}
-        
+
         try:
             # Execute python snippet
             exec(clean_code, sandbox_globals, sandbox_locals)
@@ -319,29 +399,23 @@ class GeminiQueryEngine:
                 return {
                     "status": "error",
                     "error": "The execution completed, but the variable 'result' was not defined in the code.",
-                    "code": clean_code
+                    "code": clean_code,
                 }
             # Return a copy if result is a DataFrame/Series so the caller's
             # cached data cannot be mutated through a shared reference.
             if isinstance(result, (pd.DataFrame, pd.Series)):
                 result = result.copy()
-            return {
-                "status": "success",
-                "result": result,
-                "code": clean_code
-            }
+            return {"status": "success", "result": result, "code": clean_code}
         except Exception as e:
-            return {
-                "status": "error",
-                "error": str(e),
-                "code": clean_code
-            }
+            return {"status": "error", "error": str(e), "code": clean_code}
 
-    def explain_results(self, query: str, results_summary: str, history_context: str = "") -> str:
+    def explain_results(
+        self, query: str, results_summary: str, history_context: str = ""
+    ) -> str:
         """Explain the execution result in natural language."""
         if not self.is_available():
             return "Gemini API is currently unavailable."
-        
+
         prompt = f"""
         You are a public health analyst explaining calculations to an audience.
         Explain the local calculation results in a concise, natural language format.
@@ -371,17 +445,18 @@ class GeminiQueryEngine:
         """
         if not self.is_available():
             return "Gemini API is currently unavailable."
-        
+
         # Fetch relevant approved past examples for few-shot learning
         from utils.insights_logger import get_relevant_insights
+
         examples = get_relevant_insights(context_key, limit=2)
-        
+
         examples_str = ""
         if examples:
             examples_str = "\nHere are examples of high-quality, approved interpretations for similar analyses. Mimic their style, tone, and level of detail:\n"
             for i, ex in enumerate(examples, 1):
                 examples_str += f"Example {i}:\n- Data Profile: {ex.get('data_summary_str', '')[:300]}\n- Approved Insight: {ex.get('insight', '')}\n\n"
-        
+
         prompt = f"""
         You are a senior public health analyst. Given the following subset of district-level data for the East of England:
         
@@ -419,11 +494,15 @@ def _get_cached_insight(
     cache invalidation.  Instead we retrieve the session-cached singleton via
     ``get_gemini_engine()`` which is guaranteed to be consistent.
     """
-    prompt_data = f"Context: {context_description}\n\nData Table (CSV format):\n{data_str}"
+    prompt_data = (
+        f"Context: {context_description}\n\nData Table (CSV format):\n{data_str}"
+    )
     return get_gemini_engine().generate_visualization_insight(prompt_data, context_key)
 
 
-def render_ai_insights(df_summary: pd.DataFrame, context_description: str, key_suffix: str):
+def render_ai_insights(
+    df_summary: pd.DataFrame, context_description: str, key_suffix: str
+):
     """
     Renders a unified, styled Streamlit component that generates and displays
     Gemini AI insights for a given dataframe slice and context.
@@ -431,10 +510,10 @@ def render_ai_insights(df_summary: pd.DataFrame, context_description: str, key_s
     # Use the session-cached engine singleton — avoids re-initialising the
     # GenerativeModel on every Streamlit rerun.
     engine = get_gemini_engine()
-    
+
     if not engine.is_available():
         return
-        
+
     try:
         # Convert dataframe to a compact CSV string representation
         data_str = df_summary.head(30).to_csv(index=True)
@@ -445,7 +524,7 @@ def render_ai_insights(df_summary: pd.DataFrame, context_description: str, key_s
     hash_input = f"{data_str}_{context_description}"
     hash_val = hashlib.md5(hash_input.encode("utf-8")).hexdigest()
     state_key = f"ai_insight_{key_suffix}_{hash_val}"
-    
+
     if st.button("✨ Generate insight", key=f"btn_ai_insight_{key_suffix}"):
         with st.spinner("Analyzing visualization data..."):
             try:
@@ -453,14 +532,20 @@ def render_ai_insights(df_summary: pd.DataFrame, context_description: str, key_s
                 # properly invalidated whenever a new insight is approved.
                 approved_ver = st.session_state.get("approved_insights_version", 0)
                 insight = _get_cached_insight(
-                    data_str, context_description, key_suffix,
+                    data_str,
+                    context_description,
+                    key_suffix,
                     _approved_version=approved_ver,
                 )
                 st.session_state[state_key] = insight
             except Exception as e:
                 print(f"[gemini] Failed to generate insight: {e}", file=sys.stderr)
-                st.error("Failed to generate insight. Please try again." if not _DEBUG else f"Failed to generate insight: {e}")
-                
+                st.error(
+                    "Failed to generate insight. Please try again."
+                    if not _DEBUG
+                    else f"Failed to generate insight: {e}"
+                )
+
     # Display the insight if it exists in session state for the current data slice
     if state_key in st.session_state:
         # Escape AI-generated text before injecting into the raw HTML block to
@@ -478,29 +563,30 @@ def render_ai_insights(df_summary: pd.DataFrame, context_description: str, key_s
                 margin-top: 10px;
                 margin-bottom: 5px;
             ">
-                <strong>Gemini Analyst Insight:</strong><br>
+                <strong>Research Assistant Insight:</strong><br>
                 {safe_insight}
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
-        
+
         # Approve insight mechanism
         approved_state_key = f"insight_approved_{key_suffix}_{hash_val}"
         is_approved = st.session_state.get(approved_state_key, False)
-        
+
         col_feedback1, col_feedback2 = st.columns([1, 4])
         with col_feedback1:
             if st.button(
                 "👍 Approve insight" if not is_approved else "✅ Insight cached",
                 key=f"btn_approve_{key_suffix}_{hash_val}",
-                disabled=is_approved
+                disabled=is_approved,
             ):
                 from utils.insights_logger import save_approved_insight
+
                 save_approved_insight(
                     context_key=key_suffix,
                     data_summary_str=data_str,
-                    insight=st.session_state[state_key]
+                    insight=st.session_state[state_key],
                 )
                 st.session_state[approved_state_key] = True
                 # Bump the version counter so _get_cached_insight's Streamlit
@@ -511,4 +597,3 @@ def render_ai_insights(df_summary: pd.DataFrame, context_description: str, key_s
                 )
                 st.toast("Insight saved to cache for continuous learning!")
                 st.rerun()
-

@@ -162,4 +162,6 @@ data/semantic_cache.json
 /.env
 /.env.local
 # Explicitly un-ignore the template so it stays in the repo:
-!.env.production
+!.env.production
+
+improvement.md
