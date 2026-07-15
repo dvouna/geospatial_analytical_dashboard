@@ -160,15 +160,15 @@ def render_general_insights_page():
         """
         <div style="
             font-family: 'Inter', sans-serif;
-            font-size: 2.2rem;
-            font-weight: 800;
+            font-size: 1.4rem;
+            font-weight: 700;
             letter-spacing: -0.03em;
             background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 2px;
-            margin-top: 1.5rem;
+            margin-top: 0.2rem;
             line-height: 1.15;
         ">General Insights</div>
         """,
@@ -207,13 +207,17 @@ def render_general_insights_page():
     if insights_content:
         st.markdown(insights_content)
     else:
-        st.info("Insights have not been generated yet. Click the button below to generate them.")
+        st.info(
+            "Insights have not been generated yet. Click the button below to generate them."
+        )
 
     st.divider()
 
     col_btn, _ = st.columns([1, 4])
     with col_btn:
-        button_label = "🔄 Refresh Insights" if insights_content else "✨ Generate Insights"
+        button_label = (
+            "🔄 Refresh Insights" if insights_content else "✨ Generate Insights"
+        )
         if st.button(button_label, use_container_width=True):
             with st.spinner("Analyzing public health data and generating insights…"):
                 text = _generate_and_save_insights(loaded)

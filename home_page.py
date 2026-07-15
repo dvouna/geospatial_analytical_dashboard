@@ -8,7 +8,6 @@ Global setup (CSS, dark mode) is already applied by the router.
 
 from __future__ import annotations
 
-from pathlib import Path
 import streamlit as st
 
 
@@ -28,17 +27,17 @@ def render_home_page() -> None:
         """
         <div style="
             font-family: 'Inter', sans-serif;
-            font-size: 2.1rem;
-            font-weight: 800;
+            font-size: 1.4rem;
+            font-weight: 700;
             letter-spacing: -0.03em;
             background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 2px;
-            margin-top: 2.5rem;
+            margin-top: 0.2rem;
             line-height: 1.15;
-        ">Cancer Health Dashboard — East of England</div>
+        ">Cancer Health Equity Dashboard For East of England</div>
         """,
         unsafe_allow_html=True,
     )
@@ -48,17 +47,17 @@ def render_home_page() -> None:
             font-family: 'Inter', sans-serif;
             font-size: 1rem;
             color: var(--color-text-muted, #64748B);
-            font-weight: 400;
-            margin-bottom: 17px;
+            font-weight: 500;
+            margin-bottom: 10px;
             margin-top: 1.5rem;
-        ">Public Health and Cancer Risk Explorer — East of England. This geospatial analytical platform integrates population demographics, deprivation subdomains, and cancer incidence datasets. Its primary objective is to assist public health analysts and policymakers in identifying deprived communities that would benefit most from targeted campaigns to improve early cancer detection.</div>
+        ">Welcome to the East of England Cancer Health Equity Explorer. This analytical dashboard integrates geospatial and statistical data on population, deprivation subdomains, and cancer incidence. Its primary objective is to assist public health analysts, researchers and policymakers in identifying deprived communities that would benefit from targeted interventions to improve cancer outcomes.</div>
         """,
         unsafe_allow_html=True,
     )
 
     st.markdown("---")
 
-    st.markdown("### ℹ️ Platform Overview")
+    st.markdown("#### Platform Overview")
     st.markdown(
         """
         Welcome to the Cancer Health Dashboard for the East of England. This platform provides key insights and analytics on:

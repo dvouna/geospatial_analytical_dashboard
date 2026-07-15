@@ -286,15 +286,15 @@ def render_research_assistant_page():
         """
         <div style="
             font-family: 'Inter', sans-serif;
-            font-size: 2.2rem;
-            font-weight: 800;
+            font-size: 1.4rem;
+            font-weight: 700;
             letter-spacing: -0.03em;
             background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 2px;
-            margin-top: 1.5rem;
+            margin-top: 0.2rem;
             line-height: 1.15;
         ">Research Assistant</div>
         """,

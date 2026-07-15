@@ -12,7 +12,6 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 
 from config import Config
@@ -29,7 +28,6 @@ from map_utils import (
     render_map_settings,
 )
 from utils.data_loader_cancer import get_cancer_overall_df, get_cancer_top5_df
-from visualizer import FLC26_QUALITATIVE
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -281,6 +279,7 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
         st.markdown("---")
         st.subheader("🤖 AI Research Assistant")
         import importlib
+
         module = importlib.import_module("pages.5_AI_Research_Assistant")
         module.render_research_assistant_widget(key_suffix="districts_population_panel")
 
@@ -419,9 +418,8 @@ def _panel_cancer(active_fid: str | None, id_to_props: dict) -> None:
         st.info("Select an authority on the map to view cancer incidence data.")
 
 
-
-
 # ── Session state defaults ────────────────────────────────────────────────────
+
 
 def render_districts_profile_page() -> None:
     st.session_state.setdefault("active_fid", None)
@@ -442,17 +440,17 @@ def render_districts_profile_page() -> None:
         """
         <div style="
             font-family: 'Inter', sans-serif;
-            font-size: 2.1rem;
-            font-weight: 800;
+            font-size: 1.4rem;
+            font-weight: 700;
             letter-spacing: -0.03em;
             background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 2px;
-            margin-top: 2.5rem;
+            margin-top: 0.2rem;
             line-height: 1.15;
-        ">Cancer Health Dashboard — Districts Profile</div>
+        ">Geospatial Visualization for East of England Districts</div>
         """,
         unsafe_allow_html=True,
     )
@@ -563,7 +561,9 @@ def render_districts_profile_page() -> None:
 
             if active_topic == "Population":
                 try:
-                    total_pop_val = props.get("Total Population") or props.get("total_population")
+                    total_pop_val = props.get("Total Population") or props.get(
+                        "total_population"
+                    )
                     try:
                         total_pop = float(str(total_pop_val).replace(",", "").strip())
                     except (ValueError, TypeError):
@@ -571,29 +571,89 @@ def render_districts_profile_page() -> None:
 
                     subgroup_definitions = [
                         # White Group
-                        ("White British", "White Group", "White: English, Welsh, Scottish, Northern Irish or British (number)"),
+                        (
+                            "White British",
+                            "White Group",
+                            "White: English, Welsh, Scottish, Northern Irish or British (number)",
+                        ),
                         ("White Irish", "White Group", "White: Irish (number)"),
-                        ("Gypsy or Irish Traveller", "White Group", "White: Gypsy or Irish Traveller (number)"),
+                        (
+                            "Gypsy or Irish Traveller",
+                            "White Group",
+                            "White: Gypsy or Irish Traveller (number)",
+                        ),
                         ("White Roma", "White Group", "White: Roma (number)"),
                         ("Other White", "White Group", "White: Other White (number)"),
                         # Asian Group
-                        ("Indian", "Asian Group", "Asian, Asian British or Asian Welsh: Indian (number)"),
-                        ("Pakistani", "Asian Group", "Asian, Asian British or Asian Welsh: Pakistani (number)"),
-                        ("Bangladeshi", "Asian Group", "Asian, Asian British or Asian Welsh: Bangladeshi (number)"),
-                        ("Chinese", "Asian Group", "Asian, Asian British or Asian Welsh: Chinese (number)"),
-                        ("Other Asian", "Asian Group", "Asian, Asian British or Asian Welsh: Other Asian (number)"),
+                        (
+                            "Indian",
+                            "Asian Group",
+                            "Asian, Asian British or Asian Welsh: Indian (number)",
+                        ),
+                        (
+                            "Pakistani",
+                            "Asian Group",
+                            "Asian, Asian British or Asian Welsh: Pakistani (number)",
+                        ),
+                        (
+                            "Bangladeshi",
+                            "Asian Group",
+                            "Asian, Asian British or Asian Welsh: Bangladeshi (number)",
+                        ),
+                        (
+                            "Chinese",
+                            "Asian Group",
+                            "Asian, Asian British or Asian Welsh: Chinese (number)",
+                        ),
+                        (
+                            "Other Asian",
+                            "Asian Group",
+                            "Asian, Asian British or Asian Welsh: Other Asian (number)",
+                        ),
                         # Black Group
-                        ("African", "Black Group", "Black, Black British, Black Welsh, Caribbean or African: African (number)"),
-                        ("Caribbean", "Black Group", "Black, Black British, Black Welsh, Caribbean or African: Caribbean (number)"),
-                        ("Other Black", "Black Group", "Black, Black British, Black Welsh, Caribbean or African: Other Black (number)"),
+                        (
+                            "African",
+                            "Black Group",
+                            "Black, Black British, Black Welsh, Caribbean or African: African (number)",
+                        ),
+                        (
+                            "Caribbean",
+                            "Black Group",
+                            "Black, Black British, Black Welsh, Caribbean or African: Caribbean (number)",
+                        ),
+                        (
+                            "Other Black",
+                            "Black Group",
+                            "Black, Black British, Black Welsh, Caribbean or African: Other Black (number)",
+                        ),
                         # Mixed Group
-                        ("White & Asian", "Mixed Group", "Mixed or Multiple ethnic groups: White and Asian (number)"),
-                        ("White & Black African", "Mixed Group", "Mixed or Multiple ethnic groups: White and Black African (number)"),
-                        ("White & Black Caribbean", "Mixed Group", "Mixed or Multiple ethnic groups: White and Black Caribbean (number)"),
-                        ("Other Mixed", "Mixed Group", "Mixed or Multiple ethnic groups: Other Mixed or Multiple ethnic groups (number)"),
+                        (
+                            "White & Asian",
+                            "Mixed Group",
+                            "Mixed or Multiple ethnic groups: White and Asian (number)",
+                        ),
+                        (
+                            "White & Black African",
+                            "Mixed Group",
+                            "Mixed or Multiple ethnic groups: White and Black African (number)",
+                        ),
+                        (
+                            "White & Black Caribbean",
+                            "Mixed Group",
+                            "Mixed or Multiple ethnic groups: White and Black Caribbean (number)",
+                        ),
+                        (
+                            "Other Mixed",
+                            "Mixed Group",
+                            "Mixed or Multiple ethnic groups: Other Mixed or Multiple ethnic groups (number)",
+                        ),
                         # Others Group
                         ("Arab", "Others Group", "Other ethnic group: Arab (number)"),
-                        ("Any other ethnic group", "Others Group", "Other ethnic group: Any other ethnic group (number)"),
+                        (
+                            "Any other ethnic group",
+                            "Others Group",
+                            "Other ethnic group: Any other ethnic group (number)",
+                        ),
                     ]
 
                     table_rows = []
@@ -604,23 +664,24 @@ def render_districts_profile_page() -> None:
                         except (ValueError, TypeError):
                             clean_val = 0
                         pct = (clean_val / total_pop) * 100 if total_pop else 0.0
-                        table_rows.append({
-                            "Subgroup": display_name,
-                            "Broad Group": parent_group,
-                            "Count": clean_val,
-                            "Percentage": pct
-                        })
+                        table_rows.append(
+                            {
+                                "Subgroup": display_name,
+                                "Broad Group": parent_group,
+                                "Count": clean_val,
+                                "Percentage": pct,
+                            }
+                        )
 
                     df_subgroups = pd.DataFrame(table_rows)
                     st.markdown("---")
                     st.markdown(f"#### 👥 Detailed Ethnic Composition for {name}")
                     st.dataframe(
-                        df_subgroups.style.format({
-                            "Count": "{:,}",
-                            "Percentage": "{:.2f}%"
-                        }),
+                        df_subgroups.style.format(
+                            {"Count": "{:,}", "Percentage": "{:.2f}%"}
+                        ),
                         use_container_width=True,
-                        hide_index=True
+                        hide_index=True,
                     )
 
                     st.markdown("<br>", unsafe_allow_html=True)
@@ -641,7 +702,10 @@ def render_districts_profile_page() -> None:
                             ("Other White", "White: Other White (number)"),
                         ],
                         "Asian Group": [
-                            ("Indian", "Asian, Asian British or Asian Welsh: Indian (number)"),
+                            (
+                                "Indian",
+                                "Asian, Asian British or Asian Welsh: Indian (number)",
+                            ),
                             (
                                 "Pakistani",
                                 "Asian, Asian British or Asian Welsh: Pakistani (number)",
@@ -650,7 +714,10 @@ def render_districts_profile_page() -> None:
                                 "Bangladeshi",
                                 "Asian, Asian British or Asian Welsh: Bangladeshi (number)",
                             ),
-                            ("Chinese", "Asian, Asian British or Asian Welsh: Chinese (number)"),
+                            (
+                                "Chinese",
+                                "Asian, Asian British or Asian Welsh: Chinese (number)",
+                            ),
                             (
                                 "Other Asian",
                                 "Asian, Asian British or Asian Welsh: Other Asian (number)",
@@ -710,24 +777,39 @@ def render_districts_profile_page() -> None:
                         st.write(f"**{len(pop_df)} districts**")
                         st.dataframe(pop_df.head(50), use_container_width=True)
                     except Exception as exc:
-                        st.warning(f"⚠️ Failed to load all authorities population table: {exc}")
+                        st.warning(
+                            f"⚠️ Failed to load all authorities population table: {exc}"
+                        )
                 except Exception as exc:
-                    print(f"[districts_profile] Could not render population table: {exc}", file=sys.stderr)
+                    print(
+                        f"[districts_profile] Could not render population table: {exc}",
+                        file=sys.stderr,
+                    )
 
             elif active_topic == "Index of Multiple Deprivation":
                 try:
                     import math
+
                     subdomain_definitions = [
                         ("Overall IMD", "Overall IMD Rank"),
                         ("Income", "Income Rank"),
                         ("Employment", "Employment Rank"),
                         ("Education & Skills", "Education Skills and Training Rank"),
-                        ("Health & Disability", "Health Deprivation and Disability Rank"),
+                        (
+                            "Health & Disability",
+                            "Health Deprivation and Disability Rank",
+                        ),
                         ("Crime", "Crime Rank"),
                         ("Housing & Services", "Barriers to Housing and Services Rank"),
                         ("Living Environment", "Living Environment Rank"),
-                        ("IDACI (Children)", "Income Deprivation Affecting Children Index (IDACI) Rank"),
-                        ("IDAOPI (Older)", "Income Deprivation Affecting Older People (IDAOPI) Rank")
+                        (
+                            "IDACI (Children)",
+                            "Income Deprivation Affecting Children Index (IDACI) Rank",
+                        ),
+                        (
+                            "IDAOPI (Older)",
+                            "Income Deprivation Affecting Older People (IDAOPI) Rank",
+                        ),
                     ]
 
                     table_rows = []
@@ -740,32 +822,37 @@ def render_districts_profile_page() -> None:
                         except (ValueError, TypeError):
                             rank_val = "N/A"
                             decile_str = "N/A"
-                        table_rows.append({
-                            "IMD Subdomain": label,
-                            "Rank": rank_val,
-                            "Decile": decile_str
-                        })
+                        table_rows.append(
+                            {
+                                "IMD Subdomain": label,
+                                "Rank": rank_val,
+                                "Decile": decile_str,
+                            }
+                        )
 
                     df_imd = pd.DataFrame(table_rows)
                     st.markdown("---")
                     st.markdown(f"#### 📊 IMD Rankings & Deciles for {name}")
-                    st.dataframe(
-                        df_imd,
-                        use_container_width=True,
-                        hide_index=True
-                    )
+                    st.dataframe(df_imd, use_container_width=True, hide_index=True)
 
                     try:
                         imd_df = _load_iod_overlay()
                         if not imd_df.empty:
                             st.markdown("---")
-                            st.subheader("📋 All Authorities — Deprivation Data (IoD 2025)")
+                            st.subheader(
+                                "📋 All Authorities — Deprivation Data (IoD 2025)"
+                            )
                             st.write(f"**{len(imd_df)} districts**")
                             st.dataframe(imd_df.head(50), use_container_width=True)
                     except Exception as exc:
-                        st.warning(f"⚠️ Failed to load all authorities deprivation table: {exc}")
+                        st.warning(
+                            f"⚠️ Failed to load all authorities deprivation table: {exc}"
+                        )
                 except Exception as exc:
-                    print(f"[districts_profile] Could not render IMD table: {exc}", file=sys.stderr)
+                    print(
+                        f"[districts_profile] Could not render IMD table: {exc}",
+                        file=sys.stderr,
+                    )
 
             elif active_topic == "Cancer Incidence":
                 try:
@@ -779,7 +866,11 @@ def render_districts_profile_page() -> None:
                         ("Breast Cancer Rate", "breast", "per 100k"),
                         ("Head & Neck Cancer Rate", "head and neck", "per 100k"),
                         ("Kidney Cancer Rate", "kidney", "per 100k"),
-                        ("Liver & Biliary Cancer Rate", "liver and biliary tract", "per 100k"),
+                        (
+                            "Liver & Biliary Cancer Rate",
+                            "liver and biliary tract",
+                            "per 100k",
+                        ),
                         ("Lung Cancer Rate", "lung", "per 100k"),
                         ("Ovarian Cancer Rate", "ovary", "per 100k"),
                         ("Pancreatic Cancer Rate", "pancreas", "per 100k"),
@@ -799,20 +890,14 @@ def render_districts_profile_page() -> None:
                                 value_str = f"{float_val:.1f}"
                         except (ValueError, TypeError):
                             value_str = "N/A"
-                        table_rows.append({
-                            "Cancer Type": label,
-                            "Value": value_str,
-                            "Unit": unit
-                        })
+                        table_rows.append(
+                            {"Cancer Type": label, "Value": value_str, "Unit": unit}
+                        )
 
                     df_cancer = pd.DataFrame(table_rows)
                     st.markdown("---")
                     st.markdown(f"#### 🎗️ Cancer Incidence Profile for {name}")
-                    st.dataframe(
-                        df_cancer,
-                        use_container_width=True,
-                        hide_index=True
-                    )
+                    st.dataframe(df_cancer, use_container_width=True, hide_index=True)
 
                     try:
                         overall_df = _load_cancer_overlay()
@@ -820,12 +905,17 @@ def render_districts_profile_page() -> None:
 
                         st.markdown("---")
                         tab_overall, tab_top5 = st.tabs(
-                            ["📊 Overall Incidence by District", "🏆 Top 5 Cancers by Area & Age Group"]
+                            [
+                                "📊 Overall Incidence by District",
+                                "🏆 Top 5 Cancers by Area & Age Group",
+                            ]
                         )
 
                         with tab_overall:
                             if not overall_df.empty:
-                                st.write(f"**{len(overall_df)} districts** — age-standardised rates.")
+                                st.write(
+                                    f"**{len(overall_df)} districts** — age-standardised rates."
+                                )
                                 st.dataframe(overall_df, use_container_width=True)
                             else:
                                 st.info("Overall incidence data is not available.")
@@ -833,14 +923,18 @@ def render_districts_profile_page() -> None:
                         with tab_top5:
                             if not top5_df.empty:
                                 filter_col1, filter_col2 = st.columns(2)
-                                cancer_types = sorted(top5_df["Cancer Type"].unique().tolist())
+                                cancer_types = sorted(
+                                    top5_df["Cancer Type"].unique().tolist()
+                                )
                                 selected_cancers = filter_col1.multiselect(
                                     "Filter by cancer type:",
                                     options=cancer_types,
                                     default=cancer_types,
                                     key="districts_cancer_type_filter",
                                 )
-                                area_names = sorted(top5_df["District Name"].dropna().unique().tolist())
+                                area_names = sorted(
+                                    top5_df["District Name"].dropna().unique().tolist()
+                                )
                                 selected_areas = filter_col2.multiselect(
                                     "Filter by district:",
                                     options=area_names,
@@ -848,9 +942,13 @@ def render_districts_profile_page() -> None:
                                     placeholder="All districts",
                                     key="districts_area_filter",
                                 )
-                                filtered = top5_df[top5_df["Cancer Type"].isin(selected_cancers)]
+                                filtered = top5_df[
+                                    top5_df["Cancer Type"].isin(selected_cancers)
+                                ]
                                 if selected_areas:
-                                    filtered = filtered[filtered["District Name"].isin(selected_areas)]
+                                    filtered = filtered[
+                                        filtered["District Name"].isin(selected_areas)
+                                    ]
                                 st.write(f"**{len(filtered)} rows**")
                                 st.dataframe(filtered, use_container_width=True)
                             else:
@@ -858,7 +956,10 @@ def render_districts_profile_page() -> None:
                     except Exception as exc:
                         st.warning(f"⚠️ Failed to load cancer comparison tables: {exc}")
                 except Exception as exc:
-                    print(f"[districts_profile] Could not render cancer table: {exc}", file=sys.stderr)
+                    print(
+                        f"[districts_profile] Could not render cancer table: {exc}",
+                        file=sys.stderr,
+                    )
 
     # ── Right panel: dispatch to the active topic ─────────────────────────────────
 
