@@ -246,6 +246,11 @@ pg = st.navigation(
     [
         st.Page("home_page.py", title="Home", icon="🏠", default=True),
         st.Page(
+            "pages/Districts_Profile.py",
+            title="Districts Profile",
+            icon="🏢",
+        ),
+        st.Page(
             "pages/1_Population_Demographics.py",
             title="Population Demographics",
             icon="👥",
