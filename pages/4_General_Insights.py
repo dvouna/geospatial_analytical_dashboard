@@ -147,14 +147,7 @@ def render_general_insights_page():
     except Exception:
         pass
 
-    st.markdown(
-        """
-        <style>
-        .block-container { padding-top: 1rem !important; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+
 
     st.markdown(
         """

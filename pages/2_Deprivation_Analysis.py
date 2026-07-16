@@ -49,9 +49,6 @@ def render_deprivation_playground():
     st.markdown(
         """
         <style>
-        /* Reduce Streamlit's default top block padding */
-        .block-container { padding-top: 1rem !important; }
-
         /* Enforce Inter font and increase font size by 2px (to 16px) for tabs */
         div[data-testid="stTabs"] > div:first-child button {
             font-family: 'Inter', sans-serif !important;

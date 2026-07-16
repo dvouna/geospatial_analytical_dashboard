@@ -425,17 +425,6 @@ def render_districts_profile_page() -> None:
     st.session_state.setdefault("active_fid", None)
     st.session_state.setdefault("active_topic", TOPICS[0])
 
-    # Tighten the top gap and left-align the hero title for the home page.
-    st.markdown(
-        """
-        <style>
-        /* Reduce Streamlit's default top block padding on the home page */
-        .block-container { padding-top: 1rem !important; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
     st.markdown(
         """
         <div style="

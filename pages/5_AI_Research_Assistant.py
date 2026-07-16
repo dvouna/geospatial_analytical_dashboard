@@ -272,15 +272,7 @@ def render_research_assistant_page():
     except Exception:
         pass
 
-    st.markdown(
-        """
-        <style>
-        /* Reduce Streamlit's default top block padding */
-        .block-container { padding-top: 1rem !important; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+
 
     st.markdown(
         """

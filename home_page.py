@@ -12,16 +12,6 @@ import streamlit as st
 
 
 def render_home_page() -> None:
-    # Tighten the top gap and left-align the hero title for the home page.
-    st.markdown(
-        """
-        <style>
-        /* Reduce Streamlit's default top block padding on the home page */
-        .block-container { padding-top: 1rem !important; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
 
     st.markdown(
         """

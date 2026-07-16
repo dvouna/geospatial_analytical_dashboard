@@ -120,7 +120,7 @@ html, body, [data-testid="stAppViewContainer"] {{
 }}
 
 .block-container {{
-    padding-top: 1.5rem !important;
+    padding-top: 3.5rem !important;
     padding-left: 14rem !important;
     padding-right: 14rem !important;
     padding-bottom: 4rem !important;
@@ -146,14 +146,14 @@ code, pre, .monospace {{ font-family: 'JetBrains Mono', monospace; }}
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-align: center;
-    font-size: 2.5rem;
+    text-align: left;
+    font-size: 2.0rem;
     font-weight: 800;
     margin-bottom: 4px;
     letter-spacing: -0.03em;
 }}
 .sub-title {{
-    text-align: center;
+    text-align: left;
     font-size: 1.05rem;
     color: var(--color-text-muted);
     margin-bottom: 28px;
