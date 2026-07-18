@@ -7,6 +7,8 @@ import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
 
+from utils.device import get_is_mobile
+
 
 DEFAULT_ID_CANDIDATES = [
     "fid",
@@ -203,8 +205,9 @@ def prepare_geojson_payload(
     return payload, id_field
 
 
+@st.cache_data
 def load_overlay_dataframe(
-    path: str or Path, index_col: Optional[str] = None, dtype: Optional[dict] = None
+    path: str or Path, index_col: Optional[str] = None, _dtype: Optional[dict] = None
 ) -> pd.DataFrame:
     """Load a tabular overlay (CSV/TSV) to be joined to the base GeoDataFrame.
 
@@ -219,7 +222,7 @@ def load_overlay_dataframe(
         raise FileNotFoundError(f"Overlay file not found: {p}")
 
     # Let pandas infer format by suffix; read_csv handles most delimited files
-    df = pd.read_csv(p, dtype=dtype)
+    df = pd.read_csv(p, dtype=_dtype)
 
     # Normalize the key column to string and strip whitespace when provided
     if index_col and index_col in df.columns:
@@ -270,9 +273,18 @@ def create_folium_map(
     tiles: str = "CartoDB positron",
     attr: Optional[str] = None,
 ) -> folium.Map:
-    """Create and return a Folium Map object with provided center/tiles."""
+    """Create and return a Folium Map object with provided center/tiles.
+
+    On mobile devices, ``scrollWheelZoom`` is disabled to prevent accidental
+    zoom while the user scrolls the page.  The map remains pannable by touch.
+    """
+    scroll_wheel_zoom = not get_is_mobile()
     return folium.Map(
-        location=[center[0], center[1]], zoom_start=zoom, tiles=tiles, attr=attr
+        location=[center[0], center[1]],
+        zoom_start=zoom,
+        tiles=tiles,
+        attr=attr,
+        scrollWheelZoom=scroll_wheel_zoom,
     )
 
 

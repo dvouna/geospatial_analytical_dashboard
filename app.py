@@ -15,8 +15,10 @@ from __future__ import annotations
 
 import importlib
 import streamlit as st
+import streamlit.components.v1 as components
 
 from config import check_environment, get_config
+from utils.device import get_is_mobile
 
 # -- Page config (must be the very first Streamlit call) ----------------------
 
@@ -38,7 +40,30 @@ if "current_page" not in st.session_state:
     st.session_state["current_page"] = "Home"
 
 if "theme" not in st.session_state:
-    st.session_state["theme"] = "light"
+    if st.query_params.get("os_theme") == "dark":
+        st.session_state["theme"] = "dark"
+    else:
+        st.session_state["theme"] = "light"
+
+# JS snippet to detect OS theme on first visit (Step 14)
+
+components.html(
+    """
+    <script>
+    if (!sessionStorage.getItem("os_theme_set")) {
+        const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (dark) {
+            const url = new URL(window.parent.location.href);
+            url.searchParams.set("os_theme", "dark");
+            window.parent.location.href = url.href;
+        }
+        sessionStorage.setItem("os_theme_set", "1");
+    }
+    </script>
+    """,
+    height=0,
+    width=0,
+)
 
 # -- Theme Color Palettes (CSS variables) -------------------------------------
 
@@ -68,6 +93,17 @@ if st.session_state["theme"] == "dark":
         --shadow-sm:  0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
         --shadow-md:  0 4px 12px rgba(0,0,0,0.16);
         --shadow-lg:  0 8px 24px rgba(0,0,0,0.20);
+        /* Typography scale — desktop defaults */
+        --fs-hero:        2.5rem;
+        --fs-subtitle:    1.05rem;
+        --fs-page-title:  1.4rem;
+        --fs-body:        1rem;
+        --fs-label:       0.78rem;
+        --fs-value:       1.6rem;
+        --fs-badge:       0.72rem;
+        --fs-tab:         0.88rem;
+        --fs-radio:       0.9rem;
+        --fs-mono:        0.875rem;
     }
     """
 else:
@@ -99,6 +135,17 @@ else:
         --shadow-sm:  0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
         --shadow-md:  0 4px 12px rgba(0,0,0,0.08);
         --shadow-lg:  0 8px 24px rgba(0,0,0,0.10);
+        /* Typography scale — desktop defaults (identical to prior hardcoded values) */
+        --fs-hero:        2.5rem;
+        --fs-subtitle:    1.05rem;
+        --fs-page-title:  1.4rem;
+        --fs-body:        1rem;
+        --fs-label:       0.78rem;
+        --fs-value:       1.6rem;
+        --fs-badge:       0.72rem;
+        --fs-tab:         0.88rem;
+        --fs-radio:       0.9rem;
+        --fs-mono:        0.875rem;
     }
     """
 
@@ -110,7 +157,7 @@ _CSS = f"""
 
 {theme_vars}
 
-html, body, [data-testid="stAppViewContainer"], .stButton button, p, span, div, label, h1, h2, h3, h4, select, textarea, input {{
+html, body, [data-testid="stAppViewContainer"], .stButton button, p, label, h1, h2, h3, h4, select, textarea, input {{
     font-family: 'Inter', sans-serif !important;
 }}
 
@@ -121,14 +168,24 @@ html, body, [data-testid="stAppViewContainer"] {{
 
 .block-container {{
     padding-top: 1.5rem !important;
-    padding-left: 14rem !important;
-    padding-right: 14rem !important;
     padding-bottom: 4rem !important;
     max-width: 100% !important;
 }}
+@media (min-width: 768px) {{
+    .block-container {{
+        padding-left: 14rem !important;
+        padding-right: 14rem !important;
+    }}
+}}
+@media (max-width: 767px) {{
+    .block-container {{
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }}
+}}
 
-/* Hide Streamlit default sidebar completely */
-[data-testid="stSidebar"], [data-testid="stSidebarCollapseButton"] {{
+/* Hide Streamlit default sidebar and header completely */
+[data-testid="stSidebar"], [data-testid="stSidebarCollapseButton"], [data-testid="stHeader"], header {{
     display: none !important;
 }}
 
@@ -147,17 +204,68 @@ code, pre, .monospace {{ font-family: 'JetBrains Mono', monospace; }}
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-align: center;
-    font-size: 2.5rem;
+    font-size: var(--fs-hero);
     font-weight: 800;
     margin-bottom: 4px;
     letter-spacing: -0.03em;
 }}
 .sub-title {{
     text-align: center;
-    font-size: 1.05rem;
+    font-size: var(--fs-subtitle);
     color: var(--color-text-muted);
     margin-bottom: 28px;
     font-weight: 400;
+}}
+
+/* ── Shared page header classes (used by all 6 page files) ── */
+.page-title {{
+    font-family: 'Inter', sans-serif;
+    font-size: var(--fs-page-title);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.15;
+}}
+.page-body {{
+    font-family: 'Inter', sans-serif;
+    font-size: var(--fs-body);
+    color: var(--color-text-muted, #64748B);
+    font-weight: 400;
+    margin-bottom: 10px;
+    margin-top: 1.5rem;
+}}
+
+/* ── Tab overrides ── */
+div[data-testid="stTabs"] > div:first-child button {{
+    font-family: 'Inter', sans-serif !important;
+}}
+div[data-testid="stTabs"] > div:first-child button p {{
+    font-family: 'Inter', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}}
+
+/* ── Sidebar separator & mobile hide ── */
+div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div[data-testid="column"]:last-child,
+div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div.stColumn:last-child {{
+    border-left: 2px solid var(--color-border, #E2E8F0) !important;
+    padding-left: 1.5rem !important;
+}}
+
+@media (max-width: 991px) {{
+    div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div[data-testid="column"]:last-child,
+    div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div.stColumn:last-child {{
+        display: none !important;
+    }}
+    div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div[data-testid="column"]:first-child,
+    div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div.stColumn:first-child {{
+        min-width: 100% !important;
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }}
 }}
 
 [data-testid="column"] {{
@@ -178,27 +286,32 @@ code, pre, .monospace {{ font-family: 'JetBrains Mono', monospace; }}
     margin-bottom: 14px;
     box-shadow: var(--shadow-sm);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    min-width: 220px;
 }}
 .kpi-card:hover {{ transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--color-border-hover); }}
 .kpi-label {{
-    font-size: 0.78rem;
+    font-size: var(--fs-label);
     color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     font-weight: 600;
     margin-bottom: 6px;
+    white-space: nowrap;
+    word-break: keep-all;
 }}
 .kpi-value {{
-    font-size: 1.6rem;
+    font-size: var(--fs-value);
     color: var(--color-text-heading);
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: -0.02em;
+    white-space: nowrap;
+    word-break: keep-all;
 }}
 .kpi-badge {{
     display: inline-block;
     padding: 3px 10px;
-    font-size: 0.72rem;
+    font-size: var(--fs-badge);
     border-radius: 20px;
     font-weight: 600;
     margin-top: 8px;
@@ -210,7 +323,7 @@ code, pre, .monospace {{ font-family: 'JetBrains Mono', monospace; }}
 
 div[data-testid="stTabs"] > div:first-child button {{
     font-weight: 600;
-    font-size: 0.88rem;
+    font-size: var(--fs-tab);
     color: var(--color-text-muted);
     border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     transition: color 0.2s ease, background-color 0.2s ease;
@@ -234,7 +347,7 @@ div.row-widget.stRadio > div[role="radiogroup"] > label {{
     padding: 7px 18px;
     border-radius: 24px;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: var(--fs-radio);
     color: var(--color-text-muted);
     border: none;
     transition: all 0.2s ease;
@@ -298,14 +411,139 @@ div.stColumn:has(.inactive-nav-btn) button:hover {{
     color: var(--color-text-heading) !important;
 }}
 
-/* ── Responsive Styling (Screen width < 768px) ── */
-@media (max-width: 768px) {{
-    .divider-col {{
+/* ── Step 8 Part B: Tablet type-scale overrides ── */
+@media (max-width: 1023px) {{
+    :root {{
+        --fs-hero: 2rem; --fs-subtitle: 0.95rem;
+        --fs-page-title: 1.3rem; --fs-value: 1.45rem; --fs-tab: 0.84rem;
+    }}
+}}
+
+/* ── Step 8 Part C + Step 10a: Mobile type-scale & WCAG contrast overrides ── */
+@media (max-width: 639px) {{
+    :root {{
+        --fs-hero: 1.5rem; --fs-subtitle: 0.875rem; --fs-page-title: 1.15rem;
+        --fs-body: 0.9375rem; --fs-value: 1.25rem;
+        --fs-tab: 0.78rem; --fs-radio: 0.875rem;
+        /* WCAG AA contrast at reduced font sizes */
+        --color-text-muted:  #475569;  /* 5.9:1 on white */
+        --color-text-subtle: #64748B;  /* 4.6:1 on white */
+    }}
+}}
+
+/* ── Mobile UX polish ── */
+@media (max-width: 767px) {{
+    /* WCAG 2.5.5 — minimum 44×44px touch targets for nav/action buttons */
+    div[data-testid="column"] button,
+    div.stColumn button {{
+        padding: 12px 8px !important;
+        min-height: 44px !important;
+    }}
+
+    /* Prevent Folium iframe from capturing iOS scroll gestures */
+    .stIFrame {{
+        touch-action: pan-y !important;
+    }}
+
+    /* KPI card touch padding on mobile */
+    .kpi-card {{
+        padding: 14px 16px !important;
+    }}
+
+    /* Mobile selectbox nav: full-width pill style */
+    div[data-testid="stSelectbox"] select {{
+        border-radius: var(--radius-sm) !important;
+    }}
+}}
+
+/* ── Step 10b: Respect prefers-reduced-motion ── */
+@media (prefers-reduced-motion: reduce) {{
+    .kpi-card, .kpi-card:hover {{
+        transition: none !important;
+        transform: none !important;
+    }}
+    * {{ transition-duration: 0.01ms !important; }}
+}}
+
+/* ── Step 12: Floating dark mode toggle container ── */
+div:has(> #dark-mode-anchor) + div.element-container {{
+    position: fixed !important;
+    bottom: 1.5rem !important;
+    right: 1.5rem !important;
+    z-index: 99999 !important;
+    background-color: var(--color-surface) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 999px !important;
+    padding: 6px 12px 6px 16px !important;
+    box-shadow: var(--shadow-md) !important;
+    width: auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease !important;
+}}
+div:has(> #dark-mode-anchor) + div.element-container:hover {{
+    box-shadow: var(--shadow-lg) !important;
+    border-color: var(--color-border-hover) !important;
+}}
+
+/* ── Step 16c: iOS Safari keyboard viewport bottom adjustment ── */
+@supports (height: 100dvh) {{
+    [data-testid="stChatInput"] {{
+        bottom: env(keyboard-inset-height, 0px) !important;
+    }}
+}}
+
+/* ── Step 18: Content Width Clamping for Ultra-Wide Screens ── */
+@media (min-width: 1440px) {{
+    .block-container {{
+        max-width: 1400px !important;
+        padding-left: 3rem !important;
+        padding-right: 3rem !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }}
+}}
+
+/* ── Step 19: Taller Map on Large Desktop Screens ── */
+@media (min-width: 1440px) {{
+    .stIFrame {{ min-height: 740px !important; }}
+}}
+
+/* ── Step 22: KPI Grid Expansion on Wide Screens ── */
+@media (min-width: 1440px) {{
+    div[data-testid="stHorizontalBlock"]:not(:has(div[data-testid="stHorizontalBlock"])):has(.kpi-card) {{
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 1rem;
+    }}
+}}
+
+
+/* ── Step 27: Print Stylesheet ── */
+@media print {{
+    .nav-container,
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    .dark-mode-float,
+    .stButton {{ display: none !important; }}
+
+    .block-container {{
+        padding: 0 !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+    }}
+
+    .kpi-card {{ break-inside: avoid; page-break-inside: avoid; }}
+
+    .stIFrame {{
         display: none !important;
     }}
-    div[data-testid="column"] {{
-        width: 100% !important;
-        max-width: 100% !important;
+    .stIFrame::after {{
+        content: "[Interactive map — view online]";
+        display: block;
+        font-style: italic;
+        color: #64748B;
     }}
 }}
 </style>
@@ -358,6 +596,16 @@ key_map = {
     "Research Assistant": "assistant",
 }
 
+# URL Parameter Deep Linking on load (Step 13)
+if "page" in st.query_params and "current_page_loaded" not in st.session_state:
+    page_param = st.query_params["page"]
+    if page_param in PAGES_CONFIG:
+        st.session_state["current_page"] = page_param
+    st.session_state["current_page_loaded"] = True
+
+# URL Parameter Deep Linking on navigation (Step 13)
+st.query_params["page"] = st.session_state["current_page"]
+
 # -- Page Layout Rendering ----------------------------------------------------
 
 # Header section
@@ -369,34 +617,48 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Navigation row structure
-cols = st.columns([6, 17, 23, 20, 13, 16, 18])
+# Navigation — selectbox on mobile, button bar on desktop
+if get_is_mobile():
+    pages_keys = list(PAGES_CONFIG.keys())
+    current_idx = pages_keys.index(st.session_state["current_page"])
+    selected_page = st.selectbox(
+        "Navigate",
+        options=pages_keys,
+        index=current_idx,
+        key="mobile_nav_select",
+        label_visibility="collapsed",
+    )
+    if selected_page != st.session_state["current_page"]:
+        st.session_state["current_page"] = selected_page
+        st.rerun()
+else:
+    cols = st.columns([6, 17, 23, 20, 13, 16, 18])
 
-pages_keys = list(PAGES_CONFIG.keys())
-for i, page_name in enumerate(pages_keys):
-    info = PAGES_CONFIG[page_name]
-    is_active = st.session_state["current_page"] == page_name
-    sibling_class = "active-nav-btn" if is_active else "inactive-nav-btn"
-    btn_key = key_map[page_name]
+    pages_keys = list(PAGES_CONFIG.keys())
+    for i, page_name in enumerate(pages_keys):
+        info = PAGES_CONFIG[page_name]
+        is_active = st.session_state["current_page"] == page_name
+        sibling_class = "active-nav-btn" if is_active else "inactive-nav-btn"
+        btn_key = key_map[page_name]
 
-    with cols[i]:
-        st.markdown(
-            f"<div class='nav-btn-{btn_key} {sibling_class}'></div>",
-            unsafe_allow_html=True,
-        )
+        with cols[i]:
+            st.markdown(
+                f"<div class='nav-btn-{btn_key} {sibling_class}'></div>",
+                unsafe_allow_html=True,
+            )
 
-        # Build text label with status badges
-        label = page_name
-        if info["badge"] == "New":
-            label += " :orange[[New]]"
-        elif info["badge"] == "AI":
-            label += " :violet[[AI]]"
+            # Build text label with status badges
+            label = page_name
+            if info["badge"] == "New":
+                label += " :orange[[New]]"
+            elif info["badge"] == "AI":
+                label += " :violet[[AI]]"
 
-        if st.button(
-            label, key=f"btn_{btn_key}", use_container_width=True, type="secondary"
-        ):
-            st.session_state["current_page"] = page_name
-            st.rerun()
+            if st.button(
+                label, key=f"btn_{btn_key}", use_container_width=True, type="secondary"
+            ):
+                st.session_state["current_page"] = page_name
+                st.rerun()
 
 # Active page content rendering
 page_info = PAGES_CONFIG[st.session_state["current_page"]]
@@ -409,26 +671,13 @@ except Exception as e:
     if st.checkbox("Show error traceback"):
         st.exception(e)
 
-# Bottom layout: horizontal divider & theme switcher
-st.markdown(
-    """
-    <hr style="
-        border: 0;
-        border-top: 1.5px solid var(--color-border);
-        margin: 40px 0 20px 0;
-        opacity: 0.8;
-    ">
-    """,
-    unsafe_allow_html=True,
+# Floating theme switcher (Step 12)
+st.markdown("<div id='dark-mode-anchor'></div>", unsafe_allow_html=True)
+theme_toggle = st.toggle(
+    "Dark Mode",
+    value=(st.session_state["theme"] == "dark"),
+    key="theme_switcher_toggle",
 )
-
-col_foot_left, col_foot_right = st.columns([10, 2])
-with col_foot_right:
-    theme_toggle = st.toggle(
-        "Dark Mode",
-        value=(st.session_state["theme"] == "dark"),
-        key="theme_switcher_toggle",
-    )
-    if theme_toggle != (st.session_state["theme"] == "dark"):
-        st.session_state["theme"] = "dark" if theme_toggle else "light"
-        st.rerun()
+if theme_toggle != (st.session_state["theme"] == "dark"):
+    st.session_state["theme"] = "dark" if theme_toggle else "light"
+    st.rerun()

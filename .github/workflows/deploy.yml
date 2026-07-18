@@ -107,8 +107,7 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             cd /opt/geospatial-dashboard
-            # Authenticate to GHCR using a repository dispatch / deploy secret
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            # Ensure the VPS has been pre-configured with a persistent GHCR login using a PAT.
             # Pull the latest image
             docker compose pull
             # Start/update the service container

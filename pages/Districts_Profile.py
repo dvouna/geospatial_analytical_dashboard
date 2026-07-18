@@ -14,6 +14,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+
 from config import Config
 
 from map_fragment import render_persistent_map
@@ -43,11 +44,27 @@ TOPICS = [
 # ── KPI Card renderer ─────────────────────────────────────────────────────────
 
 
+# Default tooltips for KPI cards (Step 25a)
+KPI_TOOLTIPS = {
+    "Total Population": "The total population of the district from the 2021 Census.",
+    "Deprivation Rank": "Index of Multiple Deprivation (IMD) 2025 Rank (1 is the most deprived local authority in England).",
+    "District Code": "ONS standard 9-character code for this local authority district.",
+    "NHS ICB Region": "The NHS Integrated Care Board responsible for healthcare commissioning in this area.",
+    "Overall Cancer Rate": "Directly Standardised Rate of all cancer cases combine (per 100k, age-adjusted).",
+    "Breast Cancer Rate": "Directly Standardised Rate of breast cancer cases (per 100k, age-adjusted).",
+    "Colorectal Cancer Rate": "Directly Standardised Rate of bowel/colorectal cancer cases (per 100k, age-adjusted).",
+    "Lung Cancer Rate": "Directly Standardised Rate of lung cancer cases (per 100k, age-adjusted).",
+    "Prostate Cancer Rate": "Directly Standardised Rate of prostate cancer cases (per 100k, age-adjusted).",
+    "Skin Cancer Rate": "Directly Standardised Rate of skin cancer cases (per 100k, age-adjusted).",
+}
+
+
 def render_kpi_card(
     label: str,
     value: str,
     badge_text: str | None = None,
     badge_type: str | None = None,
+    tooltip: str | None = None,
 ) -> None:
     badge_html = ""
     if badge_text:
@@ -58,9 +75,14 @@ def render_kpi_card(
         )
         badge_html = f'<div class="kpi-badge {badge_class}">{badge_text}</div>'
 
+    if tooltip is None:
+        tooltip = KPI_TOOLTIPS.get(label, "")
+
+    title_attr = f' title="{tooltip}"' if tooltip else ""
+
     st.markdown(
         f"""
-        <div class="kpi-card">
+        <div class="kpi-card"{title_attr}>
             <div class="kpi-label">{label}</div>
             <div class="kpi-value">{value}</div>
             {badge_html}
@@ -249,7 +271,7 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
     st.markdown("#### District Population Profile")
 
     try:
-        overlay_df = _load_population_overlay()
+        _load_population_overlay()
     except FileNotFoundError:
         st.error("❌ `population_detail.csv` not found in the data directory.")
         return
@@ -259,7 +281,7 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
         name = props.get("District Name") or active_fid
         st.success(f"**Selected District: {name}**")
 
-        col1, stat_col2 = st.columns(2)
+        col1, col2 = st.columns(2)
         with col1:
             pop_val = _get_clean_kpi_value(props, "Total Population")
             render_kpi_card("Total Population", pop_val)
@@ -267,8 +289,8 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
             render_kpi_card("White", white_val)
             asian_val = _get_clean_kpi_value(props, "All Asians (Total)")
             render_kpi_card("Asian", asian_val)
-        with stat_col2:
-            black_val = _get_clean_kpi_value(props, "All Balcks (Total)")
+        with col2:
+            black_val = _get_clean_kpi_value(props, "All Blacks (Total)")
             render_kpi_card("Black", black_val)
             mixed_val = _get_clean_kpi_value(props, "All Mixed Ethnic Groups (Total)")
             render_kpi_card("Mixed Group", mixed_val)
@@ -277,7 +299,7 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
 
         # AI Research Assistant widget under KPI cards
         st.markdown("---")
-        st.subheader("🤖 AI Research Assistant")
+        st.subheader("Research Assistant")
         import importlib
 
         module = importlib.import_module("pages.5_AI_Research_Assistant")
@@ -292,7 +314,7 @@ def _panel_imd(active_fid: str | None, id_to_props: dict) -> None:
     st.markdown("#### Index of Multiple Deprivation")
 
     try:
-        overlay_df = _load_iod_overlay()
+        _load_iod_overlay()
     except FileNotFoundError:
         st.error("❌ `iod_2025.csv` not found in the data directory.")
         return
@@ -422,8 +444,14 @@ def _panel_cancer(active_fid: str | None, id_to_props: dict) -> None:
 
 
 def render_districts_profile_page() -> None:
-    st.session_state.setdefault("active_fid", None)
-    st.session_state.setdefault("active_topic", TOPICS[0])
+    # URL parameter sync on load (Step 13)
+    fid_param = st.query_params.get("fid", None)
+    topic_param = st.query_params.get("topic", TOPICS[0])
+    if topic_param not in TOPICS:
+        topic_param = TOPICS[0]
+
+    st.session_state.setdefault("active_fid", fid_param)
+    st.session_state.setdefault("active_topic", topic_param)
 
     # Tighten the top gap and left-align the hero title for the home page.
     st.markdown(
@@ -437,34 +465,11 @@ def render_districts_profile_page() -> None:
     )
 
     st.markdown(
-        """
-        <div style="
-            font-family: 'Inter', sans-serif;
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 2px;
-            margin-top: 0.2rem;
-            line-height: 1.15;
-        ">Geospatial Visualization for East of England Districts</div>
-        """,
+        '<div class="page-title">Geospatial Visualization for East of England Districts</div>',
         unsafe_allow_html=True,
     )
     st.markdown(
-        """
-        <div style="
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            color: var(--color-text-muted, #64748B);
-            font-weight: 400;
-            margin-bottom: 17px;
-            margin-top: 1.5rem;
-        ">District profile details: persistent map + topic panels + detailed data tables. Analyze and inspect local authority attributes across population demographics, deprivation subdomains, and cancer incidence datasets.</div>
-        """,
+        '<div class="page-body">District profile details: persistent map + topic panels + detailed data tables. Analyze and inspect local authority attributes across population demographics, deprivation subdomains, and cancer incidence datasets.</div>',
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -526,10 +531,24 @@ def render_districts_profile_page() -> None:
     st.markdown(
         """
         <style>
-        /* Sidebar separator: left border + padding on the right panel column */
-        div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div[data-testid="stColumn"]:last-child {
-            border-left: 2px solid var(--color-border, #E2E8F0) !important;
-            padding-left: 1.5rem !important;
+
+        /* Reset card-like styles on nested columns INSIDE the sidebar panel
+           so inner st.columns(2) KPI grids don't get borders/shadows/bg */
+        div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div[data-testid="column"]:last-child div[data-testid="column"],
+        div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div.stColumn:last-child div[data-testid="column"],
+        div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div[data-testid="column"]:last-child div.stColumn,
+        div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div.stColumn:last-child div.stColumn {
+            background-color: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+        }
+        div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div[data-testid="column"]:last-child div[data-testid="column"]:hover,
+        div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div.stColumn:last-child div[data-testid="column"]:hover,
+        div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div[data-testid="column"]:last-child div.stColumn:hover,
+        div[data-testid="stHorizontalBlock"]:has(.sidebar-marker) > div.stColumn:last-child div.stColumn:hover {
+            box-shadow: none !important;
         }
         </style>
         """,
@@ -673,7 +692,9 @@ def render_districts_profile_page() -> None:
                             }
                         )
 
-                    df_subgroups = pd.DataFrame(table_rows)
+                    df_subgroups = pd.DataFrame(table_rows)[
+                        ["Subgroup", "Percentage", "Count", "Broad Group"]
+                    ]
                     st.markdown("---")
                     st.markdown(f"#### 👥 Detailed Ethnic Composition for {name}")
                     st.dataframe(
@@ -773,9 +794,46 @@ def render_districts_profile_page() -> None:
                     try:
                         pop_df = _load_population_overlay()
                         st.markdown("---")
-                        st.subheader("📋 All Authorities — Population Data")
-                        st.write(f"**{len(pop_df)} districts**")
-                        st.dataframe(pop_df.head(50), use_container_width=True)
+                        with st.expander(
+                            "📋 View All Authorities — Population Data", expanded=False
+                        ):
+                            st.write(f"**{len(pop_df)} districts**")
+                            col_config = {
+                                "White: English, Welsh, Scottish, Northern Irish or British (number)": "White British",
+                                "White: Irish (number)": "White Irish",
+                                "White: Gypsy or Irish Traveller (number)": "Gypsy/Traveller",
+                                "White: Roma (number)": "White Roma",
+                                "White: Other White (number)": "Other White",
+                                "Asian, Asian British or Asian Welsh: Indian (number)": "Indian",
+                                "Asian, Asian British or Asian Welsh: Pakistani (number)": "Pakistani",
+                                "Asian, Asian British or Asian Welsh: Bangladeshi (number)": "Bangladeshi",
+                                "Asian, Asian British or Asian Welsh: Chinese (number)": "Chinese",
+                                "Asian, Asian British or Asian Welsh: Other Asian (number)": "Other Asian",
+                                "Black, Black British, Black Welsh, Caribbean or African: African (number)": "African",
+                                "Black, Black British, Black Welsh, Caribbean or African: Caribbean (number)": "Caribbean",
+                                "Black, Black British, Black Welsh, Caribbean or African: Other Black (number)": "Other Black",
+                                "Mixed or Multiple ethnic groups: White and Asian (number)": "White & Asian",
+                                "Mixed or Multiple ethnic groups: White and Black African (number)": "White & Black African",
+                                "Mixed or Multiple ethnic groups: White and Black Caribbean (number)": "White & Black Caribbean",
+                                "Mixed or Multiple ethnic groups: Other Mixed or Multiple ethnic groups (number)": "Other Mixed",
+                                "Other ethnic group: Arab (number)": "Arab",
+                                "Other ethnic group: Any other ethnic group (number)": "Other Ethnic Group",
+                                "Total Population": "Total Population",
+                                "total_population": "Total Population",
+                                "District Name": "District",
+                                "Geography Name": "District",
+                            }
+                            st.dataframe(
+                                pop_df.head(50),
+                                use_container_width=True,
+                                column_config={
+                                    k: st.column_config.NumberColumn(v, format="%d")
+                                    if "number" in k
+                                    or k in ["Total Population", "total_population"]
+                                    else v
+                                    for k, v in col_config.items()
+                                },
+                            )
                     except Exception as exc:
                         st.warning(
                             f"⚠️ Failed to load all authorities population table: {exc}"
@@ -973,6 +1031,19 @@ def render_districts_profile_page() -> None:
             _panel_imd(active_fid, id_to_props)
         elif active_topic == "Cancer Incidence":
             _panel_cancer(active_fid, id_to_props)
+
+
+        import importlib as _importlib
+
+        _ra_module = _importlib.import_module("pages.5_AI_Research_Assistant")
+        _ra_module.render_research_assistant_widget(key_suffix="districts_sidebar")
+
+    # URL Parameter Deep Linking on navigation/interaction (Step 13)
+    if st.session_state.get("active_fid"):
+        st.query_params["fid"] = st.session_state["active_fid"]
+    else:
+        st.query_params.pop("fid", None)
+    st.query_params["topic"] = st.session_state["active_topic"]
 
 
 if __name__ == "__main__":

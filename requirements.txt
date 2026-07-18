@@ -26,4 +26,4 @@ python-dotenv>=1.0.0
 requests>=2.31.0
 
 # Production server
-gunicorn>=21.2.0
+# (Streamlit provides its own ASGI server; gunicorn is unused here)

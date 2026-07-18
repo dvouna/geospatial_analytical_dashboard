@@ -158,11 +158,11 @@ data/semantic_cache.json
 
 # ── Deployment configuration ──────────────────────────────────────────────────
 # .env contains real credentials — never commit.
-# .env.production is a secrets-free template and IS tracked in Git.
+# .env.production.example is a secrets-free template and IS tracked in Git.
 /.env
 /.env.local
 # Explicitly un-ignore the template so it stays in the repo:
-!.env.production
+!.env.production.example
 
 improvement.md
 districts.md

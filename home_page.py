@@ -24,34 +24,11 @@ def render_home_page() -> None:
     )
 
     st.markdown(
-        """
-        <div style="
-            font-family: 'Inter', sans-serif;
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 2px;
-            margin-top: 0.2rem;
-            line-height: 1.15;
-        ">Cancer Health Equity Dashboard For East of England</div>
-        """,
+        '<div class="page-title">Cancer Health Equity Dashboard For East of England</div>',
         unsafe_allow_html=True,
     )
     st.markdown(
-        """
-        <div style="
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            color: var(--color-text-muted, #64748B);
-            font-weight: 500;
-            margin-bottom: 10px;
-            margin-top: 1.5rem;
-        ">Welcome to the East of England Cancer Health Equity Explorer. This analytical dashboard integrates geospatial and statistical data on population, deprivation subdomains, and cancer incidence. Its primary objective is to assist public health analysts, researchers and policymakers in identifying deprived communities that would benefit from targeted interventions to improve cancer outcomes.</div>
-        """,
+        '<div class="page-body">Welcome to the East of England Cancer Health Equity Explorer. This analytical dashboard integrates geospatial and statistical data on population, deprivation subdomains, and cancer incidence. Its primary objective is to assist public health analysts, researchers and policymakers in identifying deprived communities that would benefit from targeted interventions to improve cancer outcomes.</div>',
         unsafe_allow_html=True,
     )
 
@@ -65,9 +42,8 @@ def render_home_page() -> None:
         - **Population Demographics**: Playgrounds comparing ethnic subgroup distributions across districts.
         - **Deprivation Analysis**: Exploration of Indices of Multiple Deprivation (IMD) 2025 subdomains and regional distributions.
         - **Cancer Trends**: Statistics and age-standardised rates of various cancer types across the region.
-        - **AI Research Assistant**: A conversational assistant powered by Google Gemini to analyze and query the integrated datasets.
-        
-        Please expand the left navigation menu to explore these analytical tools.
+        - **Research Assistant**: A conversational assistant powered by Google Gemini to analyze and query the integrated datasets.
+        Please use the top navigation menu (or the dropdown on mobile) to explore these analytical tools.
         """
     )
 
