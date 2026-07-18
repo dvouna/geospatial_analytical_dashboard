@@ -26,6 +26,7 @@ from map_utils import (
     extract_clicked_fid,
     render_map_st_folium,
 )
+from utils.device import get_is_mobile
 
 
 MAP_METRICS = {
@@ -36,7 +37,7 @@ MAP_METRICS = {
         "Total Population": ("Total Population", "YlGn"),
         "White Groups Total": ("All White Groups (Total)", "YlGn"),
         "Asian Groups Total": ("All Asians (Total)", "YlGn"),
-        "Black Groups Total": ("All Balcks (Total)", "YlGn"),
+        "Black Groups Total": ("All Blacks (Total)", "YlGn"),
         "Mixed Groups Total": ("All Mixed Ethnic Groups (Total)", "YlGn"),
         "Other Ethnic Groups Total": ("Other Ethnic Groups (Total)", "YlGn")
     },
@@ -130,8 +131,8 @@ def render_persistent_map(
         )
         metric_field, colormap_name = None, None
     else:
-        col_sel1, col_sel2 = st.columns([1, 1])
-        with col_sel1:
+        # ── Choropleth selectors — stacked on mobile, side-by-side on desktop ──
+        if get_is_mobile():
             selected_index = 0
             if active_fid and active_fid in id_to_display:
                 display_name = id_to_display[active_fid]
@@ -143,18 +144,42 @@ def render_persistent_map(
                 options=options,
                 index=selected_index,
                 key="map_authority_select",
-                help="Select a district in the East of England to zoom in and view specific data. You can also click directly on the map.",
+                help="Select a district to zoom in and view specific data. You can also click directly on the map.",
             )
-
-        with col_sel2:
             topic_metrics = MAP_METRICS.get(active_topic, {"None (Simple Outline)": (None, None)})
             selected_metric_label = st.selectbox(
                 "Color map by metric:",
                 options=list(topic_metrics.keys()),
                 key="choropleth_metric_select",
-                help="Choose which variable colors the map. The darker the shade, the higher the value. The selected district stands out with a thick boundary.",
+                help="Choose which variable colors the map.",
             )
             metric_field, colormap_name = topic_metrics[selected_metric_label]
+        else:
+            col_sel1, col_sel2 = st.columns([1, 1])
+            with col_sel1:
+                selected_index = 0
+                if active_fid and active_fid in id_to_display:
+                    display_name = id_to_display[active_fid]
+                    if display_name in options:
+                        selected_index = options.index(display_name)
+
+                selected_display = st.selectbox(
+                    "Select an authority:",
+                    options=options,
+                    index=selected_index,
+                    key="map_authority_select",
+                    help="Select a district in the East of England to zoom in and view specific data. You can also click directly on the map.",
+                )
+
+            with col_sel2:
+                topic_metrics = MAP_METRICS.get(active_topic, {"None (Simple Outline)": (None, None)})
+                selected_metric_label = st.selectbox(
+                    "Color map by metric:",
+                    options=list(topic_metrics.keys()),
+                    key="choropleth_metric_select",
+                    help="Choose which variable colors the map. The darker the shade, the higher the value. The selected district stands out with a thick boundary.",
+                )
+                metric_field, colormap_name = topic_metrics[selected_metric_label]
 
     # Selectbox change → propagate to session state and refresh right panel.
     if selected_display:
@@ -184,10 +209,12 @@ def render_persistent_map(
         choropleth_metric=metric_field,
         colormap_name=colormap_name or "YlOrRd",
     )
+    # ── Render folium map — 350px on mobile, 620px on desktop ─────────────────
+    map_height = 350 if get_is_mobile() else 620
     map_output = render_map_st_folium(
         m,
         width="100%",
-        height=620,
+        height=map_height,
         returned_objects=["last_object_clicked", "last_object_clicked_tooltip", "last_active_drawing"],
     )
 
@@ -196,3 +223,4 @@ def render_persistent_map(
     if clicked_fid and clicked_fid != active_fid:
         st.session_state["active_fid"] = clicked_fid
         st.rerun(scope="app")
+

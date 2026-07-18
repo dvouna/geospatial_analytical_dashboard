@@ -137,47 +137,16 @@ def _generate_and_save_insights(loaded: dict[str, pd.DataFrame]) -> str:
 
 
 def render_general_insights_page():
-    try:
-        st.set_page_config(
-            page_title="General Insights",
-            page_icon="💡",
-            layout="wide",
-            initial_sidebar_state="collapsed",
-        )
-    except Exception:
-        pass
+
 
 
 
     st.markdown(
-        """
-        <div style="
-            font-family: 'Inter', sans-serif;
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 2px;
-            margin-top: 0.2rem;
-            line-height: 1.15;
-        ">General Insights</div>
-        """,
+        '<div class="page-title">General Insights</div>',
         unsafe_allow_html=True,
     )
     st.markdown(
-        """
-        <div style="
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            color: var(--color-text-muted, #64748B);
-            font-weight: 400;
-            margin-bottom: 18px;
-            margin-top: 2px;
-        ">Pre-generated public health and cancer trends insights for the East of England.</div>
-        """,
+        '<div class="page-body">Pre-generated public health and cancer trends insights for the East of England.</div>',
         unsafe_allow_html=True,
     )
 
@@ -223,12 +192,15 @@ def render_general_insights_page():
     st.divider()
 
     # ── Composite Vulnerability League Table ──────────────────────────────────
-    st.subheader("🏆 Priority for Intervention — Composite Vulnerability Score")
     st.write(
         "Districts ranked by a composite score that combines IMD rank, overall cancer rate, "
         "and non-White population proportion. Higher score = greater need for targeted early-detection efforts."
     )
     _render_vulnerability_table(loaded)
+
+    st.markdown("---")
+    from utils.glossary import GLOSSARY_MD
+    st.markdown(GLOSSARY_MD)
 
 
 def _render_vulnerability_table(loaded: dict) -> None:
@@ -291,7 +263,7 @@ def _render_vulnerability_table(loaded: dict) -> None:
                 "Mixed Sum",
                 "Others Sum",
                 "All Asians (Total)",
-                "All Balcks (Total)",
+                "All Blacks (Total)",
                 "All Mixed Ethnic Groups (Total)",
                 "Other Ethnic Groups (Total)",
             ]
@@ -382,3 +354,4 @@ def _render_vulnerability_table(loaded: dict) -> None:
 
 if __name__ == "__main__":
     render_general_insights_page()
+

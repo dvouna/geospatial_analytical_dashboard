@@ -54,8 +54,13 @@ PLOTLY_LIGHT_LAYOUT = dict(
         bordercolor="#E2E8F0",
         borderwidth=1,
         font=dict(size=12, color="#334155"),
+        orientation="v",
+        xanchor="left",
+        x=1.02,
+        y=1,
+        yanchor="top",
     ),
-    margin=dict(t=48, b=32, l=16, r=16),
+    margin=dict(t=48, b=32, l=16, r=120),
     hoverlabel=dict(
         bgcolor="#0F172A",
         font_color="#F8FAFC",
@@ -65,13 +70,61 @@ PLOTLY_LIGHT_LAYOUT = dict(
 )
 
 
+# Mobile-optimised layout with scaled typography and margins.
+PLOTLY_MOBILE_LAYOUT = dict(
+    font=dict(family="Inter, sans-serif", size=10, color="#334155"),
+    title_font=dict(family="Inter, sans-serif", size=12, color="#0F172A"),
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    colorway=FLC26_QUALITATIVE,
+    xaxis=dict(
+        gridcolor="#E2E8F0",
+        linecolor="#E2E8F0",
+        tickfont=dict(size=9, color="#64748B"),
+        title_font=dict(size=9, color="#475569"),
+    ),
+    yaxis=dict(
+        gridcolor="#E2E8F0",
+        linecolor="#E2E8F0",
+        tickfont=dict(size=9, color="#64748B"),
+        title_font=dict(size=9, color="#475569"),
+    ),
+    legend=dict(
+        bgcolor="rgba(255,255,255,0.85)",
+        bordercolor="#E2E8F0",
+        borderwidth=1,
+        font=dict(size=9, color="#334155"),
+        orientation="h",
+        yanchor="bottom",
+        y=-0.4,
+        xanchor="center",
+        x=0.5,
+    ),
+    margin=dict(t=40, b=24, l=8, r=8),
+    hoverlabel=dict(
+        bgcolor="#0F172A",
+        font_color="#F8FAFC",
+        font_size=10,
+        bordercolor="#0F172A",
+    ),
+)
+
+
+def get_plotly_layout() -> dict:
+    """Return the mobile-optimized or desktop layout dictionary based on the device type."""
+    from utils.device import get_is_mobile
+    if get_is_mobile():
+        return PLOTLY_MOBILE_LAYOUT
+    return PLOTLY_LIGHT_LAYOUT
+
+
 # ── Chart builder functions ───────────────────────────────────────────────────
 
 def create_line_chart(df: pd.DataFrame, x_col: str, y_col: str, title: str = "Line Chart"):
     """Create an interactive line chart with Plotly."""
     fig = px.line(df, x=x_col, y=y_col, title=title, markers=True,
                   color_discrete_sequence=FLC26_QUALITATIVE)
-    fig.update_layout(hovermode="x unified", **PLOTLY_LIGHT_LAYOUT)
+    fig.update_layout(hovermode="x unified", **get_plotly_layout())
     return fig
 
 
@@ -79,7 +132,7 @@ def create_bar_chart(df: pd.DataFrame, x_col: str, y_col: str, title: str = "Bar
     """Create an interactive bar chart with Plotly."""
     fig = px.bar(df, x=x_col, y=y_col, title=title,
                  color_discrete_sequence=FLC26_QUALITATIVE)
-    fig.update_layout(hovermode="x unified", **PLOTLY_LIGHT_LAYOUT)
+    fig.update_layout(hovermode="x unified", **get_plotly_layout())
     return fig
 
 
@@ -93,7 +146,7 @@ def create_scatter_chart(
     """Create an interactive scatter plot with Plotly."""
     fig = px.scatter(df, x=x_col, y=y_col, color=color_col, title=title,
                      color_discrete_sequence=FLC26_QUALITATIVE)
-    fig.update_layout(hovermode="closest", **PLOTLY_LIGHT_LAYOUT)
+    fig.update_layout(hovermode="closest", **get_plotly_layout())
     return fig
 
 
@@ -101,7 +154,7 @@ def create_histogram(df: pd.DataFrame, col: str, nbins: int = 30, title: str = "
     """Create an interactive histogram with Plotly."""
     fig = px.histogram(df, x=col, nbins=nbins, title=title,
                        color_discrete_sequence=FLC26_QUALITATIVE)
-    fig.update_layout(hovermode="x unified", **PLOTLY_LIGHT_LAYOUT)
+    fig.update_layout(hovermode="x unified", **get_plotly_layout())
     return fig
 
 
@@ -109,7 +162,7 @@ def create_pie_chart(df: pd.DataFrame, names_col: str, values_col: str, title: s
     """Create an interactive pie chart with Plotly."""
     fig = px.pie(df, names=names_col, values=values_col, title=title,
                  color_discrete_sequence=FLC26_QUALITATIVE)
-    fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
+    fig.update_layout(**get_plotly_layout())
     return fig
 
 
@@ -122,7 +175,7 @@ def create_box_plot(
     """Create an interactive box plot with Plotly."""
     fig = px.box(df, y=y_col, x=x_col, title=title,
                  color_discrete_sequence=FLC26_QUALITATIVE)
-    fig.update_layout(**PLOTLY_LIGHT_LAYOUT)
+    fig.update_layout(**get_plotly_layout())
     return fig
 
 
@@ -138,7 +191,7 @@ def create_heatmap(df: pd.DataFrame, title: str = "Correlation Heatmap"):
         colorscale="RdBu_r",
         zmid=0,
     ))
-    layout = dict(**PLOTLY_LIGHT_LAYOUT)
+    layout = dict(**get_plotly_layout())
     layout["height"] = 600
     layout["title"] = title
     fig.update_layout(**layout)

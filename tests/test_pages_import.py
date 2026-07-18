@@ -55,7 +55,6 @@ def _make_tiny_gdf() -> gpd.GeoDataFrame:
     [
         "map_utils",
         "config",
-        "data_loader",
         "utils",
     ],
 )

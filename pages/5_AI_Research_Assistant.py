@@ -262,47 +262,15 @@ EXAMPLE_QUERIES = [
 
 def render_research_assistant_page():
     st.session_state.setdefault("ra_chat_history", [])
-    try:
-        st.set_page_config(
-            page_title="Research Assistant",
-            page_icon="🤖",
-            layout="wide",
-            initial_sidebar_state="collapsed",
-        )
-    except Exception:
-        pass
 
 
 
     st.markdown(
-        """
-        <div style="
-            font-family: 'Inter', sans-serif;
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #1F77B4 0%, #6941C6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 2px;
-            margin-top: 0.2rem;
-            line-height: 1.15;
-        ">Research Assistant</div>
-        """,
+        '<div class="page-title">Research Assistant</div>',
         unsafe_allow_html=True,
     )
     st.markdown(
-        """
-        <div style="
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            color: var(--color-text-muted, #64748B);
-            font-weight: 400;
-            margin-bottom: 18px;
-            margin-top: 2px;
-        ">Ask questions across the East of England cancer, population, and deprivation datasets. Powered by Google Gemini.</div>
-        """,
+        '<div class="page-body">Ask questions across the East of England cancer, population, and deprivation datasets. Powered by Google Gemini.</div>',
         unsafe_allow_html=True,
     )
 
@@ -335,22 +303,72 @@ def render_research_assistant_page():
     cache_manager = SemanticCodeCache()
 
     # ── Ask a Question ────────────────────────────────────────────────────────
-    st.subheader("Example questions for the research assistant")
+    from utils.device import get_is_mobile
 
-    for q in EXAMPLE_QUERIES:
-        st.markdown(f"- {q}")
+    if not get_is_mobile():
+        col_chat, col_context = st.columns([58, 42], gap="large")
+    else:
+        col_chat = st.container()
+        col_context = None
 
-    # Render previous conversation history
-    for chat in st.session_state["ra_chat_history"]:
-        with st.chat_message(chat["role"]):
-            st.markdown(chat["content"])
-            if "df" in chat and chat["df"] is not None:
-                st.dataframe(chat["df"], width="stretch")
-            if "metric" in chat and chat["metric"] is not None:
-                st.metric("Calculation Result", chat["metric"])
+    with col_chat:
+        with st.expander("💡 Example questions", expanded=not get_is_mobile()):
+            for q in EXAMPLE_QUERIES:
+                st.markdown(f"- {q}")
 
-    # User input chat bar
-    user_query = st.chat_input("Ask about East of England public health...")
+        # Render previous conversation history
+        if get_is_mobile() and len(st.session_state["ra_chat_history"]) > 0:
+            history_container = st.container(height=400)
+        else:
+            history_container = st.container()
+
+        with history_container:
+            for chat in st.session_state["ra_chat_history"]:
+                with st.chat_message(chat["role"]):
+                    st.markdown(chat["content"])
+                    if "df" in chat and chat["df"] is not None:
+                        st.dataframe(chat["df"], width="stretch")
+                    if "metric" in chat and chat["metric"] is not None:
+                        st.metric("Calculation Result", chat["metric"])
+
+        # User input chat bar
+        user_query = st.chat_input("Ask about East of England public health...")
+
+    if col_context:
+        with col_context:
+            st.markdown("### 📋 Analyst Context Panel")
+
+            # Show last query statistics if any
+            if st.session_state["ra_chat_history"]:
+                last_assistant_msg = next(
+                    (
+                        c
+                        for c in reversed(st.session_state["ra_chat_history"])
+                        if c["role"] == "assistant"
+                    ),
+                    None,
+                )
+                if last_assistant_msg:
+                    st.success("🤖 **Last Response Generated**")
+                    st.text_area(
+                        "Copy last explanation:",
+                        value=last_assistant_msg["content"],
+                        height=200,
+                        key="last_resp_textarea",
+                    )
+
+            st.markdown("#### 🗄️ Available Datasets & Schema")
+            st.info(
+                "• **Index of Multiple Deprivation 2025**: Ranks for all 7 subdomains across all districts.\n"
+                "• **Population Demographics**: Census population counts segmented by ethnic subgroups.\n"
+                "• **Cancer Incidence rates**: ONS age-standardised Crude Rates and 95% Confidence Intervals (2018-2022)."
+            )
+            st.markdown("#### 💡 Tips for Prompting")
+            st.write(
+                "1. Be specific about the cancer type (e.g. *lung*, *breast*, *skin*).\n"
+                "2. Ask for comparisons between specific districts (e.g. *'Compare deprivation in Norwich and Ipswich'*).\n"
+                "3. You can request mathematical aggregates (e.g. *'What is the average breast cancer rate across the top 10 most deprived districts?'*)."
+            )
 
     if user_query:
         # Reject oversized inputs before any API call to prevent token-cost
@@ -545,7 +563,7 @@ def render_research_assistant_page():
 
 def render_research_assistant_widget(key_suffix: str = ""):
     """Render a compact, conversational version of the AI Research Assistant for a sidebar/column panel."""
-    st.subheader("🔬 Research Assistant")
+    st.subheader("Research Assistant")
     st.session_state.setdefault("ra_chat_history", [])
 
     # Load datasets
@@ -565,18 +583,7 @@ def render_research_assistant_widget(key_suffix: str = ""):
 
     cache_manager = SemanticCodeCache()
 
-    # Clear chat button in widget
-    col_w1, col_w2 = st.columns([2, 1])
-    with col_w2:
-        if st.button(
-            "🧹 Clear Chat",
-            key=f"ra_widget_clear_{key_suffix}",
-            use_container_width=True,
-        ):
-            st.session_state["ra_chat_history"] = []
-            st.rerun()
-    with col_w1:
-        st.caption("Shared conversation history")
+    st.caption("Shared conversation history")
 
     # Render history inside a scrollable container of fixed height
     with st.container(height=300):
