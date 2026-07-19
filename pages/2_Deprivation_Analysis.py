@@ -1,5 +1,4 @@
 import streamlit as st
-from utils.device import get_is_mobile
 import pandas as pd
 from visualizer import render_plotly_chart
 import plotly.express as px
@@ -15,7 +14,6 @@ from visualizer import (
     create_scatter_chart,
     create_heatmap,
     FLC26_QUALITATIVE,
-    get_plotly_layout,
 )
 from gemini_queries import render_ai_insights
 from utils.data_loader_cancer import get_cancer_overall_df

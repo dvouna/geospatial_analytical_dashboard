@@ -1,7 +1,6 @@
 import streamlit as st
 from utils.device import get_is_mobile
 import pandas as pd
-from visualizer import render_plotly_chart
 from utils.data_processing import clean_numeric
 import geopandas as gpd
 import plotly.express as px
@@ -15,7 +14,6 @@ from visualizer import (
     create_bar_chart,
     create_scatter_chart,
     FLC26_QUALITATIVE,
-    get_plotly_layout,
 )
 from utils.data_loader_cancer import (
     get_cancer_overall_df,

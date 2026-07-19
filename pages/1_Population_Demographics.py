@@ -1,5 +1,4 @@
 import streamlit as st
-from utils.device import get_is_mobile
 import pandas as pd
 from visualizer import render_plotly_chart
 from utils.data_processing import clean_numeric
@@ -15,7 +14,6 @@ from visualizer import (
     create_histogram,
     create_box_plot,
     FLC26_QUALITATIVE,
-    get_plotly_layout,
 )
 from gemini_queries import render_ai_insights
 
