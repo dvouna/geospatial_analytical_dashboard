@@ -118,6 +118,22 @@ def get_plotly_layout() -> dict:
     return PLOTLY_LIGHT_LAYOUT
 
 
+def render_plotly_chart(fig: go.Figure, **kwargs):
+    """
+    Renders a Plotly chart in Streamlit using standard configurations.
+    Applies the global layout and standardizes the display mode bar.
+    """
+    from utils.device import get_is_mobile
+    fig.update_layout(**get_plotly_layout())
+    
+    config = kwargs.pop("config", {})
+    config.setdefault("displayModeBar", not get_is_mobile())
+    
+    use_container_width = kwargs.pop("use_container_width", True)
+    
+    st.plotly_chart(fig, use_container_width=use_container_width, config=config, **kwargs)
+
+
 # ── Chart builder functions ───────────────────────────────────────────────────
 
 def create_line_chart(df: pd.DataFrame, x_col: str, y_col: str, title: str = "Line Chart"):

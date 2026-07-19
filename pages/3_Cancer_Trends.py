@@ -1,6 +1,8 @@
 import streamlit as st
 from utils.device import get_is_mobile
 import pandas as pd
+from visualizer import render_plotly_chart
+from utils.data_processing import clean_numeric
 import geopandas as gpd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -70,13 +72,6 @@ AGE_BANDS = [
 ]
 
 
-def _clean_numeric(df: pd.DataFrame, cols: list) -> pd.DataFrame:
-    for c in cols:
-        if c in df.columns:
-            df[c] = pd.to_numeric(
-                df[c].astype(str).str.replace(",", "").str.strip(), errors="coerce"
-            )
-    return df
 
 
 def render_cancer_trends():
@@ -146,9 +141,9 @@ def render_cancer_trends():
         "95% lower confidence interval",
         "95% upper confidence interval",
     ]
-    overall_df = _clean_numeric(overall_df, numeric_overall)
+    overall_df = clean_numeric(overall_df, numeric_overall)
     if not top5_df.empty:
-        top5_df = _clean_numeric(top5_df, AGE_BANDS + ["All ages"])
+        top5_df = clean_numeric(top5_df, AGE_BANDS + ["All ages"])
 
     col_content, col_sidebar = st.columns([7.3, 2.7], gap="large")
     with col_sidebar:
@@ -285,8 +280,8 @@ def render_cancer_trends():
                             },
                             color_discrete_sequence=FLC26_QUALITATIVE,
                         )
-                        fig.update_layout(**get_plotly_layout())
-                        fig.update_layout(height=500, hovermode="x unified")
+                        fig.update_layout(
+            height=500, hovermode="x unified")
                         st.plotly_chart(
                             fig,
                             use_container_width=True,
@@ -346,7 +341,6 @@ def render_cancer_trends():
                             )
                         )
 
-                        fig.update_layout(**get_plotly_layout())
                         fig.update_layout(
                             title="Overall Standardised Cancer Rates with 95% CI",
                             xaxis_title="District",
@@ -509,7 +503,6 @@ def render_cancer_trends():
                     marker_color=CANCER_COLORS.get(cancer, None),
                 )
             )
-        fig.update_layout(**get_plotly_layout())
         fig.update_layout(
             barmode="stack",
             title="Cancer Type Composition by District",
@@ -628,7 +621,6 @@ def render_cancer_trends():
                     markers=True,
                     color_discrete_sequence=FLC26_QUALITATIVE,
                 )
-                fig_trend.update_layout(**get_plotly_layout())
                 fig_trend.update_layout(
                     xaxis=dict(tickmode="linear", tick0=2018, dtick=1),
                     hovermode="x unified",
@@ -738,7 +730,6 @@ def render_cancer_trends():
                                 textposition="outside",
                             )
                         )
-                        fig.update_layout(**get_plotly_layout())
                         fig.update_layout(
                             title=f"{sel_cancer} Diagnoses by Age Group — {sel_districts[0]}",
                             xaxis_title="Age Band",
@@ -784,8 +775,8 @@ def render_cancer_trends():
                             },
                             color_discrete_sequence=FLC26_QUALITATIVE,
                         )
-                        fig.update_layout(**get_plotly_layout())
-                        fig.update_layout(height=440, hovermode="x unified")
+                        fig.update_layout(
+            height=440, hovermode="x unified")
                         st.plotly_chart(
                             fig,
                             width="stretch",
@@ -831,8 +822,8 @@ def render_cancer_trends():
                             title=f"{sel_cancer} — All Districts, Stacked by Age Band",
                             color_discrete_sequence=px.colors.sequential.Viridis,
                         )
-                        fig2.update_layout(**get_plotly_layout())
-                        fig2.update_layout(xaxis_tickangle=-45, height=500)
+                        fig2.update_layout(
+            xaxis_tickangle=-45, height=500)
                         st.plotly_chart(
                             fig2,
                             width="stretch",
@@ -895,7 +886,6 @@ def render_cancer_trends():
                     name="Overall Rate",
                 )
             )
-            fig.update_layout(**get_plotly_layout())
             fig.update_layout(
                 title="Overall Standardised Cancer Rate with 95% CI",
                 xaxis_title="District",
@@ -944,8 +934,8 @@ def render_cancer_trends():
             title="Incidence Rate Heatmap — Cancer Type × District",
             aspect="auto",
         )
-        fig.update_layout(**get_plotly_layout())
-        fig.update_layout(height=360, xaxis_tickangle=-45)
+        fig.update_layout(
+            height=360, xaxis_tickangle=-45)
         fig.update_traces(colorbar_title_text="Rate (per 100k)")
         st.plotly_chart(
             fig,
@@ -982,7 +972,6 @@ def render_cancer_trends():
             color_col=color_col,
             title=f"Overall Rate vs {selected_specific.capitalize()} Rate",
         )
-        fig.update_layout(**get_plotly_layout())
         fig.update_layout(
             xaxis_title="Overall Cancer Rate (per 100k)",
             yaxis_title=f"{selected_specific.capitalize()} Rate",

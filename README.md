@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat-square&logo=Streamlit&logoColor=white)
 ![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75C2?style=flat-square&logo=googlegemini&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-27%20Passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)
+![Tests](https://img.shields.io/badge/Tests-28%20Passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)
 ![Linter](https://img.shields.io/badge/Linter-Ruff-black?style=flat-square&logo=ruff&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
@@ -33,12 +33,15 @@ This dashboard is designed to assist public health analysts and policymakers in 
 ├── map_fragment.py         # Leaflet/Folium map rendering component
 ├── map_utils.py            # GIS, GeoJSON, and data-merge helpers
 ├── visualizer.py           # Shared Plotly charts and layout configurations
+├── gemini_queries.py       # Core Gemini prompt generation and query logic
 ├── data/                   # Local authority GeoJSON and CSV datasets
 ├── pages/                  # Dashboard analytical playgrounds
 │   ├── 1_Population_Demographics.py
 │   ├── 2_Deprivation_Analysis.py
 │   ├── 3_Cancer_Trends.py
-│   └── 5_AI_Research_Assistant.py
+│   ├── 4_General_Insights.py
+│   ├── 5_AI_Research_Assistant.py
+│   └── Districts_Profile.py
 ├── utils/                  # Shared backend utilities
 │   ├── code_cache.py       # Semantic code cache manager
 │   ├── data_loader_cancer.py # Public health & cancer dataset loader
@@ -74,6 +77,21 @@ GEMINI_MODEL="gemini-2.5-flash"
 ### 4. Run the Streamlit Dashboard
 ```powershell
 streamlit run app.py
+```
+Open **`http://localhost:8501`** in your browser.
+
+---
+
+## Quick Start (Docker)
+
+You can also run the application fully containerised using Docker Compose. This ensures a consistent environment and automatic port mapping.
+
+### 1. Configure Environment
+Copy `.env.production.example` to `.env` and fill in your `GEMINI_API_KEY`.
+
+### 2. Build and Run
+```powershell
+docker compose up -d
 ```
 Open **`http://localhost:8501`** in your browser.
 

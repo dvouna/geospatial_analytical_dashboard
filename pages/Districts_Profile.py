@@ -144,43 +144,6 @@ def load_map_data() -> tuple:
     return geojson_payload, options, option_to_id, id_to_display, id_to_props, center
 
 
-@st.cache_data
-def _load_population_overlay() -> pd.DataFrame:
-    return load_overlay_dataframe(DATA_DIR / "population_detail.csv", index_col="fid")
-
-
-@st.cache_data
-def _load_districts_overlay() -> pd.DataFrame:
-    """Load base district attributes from the GeoJSON (no geometry)."""
-    import geopandas as gpd
-
-    gdf = gpd.read_file(str(DATA_DIR / "base_gdf_1.geojson"))
-    return pd.DataFrame(gdf.drop(columns="geometry"))
-
-
-@st.cache_data
-def _load_cancer_overlay() -> pd.DataFrame:
-    try:
-        return get_cancer_overall_df(year_filter="all")
-    except Exception:
-        return pd.DataFrame()
-
-
-@st.cache_data
-def _load_top5_overlay() -> pd.DataFrame:
-    try:
-        return get_cancer_top5_df(year_filter="all")
-    except Exception:
-        return pd.DataFrame()
-
-
-@st.cache_data
-def _load_iod_overlay() -> pd.DataFrame:
-    try:
-        return load_overlay_dataframe(DATA_DIR / "iod_2025.csv")
-    except FileNotFoundError:
-        return pd.DataFrame()
-
 
 def _get_clean_kpi_value(props: dict, key: str) -> str:
     """Safely retrieve, clean (commas/spaces/newlines), and format numeric KPI values from geojson properties."""
@@ -260,9 +223,8 @@ def _panel_overview(active_fid: str | None, id_to_props: dict) -> None:
         )
 
         try:
-            df = _load_districts_overlay()
-            st.metric("Total Districts Analyzed", len(df))
-        except FileNotFoundError:
+            st.metric("Total Districts Analyzed", len(id_to_props))
+        except Exception:
             pass
 
 
@@ -271,9 +233,9 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
     st.markdown("#### District Population Profile")
 
     try:
-        _load_population_overlay()
+        load_overlay_dataframe(DATA_DIR / "population_detail.csv", index_col="fid")
     except FileNotFoundError:
-        st.error("❌ `population_detail.csv` not found in the data directory.")
+        st.warning("⚠️ Population dataset not found.")
         return
 
     if active_fid:
@@ -297,14 +259,6 @@ def _panel_population(active_fid: str | None, id_to_props: dict) -> None:
             others_val = _get_clean_kpi_value(props, "Other Ethnic Groups (Total)")
             render_kpi_card("Others Group", others_val)
 
-        # AI Research Assistant widget under KPI cards
-        st.markdown("---")
-        st.subheader("Research Assistant")
-        import importlib
-
-        module = importlib.import_module("pages.5_AI_Research_Assistant")
-        module.render_research_assistant_widget(key_suffix="districts_population_panel")
-
     else:
         st.info("Select an authority on the map to view its population profile.")
 
@@ -314,9 +268,9 @@ def _panel_imd(active_fid: str | None, id_to_props: dict) -> None:
     st.markdown("#### Index of Multiple Deprivation")
 
     try:
-        _load_iod_overlay()
+        load_overlay_dataframe(DATA_DIR / "iod_2025.csv")
     except FileNotFoundError:
-        st.error("❌ `iod_2025.csv` not found in the data directory.")
+        st.warning("⚠️ Deprivation dataset not found.")
         return
 
     if active_fid:
@@ -582,85 +536,49 @@ def render_districts_profile_page() -> None:
                         (
                             "White British",
                             "White Group",
-                            "White: English, Welsh, Scottish, Northern Irish or British (number)",
+                            "White: English, Welsh, Scottish, Northern Irish or British",
                         ),
-                        ("White Irish", "White Group", "White: Irish (number)"),
+                        ("White Irish", "White Group", "White: Irish"),
                         (
                             "Gypsy or Irish Traveller",
                             "White Group",
-                            "White: Gypsy or Irish Traveller (number)",
+                            "White: Gypsy or Irish Traveller",
                         ),
-                        ("White Roma", "White Group", "White: Roma (number)"),
-                        ("Other White", "White Group", "White: Other White (number)"),
+                        ("White Roma", "White Group", "White: Roma"),
+                        ("Other White", "White Group", "White: Other Whites"),
                         # Asian Group
-                        (
-                            "Indian",
-                            "Asian Group",
-                            "Asian, Asian British or Asian Welsh: Indian (number)",
-                        ),
-                        (
-                            "Pakistani",
-                            "Asian Group",
-                            "Asian, Asian British or Asian Welsh: Pakistani (number)",
-                        ),
-                        (
-                            "Bangladeshi",
-                            "Asian Group",
-                            "Asian, Asian British or Asian Welsh: Bangladeshi (number)",
-                        ),
-                        (
-                            "Chinese",
-                            "Asian Group",
-                            "Asian, Asian British or Asian Welsh: Chinese (number)",
-                        ),
-                        (
-                            "Other Asian",
-                            "Asian Group",
-                            "Asian, Asian British or Asian Welsh: Other Asian (number)",
-                        ),
+                        ("Indian", "Asian Group", "Asian: Indian"),
+                        ("Pakistani", "Asian Group", "Asian: Pakistani"),
+                        ("Bangladeshi", "Asian Group", "Asian: Bangladeshi"),
+                        ("Chinese", "Asian Group", "Asian: Chinese"),
+                        ("Other Asian", "Asian Group", "Asian: Others"),
                         # Black Group
-                        (
-                            "African",
-                            "Black Group",
-                            "Black, Black British, Black Welsh, Caribbean or African: African (number)",
-                        ),
-                        (
-                            "Caribbean",
-                            "Black Group",
-                            "Black, Black British, Black Welsh, Caribbean or African: Caribbean (number)",
-                        ),
-                        (
-                            "Other Black",
-                            "Black Group",
-                            "Black, Black British, Black Welsh, Caribbean or African: Other Black (number)",
-                        ),
+                        ("African", "Black Group", "Black: African"),
+                        ("Caribbean", "Black Group", "Black: Caribbean"),
+                        ("Other Black", "Black Group", "Black: Others"),
                         # Mixed Group
                         (
                             "White & Asian",
                             "Mixed Group",
-                            "Mixed or Multiple ethnic groups: White and Asian (number)",
+                            "Mixed Ethnic Group: White and Asian",
                         ),
                         (
                             "White & Black African",
                             "Mixed Group",
-                            "Mixed or Multiple ethnic groups: White and Black African (number)",
+                            "Mixed Ethnic Group: White and Black African",
                         ),
                         (
                             "White & Black Caribbean",
                             "Mixed Group",
-                            "Mixed or Multiple ethnic groups: White and Black Caribbean (number)",
+                            "Mixed Ethnic Group: White and Black Caribbean",
                         ),
-                        (
-                            "Other Mixed",
-                            "Mixed Group",
-                            "Mixed or Multiple ethnic groups: Other Mixed or Multiple ethnic groups (number)",
-                        ),
+                        ("Other Mixed", "Mixed Group", "Mixed Ethnic Group: Others"),
                         # Others Group
-                        ("Arab", "Others Group", "Other ethnic group: Arab (number)"),
+                        ("Arab", "Others Group", "Other Ethnic Groups: Arab"),
                         (
                             "Any other ethnic group",
                             "Others Group",
-                            "Other ethnic group: Any other ethnic group (number)",
+                            "Other Ethnic Groups: Any other",
                         ),
                     ]
 
@@ -701,75 +619,45 @@ def render_districts_profile_page() -> None:
                         "White Group": [
                             (
                                 "White British",
-                                "White: English, Welsh, Scottish, Northern Irish or British (number)",
+                                "White: English, Welsh, Scottish, Northern Irish or British",
                             ),
-                            ("White Irish", "White: Irish (number)"),
+                            ("White Irish", "White: Irish"),
                             (
                                 "Gypsy or Irish Traveller",
-                                "White: Gypsy or Irish Traveller (number)",
+                                "White: Gypsy or Irish Traveller",
                             ),
-                            ("White Roma", "White: Roma (number)"),
-                            ("Other White", "White: Other White (number)"),
+                            ("White Roma", "White: Roma"),
+                            ("Other White", "White: Other Whites"),
                         ],
                         "Asian Group": [
-                            (
-                                "Indian",
-                                "Asian, Asian British or Asian Welsh: Indian (number)",
-                            ),
-                            (
-                                "Pakistani",
-                                "Asian, Asian British or Asian Welsh: Pakistani (number)",
-                            ),
-                            (
-                                "Bangladeshi",
-                                "Asian, Asian British or Asian Welsh: Bangladeshi (number)",
-                            ),
-                            (
-                                "Chinese",
-                                "Asian, Asian British or Asian Welsh: Chinese (number)",
-                            ),
-                            (
-                                "Other Asian",
-                                "Asian, Asian British or Asian Welsh: Other Asian (number)",
-                            ),
+                            ("Indian", "Asian: Indian"),
+                            ("Pakistani", "Asian: Pakistani"),
+                            ("Bangladeshi", "Asian: Bangladeshi"),
+                            ("Chinese", "Asian: Chinese"),
+                            ("Other Asian", "Asian: Others"),
                         ],
                         "Black Group": [
-                            (
-                                "African",
-                                "Black, Black British, Black Welsh, Caribbean or African: African (number)",
-                            ),
-                            (
-                                "Caribbean",
-                                "Black, Black British, Black Welsh, Caribbean or African: Caribbean (number)",
-                            ),
-                            (
-                                "Other Black",
-                                "Black, Black British, Black Welsh, Caribbean or African: Other Black (number)",
-                            ),
+                            ("African", "Black: African"),
+                            ("Caribbean", "Black: Caribbean"),
+                            ("Other Black", "Black: Others"),
                         ],
                         "Mixed Group": [
-                            (
-                                "White and Asian",
-                                "Mixed or Multiple ethnic groups: White and Asian (number)",
-                            ),
+                            ("White and Asian", "Mixed Ethnic Group: White and Asian"),
                             (
                                 "White and Black African",
-                                "Mixed or Multiple ethnic groups: White and Black African (number)",
+                                "Mixed Ethnic Group: White and Black African",
                             ),
                             (
                                 "White and Black Caribbean",
-                                "Mixed or Multiple ethnic groups: White and Black Caribbean (number)",
+                                "Mixed Ethnic Group: White and Black Caribbean",
                             ),
-                            (
-                                "Other Mixed",
-                                "Mixed or Multiple ethnic groups: Other Mixed or Multiple ethnic groups (number)",
-                            ),
+                            ("Other Mixed", "Mixed Ethnic Group: Others"),
                         ],
                         "Others Group": [
-                            ("Arab", "Other ethnic group: Arab (number)"),
+                            ("Arab", "Other Ethnic Groups: Arab"),
                             (
                                 "Any other ethnic group",
-                                "Other ethnic group: Any other ethnic group (number)",
+                                "Other Ethnic Groups: Any other",
                             ),
                         ],
                     }
@@ -781,7 +669,7 @@ def render_districts_profile_page() -> None:
                                 st.write(f"• **{label}**: {formatted_val}")
 
                     try:
-                        pop_df = _load_population_overlay()
+                        pop_df = load_overlay_dataframe(DATA_DIR / "population_detail.csv", index_col="fid")
                         st.markdown("---")
                         with st.expander(
                             "📋 View All Authorities — Population Data", expanded=False
@@ -883,7 +771,7 @@ def render_districts_profile_page() -> None:
                     st.dataframe(df_imd, use_container_width=True, hide_index=True)
 
                     try:
-                        imd_df = _load_iod_overlay()
+                        imd_df = load_overlay_dataframe(DATA_DIR / "iod_2025.csv")
                         if not imd_df.empty:
                             st.markdown("---")
                             st.subheader(
@@ -947,8 +835,8 @@ def render_districts_profile_page() -> None:
                     st.dataframe(df_cancer, use_container_width=True, hide_index=True)
 
                     try:
-                        overall_df = _load_cancer_overlay()
-                        top5_df = _load_top5_overlay()
+                        overall_df = get_cancer_overall_df(year_filter="all")
+                        top5_df = get_cancer_top5_df(year_filter="all")
 
                         st.markdown("---")
                         tab_overall, tab_top5 = st.tabs(
@@ -1020,7 +908,6 @@ def render_districts_profile_page() -> None:
             _panel_imd(active_fid, id_to_props)
         elif active_topic == "Cancer Incidence":
             _panel_cancer(active_fid, id_to_props)
-
 
         import importlib as _importlib
 

@@ -167,3 +167,7 @@ data/semantic_cache.json
 improvement.md
 districts.md
 menu.md
+
+refactor_app.py
+refactor_script.py
+refactor_script_v2.py

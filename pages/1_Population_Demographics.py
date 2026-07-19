@@ -1,6 +1,8 @@
 import streamlit as st
 from utils.device import get_is_mobile
 import pandas as pd
+from visualizer import render_plotly_chart
+from utils.data_processing import clean_numeric
 import plotly.express as px
 import plotly.graph_objects as go
 import sys
@@ -77,13 +79,6 @@ SUBGROUP_LABELS = {
 PALETTE = FLC26_QUALITATIVE
 
 
-def _clean_numeric(df: pd.DataFrame, cols: list) -> pd.DataFrame:
-    for c in cols:
-        if c in df.columns:
-            df[c] = pd.to_numeric(
-                df[c].astype(str).str.replace(",", "").str.strip(), errors="coerce"
-            )
-    return df
 
 
 def render_population_playground():
@@ -193,7 +188,7 @@ def render_population_playground():
     ]
     if "Total Population" in df.columns:
         all_num_cols.append("Total Population")
-    df = _clean_numeric(df, all_num_cols)
+    df = clean_numeric(df, all_num_cols)
 
     with col_content:
         tab_dist_pop, tab_regional_pop, tab_pop_cancer, tab_pop_dep, tab_data = st.tabs(
@@ -313,13 +308,12 @@ def render_population_playground():
                         "Subgroup": sorted(long_df["Subgroup"].unique())
                     },
                 )
-                fig.update_layout(**get_plotly_layout())
                 fig.update_layout(
                     height=550,
                     yaxis={"categoryorder": "total ascending"},
                     hovermode="y unified",
                 )
-                st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+                render_plotly_chart(fig)
             else:
                 # Multi-district grouped bar chart
                 fig = px.bar(
@@ -336,11 +330,10 @@ def render_population_playground():
                     },
                     color_discrete_sequence=PALETTE,
                 )
-                fig.update_layout(**get_plotly_layout())
                 fig.update_layout(
                     height=550, xaxis_tickangle=-45, hovermode="x unified"
                 )
-                st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+                render_plotly_chart(fig)
 
             # Comparison Table
             st.write("Comparison Data Table")
@@ -530,8 +523,7 @@ def render_population_playground():
                         except Exception:
                             pass
 
-                    fig.update_layout(**get_plotly_layout())
-                    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+                    render_plotly_chart(fig)
 
                     # Generate AI Insights
                     render_ai_insights(
@@ -567,8 +559,7 @@ def render_population_playground():
                                 labels={"Demographic": sel_demog},
                                 color_discrete_sequence=[PALETTE[0]],
                             )
-                            fig_dem.update_layout(**get_plotly_layout())
-                            st.plotly_chart(fig_dem, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+                            render_plotly_chart(fig_dem)
                         with col_sub2:
                             fig_can = px.bar(
                                 comp_subset,
@@ -578,8 +569,7 @@ def render_population_playground():
                                 labels={"CancerMetric": sel_cancer_label},
                                 color_discrete_sequence=[PALETTE[1]],
                             )
-                            fig_can.update_layout(**get_plotly_layout())
-                            st.plotly_chart(fig_can, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+                            render_plotly_chart(fig_can)
 
     # ── Tab: Population-Deprivation ───────────────────────────────────────────
     with tab_pop_dep:
@@ -749,8 +739,7 @@ def render_population_playground():
                         except Exception:
                             pass
 
-                    fig.update_layout(**get_plotly_layout())
-                    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+                    render_plotly_chart(fig)
 
                     # Generate AI Insights
                     render_ai_insights(
@@ -807,8 +796,7 @@ def render_population_playground():
                         title=f"Average Demographics: 10 Most vs 10 Least Deprived Districts ({sel_dep_label})",
                         color_discrete_sequence=PALETTE,
                     )
-                    fig_groups.update_layout(**get_plotly_layout())
-                    st.plotly_chart(fig_groups, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+                    render_plotly_chart(fig_groups)
 
     # ── Tab 4: Regional Population Analysis ──────────────────────────────────
     with tab_regional_pop:
@@ -855,19 +843,19 @@ def render_population_playground():
                 y_col=metric_col,
                 title=f"Top {num_districts} districts — {metric_col}",
             )
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+            render_plotly_chart(fig)
         elif chart_type == "Histogram":
             fig = create_histogram(
                 plot_df,
                 col=metric_col,
                 title=f"Distribution of {metric_col} across all districts",
             )
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+            render_plotly_chart(fig)
         elif chart_type == "Box Plot":
             fig = create_box_plot(
                 plot_df, y_col=metric_col, title=f"Box Plot: {metric_col} Spread"
             )
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+            render_plotly_chart(fig)
 
         # Generate AI Insights
         render_ai_insights(
@@ -923,7 +911,6 @@ def render_population_playground():
                     fig.add_trace(
                         go.Bar(name=label, x=x_vals, y=sub_df[label].tolist())
                     )
-            fig.update_layout(**get_plotly_layout())
             fig.update_layout(
                 barmode="group",
                 title=f"{selected_group} Sub-Group Breakdown (Top {num_top} districts)",
@@ -933,7 +920,7 @@ def render_population_playground():
                 xaxis_tickangle=-45,
                 height=520,
             )
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+            render_plotly_chart(fig)
 
             # Generate AI Insights
             render_ai_insights(
@@ -999,7 +986,6 @@ def render_population_playground():
                         y=comp_df[col].tolist(),
                     )
                 )
-        fig.update_layout(**get_plotly_layout())
         fig.update_layout(
             barmode=barmode,
             title="Ethnic Composition by District",
@@ -1009,7 +995,7 @@ def render_population_playground():
             xaxis_tickangle=-45,
             height=520,
         )
-        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+        render_plotly_chart(fig)
 
         # Generate AI Insights
         render_ai_insights(
@@ -1059,9 +1045,9 @@ def render_population_playground():
                 color_discrete_sequence=PALETTE,
                 title="Population Distribution: Ethnic Groups × Districts",
             )
-            fig.update_layout(height=620, **get_plotly_layout())
+            fig.update_layout(height=620)
             fig.update_traces(textinfo="label+percent parent")
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+            render_plotly_chart(fig)
 
             # Generate AI Insights
             render_ai_insights(

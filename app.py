@@ -87,23 +87,10 @@ if st.session_state["theme"] == "dark":
         --color-success-bg:     #052E16;
         --color-warning-bg:     #451A03;
         --color-danger-bg:      #450A0A;
-        --radius-sm:  8px;
-        --radius-md:  12px;
-        --radius-lg:  16px;
         --shadow-sm:  0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
         --shadow-md:  0 4px 12px rgba(0,0,0,0.16);
         --shadow-lg:  0 8px 24px rgba(0,0,0,0.20);
-        /* Typography scale — desktop defaults */
-        --fs-hero:        2.5rem;
-        --fs-subtitle:    1.05rem;
-        --fs-page-title:  1.4rem;
-        --fs-body:        1rem;
-        --fs-label:       0.78rem;
-        --fs-value:       1.6rem;
-        --fs-badge:       0.72rem;
-        --fs-tab:         0.88rem;
-        --fs-radio:       0.9rem;
-        --fs-mono:        0.875rem;
+
     }
     """
 else:
@@ -129,23 +116,10 @@ else:
         --color-warning-bg:     #FEF3C7;
         --color-danger:         #DC2626;
         --color-danger-bg:      #FEE2E2;
-        --radius-sm:  8px;
-        --radius-md:  12px;
-        --radius-lg:  16px;
         --shadow-sm:  0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
         --shadow-md:  0 4px 12px rgba(0,0,0,0.08);
         --shadow-lg:  0 8px 24px rgba(0,0,0,0.10);
-        /* Typography scale — desktop defaults (identical to prior hardcoded values) */
-        --fs-hero:        2.5rem;
-        --fs-subtitle:    1.05rem;
-        --fs-page-title:  1.4rem;
-        --fs-body:        1rem;
-        --fs-label:       0.78rem;
-        --fs-value:       1.6rem;
-        --fs-badge:       0.72rem;
-        --fs-tab:         0.88rem;
-        --fs-radio:       0.9rem;
-        --fs-mono:        0.875rem;
+
     }
     """
 
@@ -156,6 +130,23 @@ _CSS = f"""
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 {theme_vars}
+
+:root {{
+    --radius-sm:  8px;
+    --radius-md:  12px;
+    --radius-lg:  16px;
+    /* Typography scale — desktop defaults */
+    --fs-hero:        2.5rem;
+    --fs-subtitle:    1.05rem;
+    --fs-page-title:  1.4rem;
+    --fs-body:        1rem;
+    --fs-label:       0.78rem;
+    --fs-value:       1.6rem;
+    --fs-badge:       0.72rem;
+    --fs-tab:         0.88rem;
+    --fs-radio:       0.9rem;
+    --fs-mono:        0.875rem;
+}}
 
 html, body, [data-testid="stAppViewContainer"], .stButton button, p, label, h1, h2, h3, h4, select, textarea, input {{
     font-family: 'Inter', sans-serif !important;
@@ -203,14 +194,16 @@ code, pre, .monospace {{ font-family: 'JetBrains Mono', monospace; }}
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-align: center;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
     font-size: var(--fs-hero);
     font-weight: 800;
     margin-bottom: 4px;
     letter-spacing: -0.03em;
 }}
 .sub-title {{
-    text-align: center;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
     font-size: var(--fs-subtitle);
     color: var(--color-text-muted);
     margin-bottom: 28px;
@@ -450,7 +443,13 @@ div.stColumn:has(.inactive-nav-btn) button:hover {{
         padding: 14px 16px !important;
     }}
 
-    /* Mobile selectbox nav: full-width pill style */
+    /* Fix selectbox text visibility and styling */
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] span {{
+        color: var(--color-text-heading) !important;
+    }}
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] div {{
+        color: var(--color-text-heading) !important;
+    }}
     div[data-testid="stSelectbox"] select {{
         border-radius: var(--radius-sm) !important;
     }}
@@ -518,7 +517,6 @@ div:has(> #dark-mode-anchor) + div.element-container:hover {{
         gap: 1rem;
     }}
 }}
-
 
 /* ── Step 27: Print Stylesheet ── */
 @media print {{

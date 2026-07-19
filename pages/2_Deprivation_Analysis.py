@@ -1,6 +1,7 @@
 import streamlit as st
 from utils.device import get_is_mobile
 import pandas as pd
+from visualizer import render_plotly_chart
 import plotly.express as px
 import plotly.graph_objects as go
 import geopandas as gpd
@@ -208,12 +209,11 @@ def render_deprivation_playground():
             color_col=color_col,
             title=f"{short_rank_cols[x_var]} vs {short_rank_cols[y_var]}",
         )
-        fig.update_layout(**get_plotly_layout())
         fig.update_layout(
             xaxis_title=short_rank_cols[x_var],
             yaxis_title=short_rank_cols[y_var],
         )
-        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+        render_plotly_chart(fig)
 
         # Generate AI Insights
         render_ai_insights(
@@ -265,9 +265,8 @@ def render_deprivation_playground():
             fig.update_layout(
                 title="Parallel Coordinates — Deprivation Ranks (East of England)",
                 height=540,
-                **get_plotly_layout(),
             )
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+            render_plotly_chart(fig)
 
             # Generate AI Insights
             render_ai_insights(
@@ -305,13 +304,12 @@ def render_deprivation_playground():
                 title="Rank Distribution by Deprivation Domain (East of England districts)",
                 labels={"Rank": "Deprivation Rank (lower = more deprived)"},
             )
-            fig.update_layout(**get_plotly_layout())
             fig.update_layout(
                 xaxis_tickangle=-30,
                 showlegend=False,
                 height=500,
             )
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+            render_plotly_chart(fig)
 
             # Generate AI Insights
             render_ai_insights(
@@ -335,7 +333,7 @@ def render_deprivation_playground():
                 corr_df,
                 title="Deprivation Sub-Domain Correlation Matrix (East of England)",
             )
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+            render_plotly_chart(fig)
 
             # Generate AI Insights
             render_ai_insights(
@@ -455,14 +453,13 @@ def render_deprivation_playground():
                     # For raw rank, we want the lowest rank (most deprived) at the top/right, so we can invert the x-axis
                     if "Inverted" not in view_mode:
                         fig.update_layout(xaxis=dict(autorange="reversed"))
-                    fig.update_layout(**get_plotly_layout())
                     fig.update_layout(
                         height=500,
                         showlegend=False,
                         yaxis={"categoryorder": "total ascending"},
                         hovermode="y unified",
                     )
-                    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+                    render_plotly_chart(fig)
 
                     # Generate AI Insights
                     render_ai_insights(
@@ -488,13 +485,12 @@ def render_deprivation_playground():
                     )
                     if "Inverted" not in view_mode:
                         fig.update_layout(yaxis=dict(autorange="reversed"))
-                    fig.update_layout(**get_plotly_layout())
                     fig.update_layout(
                         height=520,
                         xaxis_tickangle=-30,
                         hovermode="x unified",
                     )
-                    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+                    render_plotly_chart(fig)
 
                     # Generate AI Insights
                     render_ai_insights(
@@ -596,9 +592,8 @@ def render_deprivation_playground():
                     showlegend=True,
                     title="Deprivation Profile (larger area = more deprived on that domain)",
                     height=520,
-                    **get_plotly_layout(),
                 )
-                st.plotly_chart(fig_radar, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+                render_plotly_chart(fig_radar)
                 st.caption(
                     "Axes are inverted: rank #1 (most deprived) plots furthest out; "
                     "rank #296 (least deprived) plots at the centre."
@@ -709,7 +704,6 @@ def _render_deprivation_cancer_scatter(imd_df):
     except Exception:
         pass
 
-    fig.update_layout(**get_plotly_layout())
     fig.update_layout(
         title="Deprivation Rank vs Cancer Incidence Rate \u2014 East of England Districts",
         xaxis_title="IMD Overall Rank (lower = more deprived)",
@@ -717,7 +711,7 @@ def _render_deprivation_cancer_scatter(imd_df):
         height=480,
         showlegend=False,
     )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": not get_is_mobile()})
+    render_plotly_chart(fig)
     st.caption(
         "Trendline = OLS regression. A negative slope would indicate that more deprived districts "
         "(lower rank number) tend to have higher cancer rates."
